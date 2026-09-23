@@ -28,11 +28,18 @@ class ProfileScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final library = ref.watch(libraryProvider);
+    final avatarUrl = profile?.avatarUrl;
+    final validAvatarUrl =
+        avatarUrl != null && Uri.tryParse(avatarUrl)?.scheme == 'https';
     return SafeArea(
       child: ListView(
         padding: const EdgeInsets.fromLTRB(20, 20, 20, 28),
         children: [
-          const CircleAvatar(radius: 42, child: Icon(Icons.person, size: 42)),
+          CircleAvatar(
+            radius: 42,
+            backgroundImage: validAvatarUrl ? NetworkImage(avatarUrl) : null,
+            child: !validAvatarUrl ? const Icon(Icons.person, size: 42) : null,
+          ),
           const SizedBox(height: 14),
           Text(
             profile?.displayName ?? 'Preview Explorer',

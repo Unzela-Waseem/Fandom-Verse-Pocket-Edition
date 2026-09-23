@@ -1,8 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../../../core/validation/input_validators.dart';
 import '../../authentication/domain/app_user.dart';
+import '../data/avatar_upload_service.dart';
 
 class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({super.key, required this.profile});
@@ -14,6 +16,9 @@ class EditProfileScreen extends StatefulWidget {
 }
 
 class _EditProfileScreenState extends State<EditProfileScreen> {
+  static const _avatarUploadEnabled = bool.fromEnvironment(
+    'ENABLE_AVATAR_UPLOAD',
+  );
   static const _availableFandoms = [
     'Anime',
     'Gaming',
@@ -34,6 +39,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   late Set<String> _fandoms;
   late String _badge;
   bool _saving = false;
+  bool _uploading = false;
+  double _uploadProgress = 0;
+  String? _avatarUrl;
+  final _avatarService = AvatarUploadService();
 
   @override
   void initState() {
@@ -44,10 +53,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     _badge = _badges.contains(widget.profile.badge)
         ? widget.profile.badge
         : _badges.first;
+    _avatarUrl = widget.profile.avatarUrl;
   }
 
   @override
   void dispose() {
+    _avatarService.cancel();
     _nameController.dispose();
     _bioController.dispose();
     super.dispose();
@@ -85,8 +96,55 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     }
   }
 
+  Future<void> _uploadAvatar() async {
+    if (_uploading) return;
+    setState(() {
+      _uploading = true;
+      _uploadProgress = 0;
+    });
+    try {
+      final previousUrl = _avatarUrl;
+      final newUrl = await _avatarService.pickAndUpload(
+        uid: widget.profile.uid,
+        onProgress: (progress) {
+          if (mounted) setState(() => _uploadProgress = progress);
+        },
+      );
+      if (newUrl == null) return;
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(widget.profile.uid)
+          .update({
+            'avatarUrl': newUrl,
+            'updatedAt': FieldValue.serverTimestamp(),
+          });
+      if (mounted) setState(() => _avatarUrl = newUrl);
+      await _avatarService.deletePrevious(
+        uid: widget.profile.uid,
+        url: previousUrl,
+      );
+    } catch (error) {
+      if (mounted) {
+        final message = error is AvatarUploadException
+            ? error.message
+            : error is FirebaseException
+            ? error.code == 'canceled'
+                  ? 'Avatar upload canceled.'
+                  : 'Avatar upload is unavailable. Check Storage setup and try again.'
+            : 'Avatar upload failed. Please try again.';
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(message)));
+      }
+    } finally {
+      if (mounted) setState(() => _uploading = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final validAvatarUrl =
+        _avatarUrl != null && Uri.tryParse(_avatarUrl!)?.scheme == 'https';
     return Scaffold(
       appBar: AppBar(title: const Text('Edit profile')),
       body: Form(
@@ -94,6 +152,43 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         child: ListView(
           padding: const EdgeInsets.all(20),
           children: [
+            Center(
+              child: CircleAvatar(
+                radius: 42,
+                backgroundImage: validAvatarUrl
+                    ? NetworkImage(_avatarUrl!)
+                    : null,
+                child: !validAvatarUrl
+                    ? const Icon(Icons.person, size: 42)
+                    : null,
+              ),
+            ),
+            if (_avatarUploadEnabled &&
+                !kIsWeb &&
+                (defaultTargetPlatform == TargetPlatform.android ||
+                    defaultTargetPlatform == TargetPlatform.iOS)) ...[
+              const SizedBox(height: 12),
+              OutlinedButton.icon(
+                onPressed: _uploading ? null : _uploadAvatar,
+                icon: const Icon(Icons.add_a_photo_outlined),
+                label: const Text('Choose profile image'),
+              ),
+              if (_uploading) ...[
+                LinearProgressIndicator(value: _uploadProgress),
+                TextButton(
+                  onPressed: _avatarService.cancel,
+                  child: const Text('Cancel upload'),
+                ),
+              ],
+            ] else ...[
+              const SizedBox(height: 8),
+              const Text(
+                'Image uploads will be available after project Storage setup.',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.white60),
+              ),
+            ],
+            const SizedBox(height: 20),
             TextFormField(
               controller: _nameController,
               validator: (value) =>
@@ -143,7 +238,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             ),
             const SizedBox(height: 22),
             FilledButton(
-              onPressed: _saving ? null : _save,
+              onPressed: _saving || _uploading ? null : _save,
               child: _saving
                   ? const CircularProgressIndicator()
                   : const Text('Save changes'),

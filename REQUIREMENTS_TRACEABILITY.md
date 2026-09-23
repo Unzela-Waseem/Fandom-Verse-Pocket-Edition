@@ -10,7 +10,7 @@ Status values: `planned`, `in progress`, `implemented`, `verified`, `external pr
 | Email/password Authentication and AuthGate | implemented | `lib/features/authentication`, live Firebase provider configuration |
 | Google/Apple sign-in | external prerequisite | Native provider flows and fail-closed Fan profile creation are implemented behind build-time switches; provider consoles, Android SHA keys, iOS capability, and device verification remain pending |
 | Firestore authorization | implemented | Deployed default-deny `firebase/firestore.rules`; Admin requires active profile role plus trusted custom claim |
-| Storage authorization | external prerequisite | Rules ready; new-project bucket provisioning requires billing |
+| Storage authorization and avatar upload | external prerequisite | Owner-only image rules, MIME/size-checked client upload, progress/cancel, and profile display are prepared behind a build-time switch; bucket provisioning/rule deployment and real-device verification require billing |
 | Profiles and dashboard | implemented | Firestore-backed profile creation/editing, fandoms, badge, bio, counters, and dashboard navigation |
 | Fan dashboard visual shell | implemented | `lib/features/dashboard/presentation/fan_shell.dart` |
 | Content hub, search, bookmarks, offline cache | in progress | Search/filter/detail, live Firestore records, account-scoped full-text snapshots and Firestore bookmark mirroring; offline/reconnection integration tests pending |
