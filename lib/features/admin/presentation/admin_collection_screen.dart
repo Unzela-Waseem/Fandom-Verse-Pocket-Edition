@@ -49,6 +49,7 @@ class AdminCollectionConfig {
     fields: [
       AdminField('title', 'Title'),
       AdminField('body', 'Body', type: AdminFieldType.multiline),
+      AdminField('summary', 'Summary', type: AdminFieldType.multiline),
       AdminField('creator', 'Creator'),
       AdminField('categoryId', 'Category ID'),
       AdminField('contentType', 'Content type'),

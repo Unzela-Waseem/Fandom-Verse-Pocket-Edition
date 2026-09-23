@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../library/application/library_controller.dart';
+import '../../library/data/cloud_catalog.dart';
 import '../../library/data/demo_catalog.dart';
 import '../../library/domain/library_models.dart';
 
@@ -80,11 +81,13 @@ class _EventsScreenState extends ConsumerState<EventsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final cloudCatalog = ref.watch(eventCatalogProvider);
+    final catalog = cloudCatalog.asData?.value ?? eventCatalog;
     final cities = [
       'All cities',
-      ...{for (final event in eventCatalog) event.city},
+      ...{for (final event in catalog) event.city},
     ];
-    final events = eventCatalog
+    final events = catalog
         .where((event) => _city == 'All cities' || event.city == _city)
         .toList(growable: false);
     if (_position != null) {
@@ -105,6 +108,11 @@ class _EventsScreenState extends ConsumerState<EventsScreen> {
             style: TextStyle(color: Colors.white60),
           ),
           const SizedBox(height: 12),
+          if (cloudCatalog.hasError)
+            const Text(
+              'Cloud events are unavailable. Showing bundled events.',
+              style: TextStyle(color: Colors.orangeAccent),
+            ),
           OutlinedButton.icon(
             onPressed: _locating ? null : _findNearby,
             icon: _locating
@@ -286,8 +294,9 @@ class EventDetailScreen extends ConsumerWidget {
           ),
           const SizedBox(height: 10),
           OutlinedButton.icon(
-            onPressed: () =>
-                ref.read(libraryProvider.notifier).toggleEvent(event.id),
+            onPressed: () => ref
+                .read(libraryProvider.notifier)
+                .toggleEvent(event.id, event: event),
             icon: Icon(
               saved ? Icons.offline_pin : Icons.download_for_offline_outlined,
             ),

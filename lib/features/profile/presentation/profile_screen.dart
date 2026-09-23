@@ -7,8 +7,12 @@ import '../../authentication/application/auth_providers.dart';
 import '../../authentication/domain/app_user.dart';
 import '../../contact/presentation/contact_screen.dart';
 import '../../discussions/presentation/discussions_screen.dart';
+import '../../events/presentation/events_screen.dart';
 import '../../library/application/library_controller.dart';
+import '../../library/data/cloud_catalog.dart';
 import '../../library/data/demo_catalog.dart';
+import '../../library/domain/library_models.dart';
+import '../../library/presentation/explore_screen.dart';
 import 'edit_profile_screen.dart';
 
 class ProfileScreen extends ConsumerWidget {
@@ -164,12 +168,24 @@ class _SavedScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(libraryProvider);
-    final content = contentCatalog.where(
-      (item) => state.bookmarkedContent.contains(item.id),
-    );
-    final events = eventCatalog.where(
-      (item) => state.savedEvents.contains(item.id),
-    );
+    final availableContent =
+        ref.watch(contentCatalogProvider).asData?.value ?? contentCatalog;
+    final availableEvents =
+        ref.watch(eventCatalogProvider).asData?.value ?? eventCatalog;
+    final contentById = {
+      for (final item in state.savedContent.values) item.id: item,
+      for (final item in availableContent) item.id: item,
+    };
+    final eventsById = {
+      for (final event in state.savedEventDetails.values) event.id: event,
+      for (final event in availableEvents) event.id: event,
+    };
+    final content = state.bookmarkedContent
+        .map((id) => contentById[id])
+        .whereType<ContentItem>();
+    final events = state.savedEvents
+        .map((id) => eventsById[id])
+        .whereType<FandomEvent>();
     return Scaffold(
       appBar: AppBar(title: const Text('Saved & offline')),
       body: ListView(
@@ -186,6 +202,11 @@ class _SavedScreen extends ConsumerWidget {
               title: Text(item.title),
               subtitle: Text(item.category),
               leading: const Icon(Icons.offline_pin),
+              onTap: () => Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (_) => ContentDetailScreen(item: item),
+                ),
+              ),
             ),
           ),
           const SizedBox(height: 16),
@@ -201,6 +222,11 @@ class _SavedScreen extends ConsumerWidget {
                 '${event.city} · ${DateFormat.yMMMd().format(event.date)}',
               ),
               leading: const Icon(Icons.event_available),
+              onTap: () => Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (_) => EventDetailScreen(event: event),
+                ),
+              ),
             ),
           ),
         ],

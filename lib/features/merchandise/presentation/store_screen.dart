@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../library/application/library_controller.dart';
+import '../../library/data/cloud_catalog.dart';
 import '../../library/data/demo_catalog.dart';
 import '../../library/domain/library_models.dart';
 
@@ -22,13 +23,17 @@ class _StoreScreenState extends ConsumerState<StoreScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final cloudCatalog = ref.watch(productCatalogProvider);
+    final catalog = cloudCatalog.asData?.value ?? productCatalog;
     final categories = [
       'All',
-      ...{for (final product in productCatalog) product.category},
+      ...{for (final product in catalog) product.category},
     ];
+    final selectedCategory = categories.contains(_category) ? _category : 'All';
     final products =
-        productCatalog.where((product) {
-          return (_category == 'All' || product.category == _category) &&
+        catalog.where((product) {
+          return (selectedCategory == 'All' ||
+                  product.category == selectedCategory) &&
               (product.name.toLowerCase().contains(_query.toLowerCase()) ||
                   product.description.toLowerCase().contains(
                     _query.toLowerCase(),
@@ -74,6 +79,11 @@ class _StoreScreenState extends ConsumerState<StoreScreen> {
             style: TextStyle(color: Colors.white60),
           ),
           const SizedBox(height: 18),
+          if (cloudCatalog.hasError)
+            const Text(
+              'Cloud merchandise is unavailable. Showing bundled products.',
+              style: TextStyle(color: Colors.orangeAccent),
+            ),
           TextField(
             onChanged: (value) => setState(() => _query = value),
             decoration: const InputDecoration(
@@ -86,7 +96,7 @@ class _StoreScreenState extends ConsumerState<StoreScreen> {
             children: [
               Expanded(
                 child: DropdownButtonFormField<String>(
-                  initialValue: _category,
+                  initialValue: selectedCategory,
                   decoration: const InputDecoration(labelText: 'Category'),
                   items: categories
                       .map(
@@ -117,6 +127,7 @@ class _StoreScreenState extends ConsumerState<StoreScreen> {
             (product) => _ProductCard(
               product: product,
               wishlisted: library.wishlist.contains(product.id),
+              catalog: catalog,
             ),
           ),
         ],
@@ -126,9 +137,14 @@ class _StoreScreenState extends ConsumerState<StoreScreen> {
 }
 
 class _ProductCard extends ConsumerWidget {
-  const _ProductCard({required this.product, required this.wishlisted});
+  const _ProductCard({
+    required this.product,
+    required this.wishlisted,
+    required this.catalog,
+  });
   final Product product;
   final bool wishlisted;
+  final List<Product> catalog;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -192,7 +208,7 @@ class _ProductCard extends ConsumerWidget {
                         ? null
                         : () => ref
                               .read(libraryProvider.notifier)
-                              .addToCart(product.id),
+                              .addToCart(product.id, catalog: catalog),
                     icon: const Icon(Icons.add_shopping_cart, size: 18),
                     label: const Text('Add to cart'),
                   ),
@@ -221,10 +237,18 @@ class CartScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final library = ref.watch(libraryProvider);
+    final catalog =
+        ref.watch(productCatalogProvider).asData?.value ?? productCatalog;
+    final productsById = {for (final product in catalog) product.id: product};
+    final invalidIds = library.cart.entries
+        .where((line) {
+          final product = productsById[line.key];
+          return product == null || product.stock < line.value;
+        })
+        .map((line) => line.key)
+        .toList(growable: false);
     final total = library.cart.entries.fold<double>(0, (sum, line) {
-      return sum +
-          productCatalog.firstWhere((product) => product.id == line.key).price *
-              line.value;
+      return sum + (productsById[line.key]?.price ?? 0) * line.value;
     });
     return Scaffold(
       appBar: AppBar(title: const Text('Cart')),
@@ -234,9 +258,22 @@ class CartScreen extends ConsumerWidget {
               padding: const EdgeInsets.all(20),
               children: [
                 ...library.cart.entries.map((line) {
-                  final product = productCatalog.firstWhere(
-                    (item) => item.id == line.key,
-                  );
+                  final product = productsById[line.key];
+                  if (product == null) {
+                    return Card(
+                      child: ListTile(
+                        title: const Text('Product no longer available'),
+                        subtitle: Text(line.key),
+                        trailing: IconButton(
+                          tooltip: 'Remove from cart',
+                          onPressed: () => ref
+                              .read(libraryProvider.notifier)
+                              .setCartQuantity(line.key, 0),
+                          icon: const Icon(Icons.delete_outline),
+                        ),
+                      ),
+                    );
+                  }
                   return Card(
                     child: ListTile(
                       title: Text(product.name),
@@ -249,14 +286,22 @@ class CartScreen extends ConsumerWidget {
                           IconButton(
                             onPressed: () => ref
                                 .read(libraryProvider.notifier)
-                                .setCartQuantity(product.id, line.value - 1),
+                                .setCartQuantity(
+                                  product.id,
+                                  line.value - 1,
+                                  catalog: catalog,
+                                ),
                             icon: const Icon(Icons.remove_circle_outline),
                           ),
                           Text('${line.value}'),
                           IconButton(
                             onPressed: () => ref
                                 .read(libraryProvider.notifier)
-                                .setCartQuantity(product.id, line.value + 1),
+                                .setCartQuantity(
+                                  product.id,
+                                  line.value + 1,
+                                  catalog: catalog,
+                                ),
                             icon: const Icon(Icons.add_circle_outline),
                           ),
                         ],
@@ -279,25 +324,34 @@ class CartScreen extends ConsumerWidget {
                   ),
                 ),
                 const SizedBox(height: 12),
+                if (invalidIds.isNotEmpty)
+                  const Text(
+                    'Remove unavailable products or reduce quantities before checkout.',
+                    style: TextStyle(color: Colors.orangeAccent),
+                  ),
                 FilledButton(
-                  onPressed: () {
-                    final order = ref.read(libraryProvider.notifier).checkout();
-                    showDialog<void>(
-                      context: context,
-                      builder: (_) => AlertDialog(
-                        title: const Text('Demo order complete'),
-                        content: Text(
-                          'Order ${order.id}\nTotal: ${_currency.format(order.total)}\n\nNo payment was collected.',
-                        ),
-                        actions: [
-                          TextButton(
-                            onPressed: () => Navigator.of(context).pop(),
-                            child: const Text('Done'),
-                          ),
-                        ],
-                      ),
-                    );
-                  },
+                  onPressed: invalidIds.isNotEmpty
+                      ? null
+                      : () {
+                          final order = ref
+                              .read(libraryProvider.notifier)
+                              .checkout(catalog: catalog);
+                          showDialog<void>(
+                            context: context,
+                            builder: (_) => AlertDialog(
+                              title: const Text('Demo order complete'),
+                              content: Text(
+                                'Order ${order.id}\nTotal: ${_currency.format(order.total)}\n\nNo payment was collected.',
+                              ),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.of(context).pop(),
+                                  child: const Text('Done'),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
                   child: const Text('Complete simulated checkout'),
                 ),
               ],

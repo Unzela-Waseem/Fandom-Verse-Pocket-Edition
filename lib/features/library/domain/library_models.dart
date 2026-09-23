@@ -32,6 +32,36 @@ class ContentItem {
   final String creator;
   final List<String> tags;
   final bool trending;
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'title': title,
+    'summary': summary,
+    'body': body,
+    'category': category,
+    'type': type.name,
+    'creator': creator,
+    'tags': tags,
+    'trending': trending,
+  };
+
+  factory ContentItem.fromJson(Map<String, dynamic> json) {
+    final typeName = json['type'] as String?;
+    return ContentItem(
+      id: json['id'] as String,
+      title: json['title'] as String,
+      summary: json['summary'] as String,
+      body: json['body'] as String,
+      category: json['category'] as String,
+      type: ContentType.values.firstWhere(
+        (value) => value.name == typeName,
+        orElse: () => ContentType.story,
+      ),
+      creator: json['creator'] as String,
+      tags: List<String>.from(json['tags'] as List? ?? const []),
+      trending: json['trending'] == true,
+    );
+  }
 }
 
 class FandomEvent {
@@ -58,6 +88,32 @@ class FandomEvent {
   final double latitude;
   final double longitude;
   final String ticketUrl;
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'title': title,
+    'description': description,
+    'city': city,
+    'venue': venue,
+    'date': date.toIso8601String(),
+    'category': category,
+    'latitude': latitude,
+    'longitude': longitude,
+    'ticketUrl': ticketUrl,
+  };
+
+  factory FandomEvent.fromJson(Map<String, dynamic> json) => FandomEvent(
+    id: json['id'] as String,
+    title: json['title'] as String,
+    description: json['description'] as String,
+    city: json['city'] as String,
+    venue: json['venue'] as String,
+    date: DateTime.parse(json['date'] as String),
+    category: json['category'] as String,
+    latitude: (json['latitude'] as num).toDouble(),
+    longitude: (json['longitude'] as num).toDouble(),
+    ticketUrl: json['ticketUrl'] as String,
+  );
 }
 
 class Product {

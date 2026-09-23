@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/constants/app_assets.dart';
 import '../application/library_controller.dart';
+import '../data/cloud_catalog.dart';
 import '../data/demo_catalog.dart';
 import '../domain/library_models.dart';
 
@@ -19,11 +20,13 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final cloudCatalog = ref.watch(contentCatalogProvider);
+    final catalog = cloudCatalog.asData?.value ?? contentCatalog;
     final categories = [
       'All',
-      ...{for (final item in contentCatalog) item.category},
+      ...{for (final item in catalog) item.category},
     ];
-    final results = contentCatalog
+    final results = catalog
         .where((item) {
           final query = _query.toLowerCase().trim();
           final matchesQuery =
@@ -52,6 +55,14 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
             style: TextStyle(color: Colors.white60),
           ),
           const SizedBox(height: 18),
+          if (cloudCatalog.hasError)
+            const Padding(
+              padding: EdgeInsets.only(bottom: 12),
+              child: Text(
+                'Cloud content is unavailable. Showing bundled items.',
+                style: TextStyle(color: Colors.orangeAccent),
+              ),
+            ),
           TextField(
             onChanged: (value) => setState(() => _query = value),
             decoration: InputDecoration(
@@ -151,7 +162,7 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
                                   : 'Save offline',
                               onPressed: () => ref
                                   .read(libraryProvider.notifier)
-                                  .toggleBookmark(item.id),
+                                  .toggleBookmark(item.id, item: item),
                               icon: Icon(
                                 library.bookmarkedContent.contains(item.id)
                                     ? Icons.bookmark
@@ -191,8 +202,9 @@ class ContentDetailScreen extends ConsumerWidget {
             tooltip: saved
                 ? 'Remove offline bookmark'
                 : 'Save for offline access',
-            onPressed: () =>
-                ref.read(libraryProvider.notifier).toggleBookmark(item.id),
+            onPressed: () => ref
+                .read(libraryProvider.notifier)
+                .toggleBookmark(item.id, item: item),
             icon: Icon(saved ? Icons.bookmark : Icons.bookmark_border),
           ),
         ],
