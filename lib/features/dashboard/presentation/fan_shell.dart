@@ -5,6 +5,7 @@ import '../../authentication/domain/app_user.dart';
 import '../../events/presentation/events_screen.dart';
 import '../../library/presentation/explore_screen.dart';
 import '../../merchandise/presentation/store_screen.dart';
+import '../../profile/presentation/profile_screen.dart';
 import '../domain/fandom_item.dart';
 
 class FanShell extends StatefulWidget {
@@ -26,7 +27,7 @@ class _FanShellState extends State<FanShell> {
       const ExploreScreen(),
       const EventsScreen(),
       const StoreScreen(),
-      const _ProfileTab(),
+      ProfileScreen(profile: widget.profile),
     ];
     return Scaffold(
       body: IndexedStack(index: _index, children: pages),
@@ -494,6 +495,8 @@ class _FandomDetail extends StatelessWidget {
   }
 }
 
+// TODO: Remove after the profile migration is verified on representative devices.
+// ignore: unused_element
 class _ProfileTab extends StatelessWidget {
   const _ProfileTab();
   @override

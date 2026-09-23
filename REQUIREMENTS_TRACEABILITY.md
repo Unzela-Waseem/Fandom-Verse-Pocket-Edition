@@ -15,7 +15,7 @@ Status values: `planned`, `in progress`, `implemented`, `verified`, `external pr
 | Content hub, search, bookmarks, offline cache | in progress | Search/filter/detail and local persistence implemented; remote sync pending |
 | Events, Maps links, calendar/agenda | in progress | City filter, details, external Maps, ticket validation, offline agenda implemented; GPS permission pending |
 | Store, wishlist, cart, simulated checkout | implemented | `lib/features/merchandise`, persistent local state and tests |
-| AI Fan Helper | planned | Phase 15 |
-| Contact, About, discussions | planned | Phase 16 |
+| AI Fan Helper | implemented | Offline curated FAQ conversation with loading and fallback states |
+| Contact, About, discussions | implemented | Firestore inquiry/discussion flows, ownership rules, project team screen |
 | Admin CRUD and moderation | planned | Phase 17 |
 | Backup, audit and deployment config | planned | Phase 18 |
