@@ -60,7 +60,7 @@ service cloud.firestore {
     }
     match /users/{uid}/{collection}/{id} {
       allow read, write: if owns(uid) && collection in [
-        'bookmarks', 'wishlist', 'cart', 'orders', 'notifications'
+        'bookmarks', 'saved_events', 'wishlist', 'cart', 'orders', 'notifications'
       ];
     }
     match /users/{uid}/inquiries/{id} {

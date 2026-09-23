@@ -55,6 +55,14 @@ class ProfileScreen extends ConsumerWidget {
             ],
           ),
           const SizedBox(height: 20),
+          if (library.syncFailed)
+            const Padding(
+              padding: EdgeInsets.only(bottom: 12),
+              child: Text(
+                'Some saved changes could not sync. They remain on this device; reconnect and try again.',
+                style: TextStyle(color: Colors.orangeAccent),
+              ),
+            ),
           if (profile != null)
             _ProfileTile(
               icon: Icons.edit_outlined,

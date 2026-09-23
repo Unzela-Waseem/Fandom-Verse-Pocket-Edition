@@ -12,9 +12,9 @@ Status values: `planned`, `in progress`, `implemented`, `verified`, `external pr
 | Storage authorization | external prerequisite | Rules ready; new-project bucket provisioning requires billing |
 | Profiles and dashboard | implemented | Firestore-backed profile creation/editing, fandoms, badge, bio, counters, and dashboard navigation |
 | Fan dashboard visual shell | implemented | `lib/features/dashboard/presentation/fan_shell.dart` |
-| Content hub, search, bookmarks, offline cache | in progress | Search/filter/detail, live published Firestore records, account-scoped local state, and saved full-text snapshots implemented; cross-device sync pending |
+| Content hub, search, bookmarks, offline cache | in progress | Search/filter/detail, live Firestore records, account-scoped full-text snapshots and Firestore bookmark mirroring; offline/reconnection integration tests pending |
 | Events, Maps links, calendar/agenda | implemented | City filter, contextual GPS permission, nearby sorting, external Maps, ticket validation, and offline agenda |
-| Store, wishlist, cart, simulated checkout | in progress | Live Firestore product records, account-scoped local wishlist/cart/orders, simulated checkout and tests; cross-device sync pending |
+| Store, wishlist, cart, simulated checkout | in progress | Live Firestore products, account-scoped local state mirrored to Firestore, simulated checkout and tests; cross-device conflict/integration verification pending |
 | AI Fan Helper | implemented | Offline curated FAQ conversation with loading and fallback states |
 | In-app notifications | in progress | Published Admin announcements and personal read/unread notification center; price-drop generation and FCM delivery pending |
 | Contact, About, discussions | implemented | Firestore inquiry/discussion flows, ownership rules, project team screen |

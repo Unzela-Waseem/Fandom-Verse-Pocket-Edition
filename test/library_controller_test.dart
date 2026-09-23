@@ -65,4 +65,29 @@ void main() {
     expect(order.total, 1000);
     expect(order.quantities['cloud-poster'], 2);
   });
+
+  test('saved cloud article text survives a local restart', () async {
+    const story = ContentItem(
+      id: 'cloud-story',
+      title: 'Cloud Story',
+      summary: 'A story',
+      body: 'The complete story is stored on this device.',
+      category: 'Sci-Fi',
+      type: ContentType.story,
+      creator: 'Test Creator',
+      tags: ['original'],
+    );
+    final first = ProviderContainer();
+    first.read(libraryProvider.notifier).toggleBookmark(story.id, item: story);
+    await Future<void>.delayed(const Duration(milliseconds: 20));
+    first.dispose();
+
+    final second = ProviderContainer();
+    addTearDown(second.dispose);
+    second.read(libraryProvider);
+    await Future<void>.delayed(const Duration(milliseconds: 20));
+    final restored = second.read(libraryProvider);
+    expect(restored.bookmarkedContent, contains(story.id));
+    expect(restored.savedContent[story.id]?.body, story.body);
+  });
 }

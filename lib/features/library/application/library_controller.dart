@@ -3,6 +3,7 @@ import 'dart:async';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -19,6 +20,7 @@ class LibraryState {
     this.cart = const {},
     this.orders = const [],
     this.restored = false,
+    this.syncFailed = false,
   });
 
   final Set<String> bookmarkedContent;
@@ -29,6 +31,7 @@ class LibraryState {
   final Map<String, int> cart;
   final List<PurchaseOrder> orders;
   final bool restored;
+  final bool syncFailed;
 
   LibraryState copyWith({
     Set<String>? bookmarkedContent,
@@ -39,6 +42,7 @@ class LibraryState {
     Map<String, int>? cart,
     List<PurchaseOrder>? orders,
     bool? restored,
+    bool? syncFailed,
   }) {
     return LibraryState(
       bookmarkedContent: bookmarkedContent ?? this.bookmarkedContent,
@@ -49,6 +53,7 @@ class LibraryState {
       cart: cart ?? this.cart,
       orders: orders ?? this.orders,
       restored: restored ?? this.restored,
+      syncFailed: syncFailed ?? this.syncFailed,
     );
   }
 }
@@ -59,6 +64,9 @@ final libraryProvider = NotifierProvider<LibraryController, LibraryState>(
 
 class LibraryController extends Notifier<LibraryState> {
   String _scope = 'preview';
+  Future<void> _lastPersist = Future<void>.value();
+  final List<StreamSubscription<QuerySnapshot<Map<String, dynamic>>>>
+  _cloudSubscriptions = [];
 
   String _storageKey(String scope) => 'fandom_verse_library_v2_$scope';
 
@@ -71,19 +79,46 @@ class LibraryController extends Notifier<LibraryState> {
       ) {
         final nextScope = user?.uid ?? 'preview';
         if (nextScope == _scope) return;
+        for (final active in _cloudSubscriptions) {
+          unawaited(active.cancel());
+        }
+        _cloudSubscriptions.clear();
         _scope = nextScope;
         state = const LibraryState();
-        _restore(nextScope);
+        unawaited(_loadScope(nextScope));
       });
-      ref.onDispose(subscription.cancel);
+      ref.onDispose(() {
+        unawaited(subscription.cancel());
+        for (final active in _cloudSubscriptions) {
+          unawaited(active.cancel());
+        }
+      });
     }
-    Future<void>.microtask(() => _restore(_scope));
+    Future<void>.microtask(() => _loadScope(_scope));
     return const LibraryState();
+  }
+
+  Future<void> _loadScope(String scope) async {
+    await _restore(scope);
+    if (!ref.mounted ||
+        scope != _scope ||
+        scope == 'preview' ||
+        Firebase.apps.isEmpty) {
+      return;
+    }
+    try {
+      await _migrateLocalToCloud(scope);
+      if (ref.mounted && scope == _scope) _listenToCloud(scope);
+    } catch (_) {
+      if (ref.mounted && scope == _scope) {
+        state = state.copyWith(syncFailed: true);
+      }
+    }
   }
 
   Future<void> _restore(String scope) async {
     final preferences = await SharedPreferences.getInstance();
-    if (scope != _scope) return;
+    if (!ref.mounted || scope != _scope) return;
     final stored = preferences.getString(_storageKey(scope));
     if (stored == null) {
       state = state.copyWith(restored: true);
@@ -91,7 +126,7 @@ class LibraryController extends Notifier<LibraryState> {
     }
     try {
       final json = jsonDecode(stored) as Map<String, dynamic>;
-      if (scope != _scope) return;
+      if (!ref.mounted || scope != _scope) return;
       state = LibraryState(
         bookmarkedContent: Set<String>.from(
           json['bookmarkedContent'] as List? ?? const [],
@@ -121,29 +156,248 @@ class LibraryController extends Notifier<LibraryState> {
         restored: true,
       );
     } catch (_) {
-      if (scope == _scope) state = state.copyWith(restored: true);
+      if (ref.mounted && scope == _scope) {
+        state = state.copyWith(restored: true);
+      }
     }
   }
 
-  Future<void> _persist() async {
+  Future<void> _persist() {
     final scope = _scope;
     final snapshot = state;
+    final encoded = jsonEncode({
+      'bookmarkedContent': snapshot.bookmarkedContent.toList(),
+      'savedContent': snapshot.savedContent.map(
+        (id, item) => MapEntry(id, item.toJson()),
+      ),
+      'savedEvents': snapshot.savedEvents.toList(),
+      'savedEventDetails': snapshot.savedEventDetails.map(
+        (id, event) => MapEntry(id, event.toJson()),
+      ),
+      'wishlist': snapshot.wishlist.toList(),
+      'cart': snapshot.cart,
+      'orders': snapshot.orders.map((order) => order.toJson()).toList(),
+      'updatedAt': DateTime.now().toIso8601String(),
+    });
+    _lastPersist = _lastPersist
+        .then((_) async {
+          final preferences = await SharedPreferences.getInstance();
+          await preferences.setString(_storageKey(scope), encoded);
+        })
+        .catchError((Object _) {
+          if (ref.mounted && scope == _scope) {
+            state = state.copyWith(syncFailed: true);
+          }
+        });
+    return _lastPersist;
+  }
+
+  CollectionReference<Map<String, dynamic>> _userCollection(
+    String scope,
+    String name,
+  ) => FirebaseFirestore.instance
+      .collection('users')
+      .doc(scope)
+      .collection(name);
+
+  Future<void> _migrateLocalToCloud(String scope) async {
     final preferences = await SharedPreferences.getInstance();
-    await preferences.setString(
-      _storageKey(scope),
-      jsonEncode({
-        'bookmarkedContent': snapshot.bookmarkedContent.toList(),
-        'savedContent': snapshot.savedContent.map(
-          (id, item) => MapEntry(id, item.toJson()),
-        ),
-        'savedEvents': snapshot.savedEvents.toList(),
-        'savedEventDetails': snapshot.savedEventDetails.map(
-          (id, event) => MapEntry(id, event.toJson()),
-        ),
-        'wishlist': snapshot.wishlist.toList(),
-        'cart': snapshot.cart,
-        'orders': snapshot.orders.map((order) => order.toJson()).toList(),
-        'updatedAt': DateTime.now().toIso8601String(),
+    if (!ref.mounted || scope != _scope) return;
+    final key = 'fandom_verse_library_cloud_migrated_$scope';
+    if (preferences.getBool(key) == true || scope != _scope) return;
+    final localSnapshot = state;
+    var batch = FirebaseFirestore.instance.batch();
+    var count = 0;
+
+    Future<void> flush() async {
+      if (count == 0) return;
+      await batch.commit();
+      batch = FirebaseFirestore.instance.batch();
+      count = 0;
+    }
+
+    Future<void> put(
+      String collection,
+      String id,
+      Map<String, dynamic> data,
+    ) async {
+      if (!ref.mounted || scope != _scope) {
+        throw StateError('Account changed during library migration.');
+      }
+      if (count >= 400) await flush();
+      if (!ref.mounted || scope != _scope) {
+        throw StateError('Account changed during library migration.');
+      }
+      batch.set(_userCollection(scope, collection).doc(id), data);
+      count++;
+    }
+
+    for (final id in localSnapshot.bookmarkedContent) {
+      await put('bookmarks', id, {
+        'content': localSnapshot.savedContent[id]?.toJson(),
+        'savedAt': FieldValue.serverTimestamp(),
+      });
+    }
+    for (final id in localSnapshot.savedEvents) {
+      await put('saved_events', id, {
+        'event': localSnapshot.savedEventDetails[id]?.toJson(),
+        'savedAt': FieldValue.serverTimestamp(),
+      });
+    }
+    for (final id in localSnapshot.wishlist) {
+      await put('wishlist', id, {
+        'productId': id,
+        'savedAt': FieldValue.serverTimestamp(),
+      });
+    }
+    for (final entry in localSnapshot.cart.entries) {
+      await put('cart', entry.key, {
+        'productId': entry.key,
+        'quantity': entry.value,
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+    }
+    for (final order in localSnapshot.orders) {
+      await put('orders', order.id, {
+        ...order.toJson(),
+        'serverCreatedAt': FieldValue.serverTimestamp(),
+      });
+    }
+    await flush();
+    if (ref.mounted && scope == _scope) await preferences.setBool(key, true);
+  }
+
+  void _listenToCloud(String scope) {
+    void failure(Object _) {
+      if (ref.mounted && scope == _scope) {
+        state = state.copyWith(syncFailed: true);
+      }
+    }
+
+    _cloudSubscriptions.add(
+      _userCollection(scope, 'bookmarks').snapshots().listen((snapshot) {
+        if (!ref.mounted ||
+            scope != _scope ||
+            (snapshot.metadata.isFromCache &&
+                snapshot.docs.isEmpty &&
+                state.bookmarkedContent.isNotEmpty)) {
+          return;
+        }
+        final details = <String, ContentItem>{};
+        for (final document in snapshot.docs) {
+          final raw = document.data()['content'];
+          if (raw is Map) {
+            try {
+              details[document.id] = ContentItem.fromJson(
+                Map<String, dynamic>.from(raw),
+              );
+            } catch (_) {}
+          }
+        }
+        state = state.copyWith(
+          bookmarkedContent: snapshot.docs.map((doc) => doc.id).toSet(),
+          savedContent: details,
+          syncFailed: false,
+        );
+        unawaited(_persist());
+      }, onError: failure),
+    );
+    _cloudSubscriptions.add(
+      _userCollection(scope, 'saved_events').snapshots().listen((snapshot) {
+        if (!ref.mounted ||
+            scope != _scope ||
+            (snapshot.metadata.isFromCache &&
+                snapshot.docs.isEmpty &&
+                state.savedEvents.isNotEmpty)) {
+          return;
+        }
+        final details = <String, FandomEvent>{};
+        for (final document in snapshot.docs) {
+          final raw = document.data()['event'];
+          if (raw is Map) {
+            try {
+              details[document.id] = FandomEvent.fromJson(
+                Map<String, dynamic>.from(raw),
+              );
+            } catch (_) {}
+          }
+        }
+        state = state.copyWith(
+          savedEvents: snapshot.docs.map((doc) => doc.id).toSet(),
+          savedEventDetails: details,
+          syncFailed: false,
+        );
+        unawaited(_persist());
+      }, onError: failure),
+    );
+    _cloudSubscriptions.add(
+      _userCollection(scope, 'wishlist').snapshots().listen((snapshot) {
+        if (!ref.mounted ||
+            scope != _scope ||
+            (snapshot.metadata.isFromCache &&
+                snapshot.docs.isEmpty &&
+                state.wishlist.isNotEmpty)) {
+          return;
+        }
+        state = state.copyWith(
+          wishlist: snapshot.docs.map((doc) => doc.id).toSet(),
+          syncFailed: false,
+        );
+        unawaited(_persist());
+      }, onError: failure),
+    );
+    _cloudSubscriptions.add(
+      _userCollection(scope, 'cart').snapshots().listen((snapshot) {
+        if (!ref.mounted ||
+            scope != _scope ||
+            (snapshot.metadata.isFromCache &&
+                snapshot.docs.isEmpty &&
+                state.cart.isNotEmpty)) {
+          return;
+        }
+        final cart = <String, int>{};
+        for (final document in snapshot.docs) {
+          final quantity = document.data()['quantity'];
+          if (quantity is int && quantity > 0) cart[document.id] = quantity;
+        }
+        state = state.copyWith(cart: cart, syncFailed: false);
+        unawaited(_persist());
+      }, onError: failure),
+    );
+    _cloudSubscriptions.add(
+      _userCollection(scope, 'orders').limit(100).snapshots().listen((
+        snapshot,
+      ) {
+        if (!ref.mounted ||
+            scope != _scope ||
+            (snapshot.metadata.isFromCache &&
+                snapshot.docs.isEmpty &&
+                state.orders.isNotEmpty)) {
+          return;
+        }
+        final orders = <PurchaseOrder>[];
+        for (final document in snapshot.docs) {
+          try {
+            orders.add(PurchaseOrder.fromJson(document.data()));
+          } catch (_) {}
+        }
+        orders.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+        state = state.copyWith(orders: orders, syncFailed: false);
+        unawaited(_persist());
+      }, onError: failure),
+    );
+  }
+
+  void _writeCloud(String collection, String id, Map<String, dynamic>? data) {
+    final scope = _scope;
+    if (scope == 'preview' || Firebase.apps.isEmpty) return;
+    final document = _userCollection(scope, collection).doc(id);
+    final operation = data == null ? document.delete() : document.set(data);
+    unawaited(
+      operation.catchError((Object _) {
+        if (ref.mounted && scope == _scope) {
+          state = state.copyWith(syncFailed: true);
+        }
       }),
     );
   }
@@ -158,7 +412,17 @@ class LibraryController extends Notifier<LibraryState> {
       details.remove(id);
     }
     state = state.copyWith(bookmarkedContent: next, savedContent: details);
-    _persist();
+    unawaited(_persist());
+    _writeCloud(
+      'bookmarks',
+      id,
+      next.contains(id)
+          ? {
+              'content': details[id]?.toJson(),
+              'savedAt': FieldValue.serverTimestamp(),
+            }
+          : null,
+    );
   }
 
   void toggleEvent(String id, {FandomEvent? event}) {
@@ -171,14 +435,31 @@ class LibraryController extends Notifier<LibraryState> {
       details.remove(id);
     }
     state = state.copyWith(savedEvents: next, savedEventDetails: details);
-    _persist();
+    unawaited(_persist());
+    _writeCloud(
+      'saved_events',
+      id,
+      next.contains(id)
+          ? {
+              'event': details[id]?.toJson(),
+              'savedAt': FieldValue.serverTimestamp(),
+            }
+          : null,
+    );
   }
 
   void toggleWishlist(String id) {
     final next = {...state.wishlist};
     next.contains(id) ? next.remove(id) : next.add(id);
     state = state.copyWith(wishlist: next);
-    _persist();
+    unawaited(_persist());
+    _writeCloud(
+      'wishlist',
+      id,
+      next.contains(id)
+          ? {'productId': id, 'savedAt': FieldValue.serverTimestamp()}
+          : null,
+    );
   }
 
   void addToCart(String id, {List<Product> catalog = productCatalog}) =>
@@ -198,17 +479,28 @@ class LibraryController extends Notifier<LibraryState> {
       next[id] = quantity.clamp(1, product.stock);
     }
     state = state.copyWith(cart: next);
-    _persist();
+    unawaited(_persist());
+    _writeCloud(
+      'cart',
+      id,
+      next.containsKey(id)
+          ? {
+              'productId': id,
+              'quantity': next[id],
+              'updatedAt': FieldValue.serverTimestamp(),
+            }
+          : null,
+    );
   }
 
   PurchaseOrder checkout({List<Product> catalog = productCatalog}) {
     if (state.cart.isEmpty) throw StateError('Your cart is empty.');
-    final total = state.cart.entries.fold<double>(0, (sum, line) {
+    final total = state.cart.entries.fold<double>(0, (currentTotal, line) {
       final product = catalog.firstWhere((item) => item.id == line.key);
       if (product.stock < line.value) {
         throw StateError('${product.name} no longer has enough stock.');
       }
-      return sum + (product.price * line.value);
+      return currentTotal + (product.price * line.value);
     });
     final order = PurchaseOrder(
       id: 'FV-${DateTime.now().millisecondsSinceEpoch}',
@@ -217,7 +509,25 @@ class LibraryController extends Notifier<LibraryState> {
       total: total,
     );
     state = state.copyWith(cart: {}, orders: [order, ...state.orders]);
-    _persist();
+    unawaited(_persist());
+    final scope = _scope;
+    if (scope != 'preview' && Firebase.apps.isNotEmpty) {
+      final batch = FirebaseFirestore.instance.batch();
+      batch.set(_userCollection(scope, 'orders').doc(order.id), {
+        ...order.toJson(),
+        'serverCreatedAt': FieldValue.serverTimestamp(),
+      });
+      for (final productId in order.quantities.keys) {
+        batch.delete(_userCollection(scope, 'cart').doc(productId));
+      }
+      unawaited(
+        batch.commit().catchError((Object _) {
+          if (ref.mounted && scope == _scope) {
+            state = state.copyWith(syncFailed: true);
+          }
+        }),
+      );
+    }
     return order;
   }
 }
