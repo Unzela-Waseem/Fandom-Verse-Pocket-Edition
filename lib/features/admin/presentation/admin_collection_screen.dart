@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
+import '../../../core/media/cloudinary_media_service.dart';
 import '../../library/domain/library_models.dart';
 
 enum AdminFieldType { text, multiline, number, toggle }
@@ -228,6 +229,7 @@ class _AdminCollectionScreenState extends State<AdminCollectionScreen> {
   ) async {
     await showDialog<void>(
       context: context,
+      barrierDismissible: false,
       builder: (_) => _AdminRecordEditor(
         config: widget.config,
         reference: record?.reference,
@@ -296,7 +298,10 @@ class _AdminRecordEditorState extends State<_AdminRecordEditor> {
   final _formKey = GlobalKey<FormState>();
   final Map<String, TextEditingController> _controllers = {};
   final Map<String, bool> _toggles = {};
+  final _mediaService = CloudinaryMediaService();
   bool _saving = false;
+  String? _uploadingField;
+  double _uploadProgress = 0;
 
   @override
   void initState() {
@@ -317,6 +322,7 @@ class _AdminRecordEditorState extends State<_AdminRecordEditor> {
 
   @override
   void dispose() {
+    _mediaService.cancel();
     for (final controller in _controllers.values) {
       controller.dispose();
     }
@@ -324,7 +330,11 @@ class _AdminRecordEditorState extends State<_AdminRecordEditor> {
   }
 
   Future<void> _save() async {
-    if (_saving || !_formKey.currentState!.validate()) return;
+    if (_saving ||
+        _uploadingField != null ||
+        !_formKey.currentState!.validate()) {
+      return;
+    }
     setState(() => _saving = true);
     try {
       final data = <String, dynamic>{};
@@ -379,6 +389,53 @@ class _AdminRecordEditorState extends State<_AdminRecordEditor> {
     }
   }
 
+  CloudinaryPurpose? _purposeFor(String field) {
+    if (widget.config.collection == 'content') {
+      if (field == 'imageUrl') return CloudinaryPurpose.contentImage;
+      if (field == 'videoUrl') return CloudinaryPurpose.contentVideo;
+    }
+    if (widget.config.collection == 'events' && field == 'imageUrl') {
+      return CloudinaryPurpose.eventImage;
+    }
+    if (widget.config.collection == 'merchandise' && field == 'imageUrl') {
+      return CloudinaryPurpose.productImage;
+    }
+    return null;
+  }
+
+  Future<void> _uploadMedia(String field, CloudinaryPurpose purpose) async {
+    if (_uploadingField != null || _saving) return;
+    setState(() {
+      _uploadingField = field;
+      _uploadProgress = 0;
+    });
+    try {
+      final url = await _mediaService.pickAndUpload(
+        purpose: purpose,
+        onProgress: (progress) {
+          if (mounted) setState(() => _uploadProgress = progress);
+        },
+      );
+      if (url != null && mounted) {
+        _controllers[field]!.text = url;
+      }
+    } on MediaUploadException catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(error.message)));
+      }
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Media upload failed. Try again.')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _uploadingField = null);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
@@ -400,72 +457,108 @@ class _AdminRecordEditorState extends State<_AdminRecordEditor> {
                         setState(() => _toggles[field.key] = value),
                   );
                 }
+                final purpose = _purposeFor(field.key);
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 12),
-                  child: TextFormField(
-                    controller: _controllers[field.key],
-                    keyboardType: field.type == AdminFieldType.number
-                        ? const TextInputType.numberWithOptions(decimal: true)
-                        : null,
-                    minLines: field.type == AdminFieldType.multiline ? 3 : 1,
-                    maxLines: field.type == AdminFieldType.multiline ? 6 : 1,
-                    decoration: InputDecoration(labelText: field.label),
-                    validator: (value) {
-                      final text = value?.trim() ?? '';
-                      if (field.required && text.isEmpty) {
-                        return '${field.label} is required.';
-                      }
-                      if (text.isNotEmpty &&
-                          field.type == AdminFieldType.number &&
-                          num.tryParse(text) == null) {
-                        return 'Enter a valid number.';
-                      }
-                      if (text.isNotEmpty &&
-                          field.type == AdminFieldType.number) {
-                        final number = num.parse(text);
-                        if (field.key == 'latitude' &&
-                            (number < -90 || number > 90)) {
-                          return 'Latitude must be between -90 and 90.';
-                        }
-                        if (field.key == 'longitude' &&
-                            (number < -180 || number > 180)) {
-                          return 'Longitude must be between -180 and 180.';
-                        }
-                        if ((field.key == 'price' ||
-                                field.key == 'previousPrice' ||
-                                field.key == 'stock') &&
-                            number < 0) {
-                          return 'Enter zero or a positive number.';
-                        }
-                        if (field.key == 'stock' &&
-                            number != number.roundToDouble()) {
-                          return 'Stock must be a whole number.';
-                        }
-                      }
-                      if (field.key == 'contentType' &&
-                          !ContentType.values.any(
-                            (type) => type.name == text,
-                          )) {
-                        return 'Use: ${ContentType.values.map((type) => type.name).join(', ')}';
-                      }
-                      if (text.isNotEmpty &&
-                          field.key == 'eventDate' &&
-                          DateTime.tryParse(text) == null) {
-                        return 'Use an ISO date, for example 2026-10-24T18:00:00.';
-                      }
-                      if (text.isNotEmpty &&
-                          (field.key == 'imageUrl' ||
-                              field.key == 'videoUrl' ||
-                              field.key == 'ticketLink')) {
-                        final uri = Uri.tryParse(text);
-                        if (uri == null ||
-                            uri.scheme != 'https' ||
-                            uri.host.isEmpty) {
-                          return 'Use a valid HTTPS URL.';
-                        }
-                      }
-                      return null;
-                    },
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      TextFormField(
+                        controller: _controllers[field.key],
+                        keyboardType: field.type == AdminFieldType.number
+                            ? const TextInputType.numberWithOptions(
+                                decimal: true,
+                              )
+                            : null,
+                        minLines: field.type == AdminFieldType.multiline
+                            ? 3
+                            : 1,
+                        maxLines: field.type == AdminFieldType.multiline
+                            ? 6
+                            : 1,
+                        decoration: InputDecoration(labelText: field.label),
+                        validator: (value) {
+                          final text = value?.trim() ?? '';
+                          if (field.required && text.isEmpty) {
+                            return '${field.label} is required.';
+                          }
+                          if (text.isNotEmpty &&
+                              field.type == AdminFieldType.number &&
+                              num.tryParse(text) == null) {
+                            return 'Enter a valid number.';
+                          }
+                          if (text.isNotEmpty &&
+                              field.type == AdminFieldType.number) {
+                            final number = num.parse(text);
+                            if (field.key == 'latitude' &&
+                                (number < -90 || number > 90)) {
+                              return 'Latitude must be between -90 and 90.';
+                            }
+                            if (field.key == 'longitude' &&
+                                (number < -180 || number > 180)) {
+                              return 'Longitude must be between -180 and 180.';
+                            }
+                            if ((field.key == 'price' ||
+                                    field.key == 'previousPrice' ||
+                                    field.key == 'stock') &&
+                                number < 0) {
+                              return 'Enter zero or a positive number.';
+                            }
+                            if (field.key == 'stock' &&
+                                number != number.roundToDouble()) {
+                              return 'Stock must be a whole number.';
+                            }
+                          }
+                          if (field.key == 'contentType' &&
+                              !ContentType.values.any(
+                                (type) => type.name == text,
+                              )) {
+                            return 'Use: ${ContentType.values.map((type) => type.name).join(', ')}';
+                          }
+                          if (text.isNotEmpty &&
+                              field.key == 'eventDate' &&
+                              DateTime.tryParse(text) == null) {
+                            return 'Use an ISO date, for example 2026-10-24T18:00:00.';
+                          }
+                          if (text.isNotEmpty &&
+                              (field.key == 'imageUrl' ||
+                                  field.key == 'videoUrl' ||
+                                  field.key == 'ticketLink')) {
+                            final uri = Uri.tryParse(text);
+                            if (uri == null ||
+                                uri.scheme != 'https' ||
+                                uri.host.isEmpty) {
+                              return 'Use a valid HTTPS URL.';
+                            }
+                          }
+                          return null;
+                        },
+                      ),
+                      if (purpose != null &&
+                          CloudinaryMediaService.isConfigured &&
+                          CloudinaryMediaService.isSupportedPlatform) ...[
+                        TextButton.icon(
+                          onPressed: _uploadingField == null && !_saving
+                              ? () => _uploadMedia(field.key, purpose)
+                              : null,
+                          icon: Icon(
+                            field.key == 'videoUrl'
+                                ? Icons.video_library_outlined
+                                : Icons.add_photo_alternate_outlined,
+                          ),
+                          label: Text(
+                            'Upload ${field.key == 'videoUrl' ? 'video' : 'image'}',
+                          ),
+                        ),
+                        if (_uploadingField == field.key) ...[
+                          LinearProgressIndicator(value: _uploadProgress),
+                          TextButton(
+                            onPressed: _mediaService.cancel,
+                            child: const Text('Cancel upload'),
+                          ),
+                        ],
+                      ],
+                    ],
                   ),
                 );
               }).toList(),
@@ -475,11 +568,13 @@ class _AdminRecordEditorState extends State<_AdminRecordEditor> {
       ),
       actions: [
         TextButton(
-          onPressed: _saving ? null : () => Navigator.pop(context),
+          onPressed: _saving || _uploadingField != null
+              ? null
+              : () => Navigator.pop(context),
           child: const Text('Cancel'),
         ),
         FilledButton(
-          onPressed: _saving ? null : _save,
+          onPressed: _saving || _uploadingField != null ? null : _save,
           child: _saving
               ? const SizedBox.square(
                   dimension: 20,

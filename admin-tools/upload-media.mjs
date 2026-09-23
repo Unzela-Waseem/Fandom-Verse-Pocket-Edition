@@ -20,6 +20,9 @@ function cloudinaryCredentials() {
       !parsed.username || !parsed.password) {
     throw new Error('CLOUDINARY_URL is not a valid Cloudinary environment URL.');
   }
+  if (parsed.hostname !== 'dc1w5stzg') {
+    throw new Error('CLOUDINARY_URL must point to the dc1w5stzg cloud.');
+  }
   return {
     cloudName: parsed.hostname,
     apiKey: decodeURIComponent(parsed.username),

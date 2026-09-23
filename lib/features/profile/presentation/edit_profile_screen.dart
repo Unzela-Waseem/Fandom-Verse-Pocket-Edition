@@ -1,7 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/foundation.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
+import '../../../core/media/cloudinary_media_service.dart';
 import '../../../core/validation/input_validators.dart';
 import '../../authentication/domain/app_user.dart';
 import '../data/avatar_upload_service.dart';
@@ -16,9 +17,6 @@ class EditProfileScreen extends StatefulWidget {
 }
 
 class _EditProfileScreenState extends State<EditProfileScreen> {
-  static const _avatarUploadEnabled = bool.fromEnvironment(
-    'ENABLE_AVATAR_UPLOAD',
-  );
   static const _availableFandoms = [
     'Anime',
     'Gaming',
@@ -98,39 +96,28 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   Future<void> _uploadAvatar() async {
     if (_uploading) return;
+    if (FirebaseAuth.instance.currentUser?.uid != widget.profile.uid) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Sign in to your own account first.')),
+      );
+      return;
+    }
     setState(() {
       _uploading = true;
       _uploadProgress = 0;
     });
     try {
-      final previousUrl = _avatarUrl;
       final newUrl = await _avatarService.pickAndUpload(
-        uid: widget.profile.uid,
         onProgress: (progress) {
           if (mounted) setState(() => _uploadProgress = progress);
         },
       );
       if (newUrl == null) return;
-      await FirebaseFirestore.instance
-          .collection('users')
-          .doc(widget.profile.uid)
-          .update({
-            'avatarUrl': newUrl,
-            'updatedAt': FieldValue.serverTimestamp(),
-          });
       if (mounted) setState(() => _avatarUrl = newUrl);
-      await _avatarService.deletePrevious(
-        uid: widget.profile.uid,
-        url: previousUrl,
-      );
     } catch (error) {
       if (mounted) {
-        final message = error is AvatarUploadException
+        final message = error is MediaUploadException
             ? error.message
-            : error is FirebaseException
-            ? error.code == 'canceled'
-                  ? 'Avatar upload canceled.'
-                  : 'Avatar upload is unavailable. Check Storage setup and try again.'
             : 'Avatar upload failed. Please try again.';
         ScaffoldMessenger.of(
           context,
@@ -163,10 +150,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     : null,
               ),
             ),
-            if (_avatarUploadEnabled &&
-                !kIsWeb &&
-                (defaultTargetPlatform == TargetPlatform.android ||
-                    defaultTargetPlatform == TargetPlatform.iOS)) ...[
+            if (CloudinaryMediaService.isConfigured &&
+                CloudinaryMediaService.isSupportedPlatform) ...[
               const SizedBox(height: 12),
               OutlinedButton.icon(
                 onPressed: _uploading ? null : _uploadAvatar,
@@ -183,7 +168,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             ] else ...[
               const SizedBox(height: 8),
               const Text(
-                'Profile image upload needs a secure Cloudinary connection.',
+                'Profile image upload needs the Cloudinary media backend.',
                 textAlign: TextAlign.center,
                 style: TextStyle(color: Colors.white60),
               ),

@@ -19,7 +19,7 @@ service cloud.firestore {
     }
     function hasOnlyProfileFields() {
       return request.resource.data.diff(resource.data).affectedKeys().hasOnly([
-        'displayName', 'bio', 'avatarUrl', 'selectedFandoms', 'badge',
+        'displayName', 'bio', 'selectedFandoms', 'badge',
         'priceDropNotifications', 'updatedAt'
       ]);
     }
