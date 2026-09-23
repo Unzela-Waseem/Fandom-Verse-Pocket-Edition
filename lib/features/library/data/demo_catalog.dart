@@ -112,7 +112,8 @@ final eventCatalog = [
     category: 'Cosplay Meetup',
     latitude: 24.8607,
     longitude: 67.0011,
-    ticketUrl: 'https://example.com/events/karachi-cosplay',
+    ticketUrl: '',
+    isDemo: true,
   ),
   FandomEvent(
     id: 'lahore-screening-night',
@@ -124,7 +125,8 @@ final eventCatalog = [
     category: 'Screening',
     latitude: 31.5204,
     longitude: 74.3587,
-    ticketUrl: 'https://example.com/events/fantasy-screening',
+    ticketUrl: '',
+    isDemo: true,
   ),
   FandomEvent(
     id: 'islamabad-game-con',
@@ -136,7 +138,8 @@ final eventCatalog = [
     category: 'Convention',
     latitude: 33.6844,
     longitude: 73.0479,
-    ticketUrl: 'https://example.com/events/capital-con',
+    ticketUrl: '',
+    isDemo: true,
   ),
 ];
 

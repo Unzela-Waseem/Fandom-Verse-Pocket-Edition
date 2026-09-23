@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/validation/input_validators.dart';
@@ -16,11 +17,14 @@ class LoginScreen extends ConsumerStatefulWidget {
 }
 
 class _LoginScreenState extends ConsumerState<LoginScreen> {
+  static const _googleEnabled = bool.fromEnvironment('ENABLE_GOOGLE_SIGN_IN');
+  static const _appleEnabled = bool.fromEnvironment('ENABLE_APPLE_SIGN_IN');
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
   bool _submitting = false;
+  bool _acceptedFederatedTerms = false;
 
   @override
   void dispose() {
@@ -76,6 +80,36 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           context,
         ).showSnackBar(SnackBar(content: Text(friendlyAuthError(error))));
       }
+    }
+  }
+
+  Future<void> _signInWithProvider({required bool google}) async {
+    if (_submitting) return;
+    if (!_acceptedFederatedTerms) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Accept the Terms and Privacy notice to continue.'),
+        ),
+      );
+      return;
+    }
+    setState(() => _submitting = true);
+    try {
+      final auth = ref.read(authServiceProvider);
+      if (google) {
+        await auth.signInWithGoogle();
+      } else {
+        await auth.signInWithApple();
+      }
+      if (mounted) Navigator.of(context).popUntil((route) => route.isFirst);
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(friendlyAuthError(error))));
+      }
+    } finally {
+      if (mounted) setState(() => _submitting = false);
     }
   }
 
@@ -163,6 +197,47 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     icon: const Icon(Icons.person_add_alt_1_outlined),
                     label: const Text('Create fan account'),
                   ),
+                  if (_googleEnabled ||
+                      (_appleEnabled &&
+                          !kIsWeb &&
+                          defaultTargetPlatform == TargetPlatform.iOS)) ...[
+                    const SizedBox(height: 16),
+                    CheckboxListTile(
+                      contentPadding: EdgeInsets.zero,
+                      value: _acceptedFederatedTerms,
+                      onChanged: _submitting
+                          ? null
+                          : (value) => setState(
+                              () => _acceptedFederatedTerms = value ?? false,
+                            ),
+                      title: const Text(
+                        'I accept the Terms and Privacy notice.',
+                      ),
+                      controlAffinity: ListTileControlAffinity.leading,
+                    ),
+                  ],
+                  if (_googleEnabled && !kIsWeb) ...[
+                    const SizedBox(height: 10),
+                    OutlinedButton.icon(
+                      onPressed: _submitting
+                          ? null
+                          : () => _signInWithProvider(google: true),
+                      icon: const Icon(Icons.account_circle_outlined),
+                      label: const Text('Continue with Google'),
+                    ),
+                  ],
+                  if (_appleEnabled &&
+                      !kIsWeb &&
+                      defaultTargetPlatform == TargetPlatform.iOS) ...[
+                    const SizedBox(height: 10),
+                    OutlinedButton.icon(
+                      onPressed: _submitting
+                          ? null
+                          : () => _signInWithProvider(google: false),
+                      icon: const Icon(Icons.apple),
+                      label: const Text('Continue with Apple'),
+                    ),
+                  ],
                 ] else
                   const Padding(
                     padding: EdgeInsets.only(top: 16),

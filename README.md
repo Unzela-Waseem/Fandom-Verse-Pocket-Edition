@@ -11,7 +11,7 @@ This repository is under active development. See [requirements traceability](REQ
 3. Confirm the Android or iOS Firebase files match the intended Firebase project. This repository is configured for `fandom-verse-pocket-unzela`.
 4. Run `flutter run` on a supported device.
 
-Android minimum SDK is 28. The project currently uses email/password sign-in. Admin registration is intentionally unavailable in the mobile app.
+Android minimum SDK is 28. Email/password sign-in is active. Google/Apple Fan sign-in code is gated until the corresponding provider is configured; see [development notes](DEVELOPMENT.md). Admin registration is intentionally unavailable in the mobile app.
 
 ## Admin account provisioning
 
@@ -31,7 +31,7 @@ The script is prepared but no Admin account has been provisioned for this projec
 
 - Firestore rules and indexes are in `firebase/` and have been deployed to the configured project.
 - `firebase deploy --only firestore:rules,firestore:indexes` publishes future rule/index changes.
-- The Fan catalog combines bundled original demo items with published Firestore content, events, and active merchandise. Admin edits to Firestore records appear in Fan screens.
+- The Fan catalog combines bundled original demo items with published Firestore content, events, and active merchandise. Admin edits to Firestore records appear in Fan screens. Sample events are explicitly labeled and cannot open placeholder ticket or venue links.
 - Bookmarks, saved event details, wishlist, cart, and simulated purchase history are stored locally per account and mirrored to Firestore user subcollections. New devices can read that state; conflict and reconnection behavior still need emulator and device verification before release.
 - The AI Fan Helper uses curated offline FAQ responses. No external AI API key is embedded in the client.
 - Cloud Storage media upload, FCM delivery, embedded Maps, Apple sign-in, and scheduled backups require additional owner configuration. The price-drop function and Fan opt-in flow are prepared but push delivery is not active. See [notification setup](docs/NOTIFICATIONS.md), [development notes](DEVELOPMENT.md), and the [backup runbook](docs/BACKUP_RESTORE.md).

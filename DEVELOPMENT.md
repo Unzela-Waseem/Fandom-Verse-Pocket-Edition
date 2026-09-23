@@ -16,7 +16,7 @@ Core Fan flows are implemented and verified. Work is continuing on cloud-backed 
 
 - Cloud Storage provisioning requires a billing-enabled Firebase plan for new projects. Storage rules are ready but cannot be deployed until billing is enabled.
 - An owner must provision the first Admin using `admin-tools/provision-admin.mjs` with service-account Application Default Credentials and an owner-selected email/password. The mobile client cannot create or promote Admins.
-- Google/Apple sign-in provider configuration.
+- Google/Apple sign-in provider configuration and native device verification. The code is present but neither provider is enabled in this Firebase project.
 - Google Maps API keys restricted per platform.
 - FCM and trusted serverless functions for price-drop notifications and privileged user administration.
 - Billing/permissions for scheduled Firestore exports.
@@ -38,3 +38,12 @@ Core Fan flows are implemented and verified. Work is continuing on cloud-backed 
 - 2026-09-23: Added Firestore user-subcollection mirroring for bookmarks, saved events, wishlist, cart, and simulated orders with one-time local migration, account-switch guards, cache-aware listeners, and a visible sync failure state. Saved article text survives a tested local restart. Rules for saved events deployed; analyzer and nine tests pass. Two-device conflict and offline reconnection tests remain pending.
 - 2026-09-23: Prepared a Firestore merchandise price-drop trigger with duplicate-resistant in-app notifications and best-effort FCM dispatch, plus explicit Fan permission/opt-in and device token registration. The Node price comparison test passes, the function loads locally, Flutter analysis and nine tests pass, and supporting Firestore rules/indexes are deployed. Function deployment is blocked by the project's unbilled plan; no push delivery is claimed.
 - Device, Firebase emulator, and integration verification remain pending until platform configuration is available.
+- 2026-09-23: Added gated native Google/Apple Fan sign-in flows. First-time provider accounts create a default Fan profile; existing account roles are never rewritten, and incomplete sign-in fails closed. Labeled bundled sample events and removed their placeholder ticket/map actions. Static analysis and unit/widget tests pass; provider sign-in needs owner configuration and a real device test.
+
+## Provider sign-in activation
+
+Provider buttons are hidden by default. Enable them only after completing the native Firebase setup and device verification; never add OAuth secrets or a service-account file to Git.
+
+1. For Google, enable the Google provider in Firebase Authentication, register the signing certificate SHA-1 fingerprints for Android debug and release keys, then refresh the Android Firebase configuration. For iOS, complete the Google Sign-In plugin's client ID and URL-scheme setup in the native project.
+2. For Apple, configure Sign in with Apple in the Apple Developer account and Firebase Authentication, and add the Sign in with Apple capability to the iOS Runner target.
+3. Run the app with `--dart-define=ENABLE_GOOGLE_SIGN_IN=true` and/or `--dart-define=ENABLE_APPLE_SIGN_IN=true` only for providers that are configured. Apple is shown on iOS only. Confirm first-time Fan profile creation, repeat sign-in, existing Admin role preservation, cancellation, and account switching on a real device before release.

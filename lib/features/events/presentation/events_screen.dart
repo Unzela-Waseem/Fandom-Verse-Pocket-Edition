@@ -107,6 +107,11 @@ class _EventsScreenState extends ConsumerState<EventsScreen> {
             'Browse every event without granting location access.',
             style: TextStyle(color: Colors.white60),
           ),
+          const SizedBox(height: 6),
+          const Text(
+            'Bundled sample events are previews, not confirmed listings.',
+            style: TextStyle(color: Colors.amberAccent),
+          ),
           const SizedBox(height: 12),
           if (cloudCatalog.hasError)
             const Text(
@@ -183,7 +188,9 @@ class _EventsScreenState extends ConsumerState<EventsScreen> {
                   style: const TextStyle(fontWeight: FontWeight.w800),
                 ),
                 subtitle: Text(
-                  _position == null
+                  event.isDemo
+                      ? '${event.city} · Sample event'
+                      : _position == null
                       ? '${event.city} · ${event.category}'
                       : '${event.city} · ${(_distance(event) / 1000).toStringAsFixed(0)} km away',
                 ),
@@ -207,7 +214,7 @@ class _EventsScreenState extends ConsumerState<EventsScreen> {
 
   double _distance(FandomEvent event) {
     final position = _position;
-    if (position == null) return double.infinity;
+    if (position == null || event.isDemo) return double.infinity;
     return Geolocator.distanceBetween(
       position.latitude,
       position.longitude,
@@ -259,6 +266,13 @@ class EventDetailScreen extends ConsumerWidget {
             event.title,
             style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w900),
           ),
+          if (event.isDemo) ...[
+            const SizedBox(height: 8),
+            const Text(
+              'Sample event only. The venue and date are illustrative; no tickets are available.',
+              style: TextStyle(color: Colors.amberAccent),
+            ),
+          ],
           const SizedBox(height: 10),
           Text(
             DateFormat('EEEE, d MMMM y · h:mm a').format(event.date),
@@ -282,13 +296,15 @@ class EventDetailScreen extends ConsumerWidget {
           ),
           const SizedBox(height: 12),
           FilledButton.icon(
-            onPressed: () => _openMap(context),
+            onPressed: event.isDemo ? null : () => _openMap(context),
             icon: const Icon(Icons.map_outlined),
             label: const Text('Open in Google Maps'),
           ),
           const SizedBox(height: 10),
           OutlinedButton.icon(
-            onPressed: () => _openTicket(context),
+            onPressed: event.isDemo || event.ticketUrl.isEmpty
+                ? null
+                : () => _openTicket(context),
             icon: const Icon(Icons.confirmation_number_outlined),
             label: const Text('Open ticket link'),
           ),

@@ -76,6 +76,7 @@ class FandomEvent {
     required this.latitude,
     required this.longitude,
     required this.ticketUrl,
+    this.isDemo = false,
   });
 
   final String id;
@@ -88,6 +89,7 @@ class FandomEvent {
   final double latitude;
   final double longitude;
   final String ticketUrl;
+  final bool isDemo;
 
   Map<String, dynamic> toJson() => {
     'id': id,
@@ -100,20 +102,26 @@ class FandomEvent {
     'latitude': latitude,
     'longitude': longitude,
     'ticketUrl': ticketUrl,
+    'isDemo': isDemo,
   };
 
-  factory FandomEvent.fromJson(Map<String, dynamic> json) => FandomEvent(
-    id: json['id'] as String,
-    title: json['title'] as String,
-    description: json['description'] as String,
-    city: json['city'] as String,
-    venue: json['venue'] as String,
-    date: DateTime.parse(json['date'] as String),
-    category: json['category'] as String,
-    latitude: (json['latitude'] as num).toDouble(),
-    longitude: (json['longitude'] as num).toDouble(),
-    ticketUrl: json['ticketUrl'] as String,
-  );
+  factory FandomEvent.fromJson(Map<String, dynamic> json) {
+    final ticketUrl = json['ticketUrl'] as String? ?? '';
+    final legacyPreview = Uri.tryParse(ticketUrl)?.host == 'example.com';
+    return FandomEvent(
+      id: json['id'] as String,
+      title: json['title'] as String,
+      description: json['description'] as String,
+      city: json['city'] as String,
+      venue: json['venue'] as String,
+      date: DateTime.parse(json['date'] as String),
+      category: json['category'] as String,
+      latitude: (json['latitude'] as num).toDouble(),
+      longitude: (json['longitude'] as num).toDouble(),
+      ticketUrl: legacyPreview ? '' : ticketUrl,
+      isDemo: json['isDemo'] == true || legacyPreview,
+    );
+  }
 }
 
 class Product {
