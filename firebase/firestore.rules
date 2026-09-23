@@ -13,7 +13,10 @@ service cloud.firestore {
     function role() {
       return get(userPath()).data.role;
     }
-    function isAdmin() { return signedIn() && role() == 'admin'; }
+    function isAdmin() {
+      return signedIn() && role() == 'admin'
+        && request.auth.token.admin == true;
+    }
     function hasOnlyProfileFields() {
       return request.resource.data.diff(resource.data).affectedKeys().hasOnly([
         'displayName', 'bio', 'avatarUrl', 'selectedFandoms', 'badge', 'updatedAt'

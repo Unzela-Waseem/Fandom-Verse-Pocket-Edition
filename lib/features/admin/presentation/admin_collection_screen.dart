@@ -2,6 +2,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
+import '../../library/domain/library_models.dart';
+
 enum AdminFieldType { text, multiline, number, toggle }
 
 class AdminField {
@@ -10,12 +12,14 @@ class AdminField {
     this.label, {
     this.type = AdminFieldType.text,
     this.required = true,
+    this.defaultBool = false,
   });
 
   final String key;
   final String label;
   final AdminFieldType type;
   final bool required;
+  final bool defaultBool;
 }
 
 class AdminCollectionConfig {
@@ -39,7 +43,12 @@ class AdminCollectionConfig {
       AdminField('name', 'Name'),
       AdminField('description', 'Description', type: AdminFieldType.multiline),
       AdminField('icon', 'Icon name', required: false),
-      AdminField('active', 'Active', type: AdminFieldType.toggle),
+      AdminField(
+        'active',
+        'Active',
+        type: AdminFieldType.toggle,
+        defaultBool: true,
+      ),
     ],
   );
   static const content = AdminCollectionConfig(
@@ -94,7 +103,12 @@ class AdminCollectionConfig {
       AdminField('type', 'Type'),
       AdminField('stock', 'Stock', type: AdminFieldType.number),
       AdminField('imageUrl', 'HTTPS image URL', required: false),
-      AdminField('active', 'Active', type: AdminFieldType.toggle),
+      AdminField(
+        'active',
+        'Active',
+        type: AdminFieldType.toggle,
+        defaultBool: true,
+      ),
     ],
   );
   static const announcements = AdminCollectionConfig(
@@ -242,15 +256,23 @@ class _AdminCollectionScreenState extends State<AdminCollectionScreen> {
       ),
     );
     if (confirmed != true) return;
-    final batch = FirebaseFirestore.instance.batch();
-    batch.delete(record.reference);
-    addAdminAudit(
-      batch,
-      action: 'delete',
-      collection: widget.config.collection,
-      recordId: record.id,
-    );
-    await batch.commit();
+    try {
+      final batch = FirebaseFirestore.instance.batch();
+      batch.delete(record.reference);
+      addAdminAudit(
+        batch,
+        action: 'delete',
+        collection: widget.config.collection,
+        recordId: record.id,
+      );
+      await batch.commit();
+    } on FirebaseException catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(error.message ?? 'Delete failed.')),
+        );
+      }
+    }
   }
 }
 
@@ -281,7 +303,7 @@ class _AdminRecordEditorState extends State<_AdminRecordEditor> {
     for (final field in widget.config.fields) {
       final value = widget.initialData?[field.key];
       if (field.type == AdminFieldType.toggle) {
-        _toggles[field.key] = value as bool? ?? true;
+        _toggles[field.key] = value as bool? ?? field.defaultBool;
       } else {
         _controllers[field.key] = TextEditingController(
           text: value is Timestamp
@@ -398,6 +420,34 @@ class _AdminRecordEditorState extends State<_AdminRecordEditor> {
                         return 'Enter a valid number.';
                       }
                       if (text.isNotEmpty &&
+                          field.type == AdminFieldType.number) {
+                        final number = num.parse(text);
+                        if (field.key == 'latitude' &&
+                            (number < -90 || number > 90)) {
+                          return 'Latitude must be between -90 and 90.';
+                        }
+                        if (field.key == 'longitude' &&
+                            (number < -180 || number > 180)) {
+                          return 'Longitude must be between -180 and 180.';
+                        }
+                        if ((field.key == 'price' ||
+                                field.key == 'previousPrice' ||
+                                field.key == 'stock') &&
+                            number < 0) {
+                          return 'Enter zero or a positive number.';
+                        }
+                        if (field.key == 'stock' &&
+                            number != number.roundToDouble()) {
+                          return 'Stock must be a whole number.';
+                        }
+                      }
+                      if (field.key == 'contentType' &&
+                          !ContentType.values.any(
+                            (type) => type.name == text,
+                          )) {
+                        return 'Use: ${ContentType.values.map((type) => type.name).join(', ')}';
+                      }
+                      if (text.isNotEmpty &&
                           field.key == 'eventDate' &&
                           DateTime.tryParse(text) == null) {
                         return 'Use an ISO date, for example 2026-10-24T18:00:00.';
@@ -406,7 +456,9 @@ class _AdminRecordEditorState extends State<_AdminRecordEditor> {
                           (field.key == 'imageUrl' ||
                               field.key == 'ticketLink')) {
                         final uri = Uri.tryParse(text);
-                        if (uri == null || uri.scheme != 'https') {
+                        if (uri == null ||
+                            uri.scheme != 'https' ||
+                            uri.host.isEmpty) {
                           return 'Use a valid HTTPS URL.';
                         }
                       }

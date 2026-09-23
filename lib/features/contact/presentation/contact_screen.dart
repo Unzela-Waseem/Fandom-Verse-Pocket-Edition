@@ -85,10 +85,10 @@ class _ContactScreenState extends State<ContactScreen> {
             ),
             const ListTile(
               contentPadding: EdgeInsets.zero,
-              leading: Icon(Icons.location_on_outlined),
-              title: Text('Karachi, Pakistan'),
+              leading: Icon(Icons.public_outlined),
+              title: Text('Online support'),
               subtitle: Text(
-                'Office visits are available by appointment only.',
+                'A public office address has not been confirmed. Please use the form below.',
               ),
             ),
             const SizedBox(height: 16),

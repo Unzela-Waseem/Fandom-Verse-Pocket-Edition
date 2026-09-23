@@ -8,7 +8,7 @@ Status values: `planned`, `in progress`, `implemented`, `verified`, `external pr
 | Theme and Fan/Admin entry experience | implemented | `lib/app`, `lib/features/authentication` |
 | Input validation | verified | `lib/core/validation`, unit tests |
 | Email/password Authentication and AuthGate | implemented | `lib/features/authentication`, live Firebase provider configuration |
-| Firestore authorization | implemented | Deployed default-deny `firebase/firestore.rules` |
+| Firestore authorization | implemented | Deployed default-deny `firebase/firestore.rules`; Admin requires active profile role plus trusted custom claim |
 | Storage authorization | external prerequisite | Rules ready; new-project bucket provisioning requires billing |
 | Profiles and dashboard | implemented | Firestore-backed profile creation/editing, fandoms, badge, bio, counters, and dashboard navigation |
 | Fan dashboard visual shell | implemented | `lib/features/dashboard/presentation/fan_shell.dart` |
@@ -18,5 +18,5 @@ Status values: `planned`, `in progress`, `implemented`, `verified`, `external pr
 | AI Fan Helper | implemented | Offline curated FAQ conversation with loading and fallback states |
 | In-app notifications | in progress | Published Admin announcements and personal read/unread notification center; price-drop generation and FCM delivery pending |
 | Contact, About, discussions | implemented | Firestore inquiry/discussion flows, ownership rules, project team screen |
-| Admin CRUD and moderation | in progress | Firestore-backed collection editors, status controls, moderation, inquiries, announcements, and audit events; trusted account provisioning, media uploads, and live device verification pending |
+| Admin CRUD and moderation | in progress | Firestore-backed collection editors, validated user profile/status controls, moderation, inquiries, announcements, and audit events; first account provisioning, media uploads, and live device verification pending |
 | Backup, audit and deployment config | external prerequisite | Atomic Admin audit records and backup/restore runbook prepared; billing, schedule activation, and restore drill pending |

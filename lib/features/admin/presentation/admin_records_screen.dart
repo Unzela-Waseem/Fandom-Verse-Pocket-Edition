@@ -19,6 +19,28 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
     QueryDocumentSnapshot<Map<String, dynamic>> user,
     bool active,
   ) async {
+    if (!active) {
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Disable this account?'),
+          content: const Text(
+            'The user will lose access to protected app features until re-enabled.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text('Disable'),
+            ),
+          ],
+        ),
+      );
+      if (confirmed != true || !mounted) return;
+    }
     setState(() => _busyId = user.id);
     try {
       final batch = FirebaseFirestore.instance.batch();
@@ -98,17 +120,33 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
                     final active =
                         (data['accountStatus'] ?? 'active') == 'active';
                     return Card(
-                      child: SwitchListTile(
-                        title: Text(
-                          data['displayName'] as String? ?? 'Unnamed',
-                        ),
-                        subtitle: Text(
-                          '${data['email'] ?? ''} · ${data['role'] ?? 'unknown'}',
-                        ),
-                        value: active,
-                        onChanged: data['role'] == 'admin' || _busyId != null
-                            ? null
-                            : (value) => _setStatus(user, value),
+                      child: Column(
+                        children: [
+                          ListTile(
+                            title: Text(
+                              data['displayName'] as String? ?? 'Unnamed',
+                            ),
+                            subtitle: Text(
+                              '${data['email'] ?? ''} · ${data['role'] ?? 'unknown'}',
+                            ),
+                            trailing: IconButton(
+                              tooltip: 'Edit profile fields',
+                              icon: const Icon(Icons.edit_outlined),
+                              onPressed: () => showDialog<void>(
+                                context: context,
+                                builder: (_) => _AdminUserEditor(user: user),
+                              ),
+                            ),
+                          ),
+                          SwitchListTile(
+                            title: const Text('Account active'),
+                            value: active,
+                            onChanged:
+                                data['role'] == 'admin' || _busyId != null
+                                ? null
+                                : (value) => _setStatus(user, value),
+                          ),
+                        ],
                       ),
                     );
                   },
@@ -120,6 +158,115 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
       ),
     );
   }
+}
+
+class _AdminUserEditor extends StatefulWidget {
+  const _AdminUserEditor({required this.user});
+
+  final QueryDocumentSnapshot<Map<String, dynamic>> user;
+
+  @override
+  State<_AdminUserEditor> createState() => _AdminUserEditorState();
+}
+
+class _AdminUserEditorState extends State<_AdminUserEditor> {
+  final _formKey = GlobalKey<FormState>();
+  late final TextEditingController _name;
+  late final TextEditingController _bio;
+  bool _saving = false;
+
+  @override
+  void initState() {
+    super.initState();
+    final data = widget.user.data();
+    _name = TextEditingController(text: data['displayName'] as String? ?? '');
+    _bio = TextEditingController(text: data['bio'] as String? ?? '');
+  }
+
+  @override
+  void dispose() {
+    _name.dispose();
+    _bio.dispose();
+    super.dispose();
+  }
+
+  Future<void> _save() async {
+    if (_saving || !_formKey.currentState!.validate()) return;
+    setState(() => _saving = true);
+    try {
+      final batch = FirebaseFirestore.instance.batch();
+      batch.update(widget.user.reference, {
+        'displayName': _name.text.trim(),
+        'bio': _bio.text.trim(),
+        'updatedAt': FieldValue.serverTimestamp(),
+        'updatedBy': FirebaseAuth.instance.currentUser!.uid,
+      });
+      addAdminAudit(
+        batch,
+        action: 'edit-profile',
+        collection: 'users',
+        recordId: widget.user.id,
+      );
+      await batch.commit();
+      if (mounted) Navigator.pop(context);
+    } on FirebaseException catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(error.message ?? 'User update failed.')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) => AlertDialog(
+    title: const Text('Edit user profile'),
+    content: SizedBox(
+      width: 480,
+      child: Form(
+        key: _formKey,
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextFormField(
+                controller: _name,
+                maxLength: 60,
+                decoration: const InputDecoration(labelText: 'Display name'),
+                validator: (value) => (value?.trim().isEmpty ?? true)
+                    ? 'Display name is required.'
+                    : null,
+              ),
+              TextFormField(
+                controller: _bio,
+                minLines: 2,
+                maxLines: 4,
+                maxLength: 300,
+                decoration: const InputDecoration(labelText: 'Bio'),
+              ),
+            ],
+          ),
+        ),
+      ),
+    ),
+    actions: [
+      TextButton(
+        onPressed: _saving ? null : () => Navigator.pop(context),
+        child: const Text('Cancel'),
+      ),
+      FilledButton(
+        onPressed: _saving ? null : _save,
+        child: _saving
+            ? const SizedBox.square(
+                dimension: 20,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              )
+            : const Text('Save'),
+      ),
+    ],
+  );
 }
 
 class AdminModerationScreen extends StatelessWidget {

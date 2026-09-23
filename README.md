@@ -15,7 +15,7 @@ Android minimum SDK is 28. The project currently uses email/password sign-in. Ad
 
 ## Admin account provisioning
 
-An owner with Firebase Admin credentials can create a new Admin account using `admin-tools/provision-admin.mjs`. It refuses to promote an existing account and rolls back a newly created Authentication account if profile setup fails. Credentials must stay outside this repository.
+An owner with Firebase Admin credentials can create a new Admin account using `admin-tools/provision-admin.mjs`. It sets both a trusted custom claim and a Firestore Admin role. It refuses to promote an existing account and rolls back a newly created Authentication account if profile setup fails. Credentials must stay outside this repository.
 
 ```bash
 cd admin-tools
