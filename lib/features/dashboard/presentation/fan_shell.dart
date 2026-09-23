@@ -1,3 +1,7 @@
+import 'dart:async';
+
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -11,6 +15,7 @@ import '../../library/domain/library_models.dart';
 import '../../library/presentation/explore_screen.dart';
 import '../../merchandise/presentation/store_screen.dart';
 import '../../notifications/presentation/notifications_screen.dart';
+import '../../notifications/data/notification_device_service.dart';
 import '../../profile/presentation/profile_screen.dart';
 
 class FanShell extends StatefulWidget {
@@ -24,6 +29,62 @@ class FanShell extends StatefulWidget {
 
 class _FanShellState extends State<FanShell> {
   int _index = 0;
+  StreamSubscription<String>? _tokenSubscription;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.profile != null) {
+      _tokenSubscription = FirebaseMessaging.instance.onTokenRefresh.listen((
+        token,
+      ) {
+        final profile = widget.profile;
+        if (profile?.priceDropNotifications != true ||
+            FirebaseAuth.instance.currentUser?.uid != profile?.uid) {
+          return;
+        }
+        unawaited(
+          NotificationDeviceService.saveToken(
+            profile!.uid,
+            token,
+          ).catchError((Object _) {}),
+        );
+      });
+      unawaited(_registerIfPermitted());
+    }
+  }
+
+  @override
+  void didUpdateWidget(covariant FanShell oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.profile?.priceDropNotifications != true &&
+        widget.profile?.priceDropNotifications == true) {
+      unawaited(_registerIfPermitted());
+    }
+  }
+
+  Future<void> _registerIfPermitted() async {
+    final profile = widget.profile;
+    if (profile?.priceDropNotifications != true) return;
+    try {
+      final settings = await FirebaseMessaging.instance
+          .getNotificationSettings();
+      if (settings.authorizationStatus == AuthorizationStatus.authorized ||
+          settings.authorizationStatus == AuthorizationStatus.provisional) {
+        if (FirebaseAuth.instance.currentUser?.uid == profile?.uid) {
+          await NotificationDeviceService.saveCurrentToken(profile!.uid);
+        }
+      }
+    } catch (_) {
+      // The in-app notification center still works without device push.
+    }
+  }
+
+  @override
+  void dispose() {
+    unawaited(_tokenSubscription?.cancel());
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {

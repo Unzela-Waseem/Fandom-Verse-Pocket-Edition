@@ -24,6 +24,13 @@
       "indexes": [
         {"order": "DESCENDING", "queryScope": "COLLECTION_GROUP"}
       ]
+    },
+    {
+      "collectionGroup": "wishlist",
+      "fieldPath": "productId",
+      "indexes": [
+        {"order": "ASCENDING", "queryScope": "COLLECTION_GROUP"}
+      ]
     }
   ]
 }

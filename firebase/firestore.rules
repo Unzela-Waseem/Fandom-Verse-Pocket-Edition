@@ -19,7 +19,8 @@ service cloud.firestore {
     }
     function hasOnlyProfileFields() {
       return request.resource.data.diff(resource.data).affectedKeys().hasOnly([
-        'displayName', 'bio', 'avatarUrl', 'selectedFandoms', 'badge', 'updatedAt'
+        'displayName', 'bio', 'avatarUrl', 'selectedFandoms', 'badge',
+        'priceDropNotifications', 'updatedAt'
       ]);
     }
 
@@ -60,7 +61,7 @@ service cloud.firestore {
     }
     match /users/{uid}/{collection}/{id} {
       allow read, write: if owns(uid) && collection in [
-        'bookmarks', 'saved_events', 'wishlist', 'cart', 'orders', 'notifications'
+        'bookmarks', 'saved_events', 'wishlist', 'cart', 'orders', 'notifications', 'devices'
       ];
     }
     match /users/{uid}/inquiries/{id} {

@@ -13,6 +13,7 @@ import '../../library/data/cloud_catalog.dart';
 import '../../library/data/demo_catalog.dart';
 import '../../library/domain/library_models.dart';
 import '../../library/presentation/explore_screen.dart';
+import '../../notifications/data/notification_device_service.dart';
 import 'edit_profile_screen.dart';
 
 class ProfileScreen extends ConsumerWidget {
@@ -70,6 +71,7 @@ class ProfileScreen extends ConsumerWidget {
               subtitle: 'Update bio, badge, and favorite fandoms',
               onTap: () => _open(context, EditProfileScreen(profile: profile!)),
             ),
+          if (profile != null) _NotificationPreferenceTile(profile: profile!),
           _ProfileTile(
             icon: Icons.smart_toy_outlined,
             title: 'AI Fan Helper',
@@ -167,6 +169,65 @@ class _ProfileTile extends StatelessWidget {
       subtitle: Text(subtitle),
       trailing: const Icon(Icons.chevron_right),
       onTap: onTap,
+    ),
+  );
+}
+
+class _NotificationPreferenceTile extends StatefulWidget {
+  const _NotificationPreferenceTile({required this.profile});
+
+  final AppUser profile;
+
+  @override
+  State<_NotificationPreferenceTile> createState() =>
+      _NotificationPreferenceTileState();
+}
+
+class _NotificationPreferenceTileState
+    extends State<_NotificationPreferenceTile> {
+  bool _busy = false;
+
+  Future<void> _change(bool enabled) async {
+    if (_busy) return;
+    setState(() => _busy = true);
+    try {
+      if (enabled) {
+        final granted = await NotificationDeviceService.enable(
+          widget.profile.uid,
+        );
+        if (!granted && mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text(
+                'Notification permission was not granted. You can enable it later in device settings.',
+              ),
+            ),
+          );
+        }
+      } else {
+        await NotificationDeviceService.disable(widget.profile.uid);
+      }
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Notification settings could not be saved.'),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) => Card(
+    child: SwitchListTile(
+      secondary: const Icon(Icons.notifications_outlined),
+      title: const Text('Price-drop alerts'),
+      subtitle: const Text('Only for merchandise on your wishlist'),
+      value: widget.profile.priceDropNotifications,
+      onChanged: _busy ? null : _change,
     ),
   );
 }

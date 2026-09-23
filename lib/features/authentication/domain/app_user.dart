@@ -13,6 +13,7 @@ class AppUser {
     this.bio = '',
     this.avatarUrl,
     this.accountStatus = 'active',
+    this.priceDropNotifications = false,
   });
 
   final String uid;
@@ -24,6 +25,7 @@ class AppUser {
   final String bio;
   final String? avatarUrl;
   final String accountStatus;
+  final bool priceDropNotifications;
 
   factory AppUser.fromFirestore(
     DocumentSnapshot<Map<String, dynamic>> snapshot,
@@ -48,6 +50,7 @@ class AppUser {
       bio: data['bio'] as String? ?? '',
       avatarUrl: data['avatarUrl'] as String?,
       accountStatus: data['accountStatus'] as String? ?? 'active',
+      priceDropNotifications: data['priceDropNotifications'] == true,
     );
   }
 }

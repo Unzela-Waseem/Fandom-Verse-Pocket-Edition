@@ -43,6 +43,7 @@ class AuthService {
         'badge': badge,
         'role': 'fan',
         'accountStatus': 'active',
+        'priceDropNotifications': false,
         'createdAt': FieldValue.serverTimestamp(),
         'updatedAt': FieldValue.serverTimestamp(),
       });

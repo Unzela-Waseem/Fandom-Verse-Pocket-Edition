@@ -34,7 +34,7 @@ The script is prepared but no Admin account has been provisioned for this projec
 - The Fan catalog combines bundled original demo items with published Firestore content, events, and active merchandise. Admin edits to Firestore records appear in Fan screens.
 - Bookmarks, saved event details, wishlist, cart, and simulated purchase history are stored locally per account and mirrored to Firestore user subcollections. New devices can read that state; conflict and reconnection behavior still need emulator and device verification before release.
 - The AI Fan Helper uses curated offline FAQ responses. No external AI API key is embedded in the client.
-- Cloud Storage media upload, FCM delivery, embedded Maps, Apple sign-in, and scheduled backups require additional owner configuration. Current setup boundaries are listed in [development notes](DEVELOPMENT.md) and the [backup runbook](docs/BACKUP_RESTORE.md).
+- Cloud Storage media upload, FCM delivery, embedded Maps, Apple sign-in, and scheduled backups require additional owner configuration. The price-drop function and Fan opt-in flow are prepared but push delivery is not active. See [notification setup](docs/NOTIFICATIONS.md), [development notes](DEVELOPMENT.md), and the [backup runbook](docs/BACKUP_RESTORE.md).
 
 ## Verification
 
