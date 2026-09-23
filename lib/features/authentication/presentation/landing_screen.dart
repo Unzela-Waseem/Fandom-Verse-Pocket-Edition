@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/constants/app_assets.dart';
+import '../../dashboard/presentation/fan_shell.dart';
 import 'login_screen.dart';
 
 class LandingScreen extends StatelessWidget {
@@ -15,72 +17,89 @@ class LandingScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
     return Scaffold(
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const Spacer(),
-              Center(
-                child: Container(
-                  width: 96,
-                  height: 96,
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [colors.primary, colors.tertiary],
-                    ),
-                    borderRadius: BorderRadius.circular(28),
-                  ),
-                  child: const Icon(
-                    Icons.auto_awesome,
-                    color: Colors.white,
-                    size: 48,
-                  ),
-                ),
+      body: Stack(
+        fit: StackFit.expand,
+        children: [
+          Image.asset(AppAssets.multiverse, fit: BoxFit.cover),
+          const DecoratedBox(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [Color(0x33000000), Color(0xFF101014)],
+                stops: [0.25, 0.78],
               ),
-              const SizedBox(height: 28),
-              Text(
-                'Every fandom.\nOne universe.',
-                textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.displaySmall?.copyWith(
-                  fontWeight: FontWeight.w800,
-                  height: 1.05,
-                ),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                'Discover stories, events, communities, and collectibles built around what you love.',
-                textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  color: colors.onSurfaceVariant,
-                  height: 1.5,
-                ),
-              ),
-              const Spacer(),
-              FilledButton.icon(
-                onPressed: () => _openLogin(context, admin: false),
-                icon: const Icon(Icons.rocket_launch_outlined),
-                label: const Text('Continue as a fan'),
-              ),
-              const SizedBox(height: 12),
-              OutlinedButton.icon(
-                onPressed: () => _openLogin(context, admin: true),
-                style: OutlinedButton.styleFrom(
-                  minimumSize: const Size.fromHeight(52),
-                ),
-                icon: const Icon(Icons.admin_panel_settings_outlined),
-                label: const Text('Admin sign in'),
-              ),
-              const SizedBox(height: 12),
-              Text(
-                'Admin accounts are provisioned securely. Public admin registration is disabled.',
-                textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.bodySmall,
-              ),
-            ],
+            ),
           ),
-        ),
+          SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(24, 20, 24, 28),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        width: 42,
+                        height: 42,
+                        decoration: BoxDecoration(
+                          color: colors.primary,
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        child: const Icon(Icons.bolt, color: Colors.black),
+                      ),
+                      const SizedBox(width: 12),
+                      const Text(
+                        'FANDOM VERSE',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 1.2,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const Spacer(),
+                  Text(
+                    'Your worlds.\nOne universe.',
+                    style: Theme.of(context).textTheme.displaySmall?.copyWith(
+                      fontWeight: FontWeight.w900,
+                      height: .98,
+                      letterSpacing: -1.4,
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  Text(
+                    'Stories, events, communities, and collectibles for every kind of fan.',
+                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                      color: Colors.white70,
+                      height: 1.4,
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  FilledButton(
+                    onPressed: () => _openLogin(context, admin: false),
+                    child: const Text('CONTINUE AS A FAN'),
+                  ),
+                  const SizedBox(height: 10),
+                  OutlinedButton(
+                    onPressed: () => Navigator.of(context).pushReplacement(
+                      MaterialPageRoute<void>(builder: (_) => const FanShell()),
+                    ),
+                    style: OutlinedButton.styleFrom(
+                      minimumSize: const Size.fromHeight(50),
+                    ),
+                    child: const Text('EXPLORE PREVIEW'),
+                  ),
+                  TextButton.icon(
+                    onPressed: () => _openLogin(context, admin: true),
+                    icon: const Icon(Icons.shield_outlined, size: 18),
+                    label: const Text('Admin sign in'),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

@@ -11,6 +11,7 @@ Status values: `planned`, `in progress`, `implemented`, `verified`, `external pr
 | Firestore authorization | in progress | Default-deny rules foundation in `firebase/firestore.rules` |
 | Storage authorization | in progress | Owner-scoped image rules in `firebase/storage.rules` |
 | Profiles and dashboard | planned | Phase 6-7 |
+| Fan dashboard visual shell | implemented | `lib/features/dashboard/presentation/fan_shell.dart` |
 | Content hub, search, bookmarks, offline sync | planned | Phase 8-10 |
 | Events, location, Maps, calendar | planned | Phase 11 |
 | Store, wishlist, cart, simulated checkout | planned | Phase 12-14 |

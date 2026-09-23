@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 abstract final class AppTheme {
-  static const _seed = Color(0xFF6D4AFF);
+  static const _seed = Color(0xFFFFD740);
 
   static ThemeData get light => _build(Brightness.light);
   static ThemeData get dark => _build(Brightness.dark);
@@ -15,7 +15,7 @@ abstract final class AppTheme {
       useMaterial3: true,
       colorScheme: scheme,
       scaffoldBackgroundColor: brightness == Brightness.dark
-          ? const Color(0xFF0F0D17)
+          ? const Color(0xFF101014)
           : const Color(0xFFF8F7FC),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
@@ -26,6 +26,7 @@ abstract final class AppTheme {
       ),
       cardTheme: CardThemeData(
         elevation: 0,
+        color: brightness == Brightness.dark ? const Color(0xFF1B1B21) : null,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       ),
       filledButtonTheme: FilledButtonThemeData(
