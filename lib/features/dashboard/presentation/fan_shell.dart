@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 
 import '../../../core/constants/app_assets.dart';
 import '../../authentication/domain/app_user.dart';
+import '../../events/presentation/events_screen.dart';
+import '../../library/presentation/explore_screen.dart';
+import '../../merchandise/presentation/store_screen.dart';
 import '../domain/fandom_item.dart';
 
 class FanShell extends StatefulWidget {
@@ -20,9 +23,9 @@ class _FanShellState extends State<FanShell> {
   Widget build(BuildContext context) {
     final pages = [
       _HomeTab(profile: widget.profile),
-      const _ExploreTab(),
-      const _EventsTab(),
-      const _StoreTab(),
+      const ExploreScreen(),
+      const EventsScreen(),
+      const StoreScreen(),
       const _ProfileTab(),
     ];
     return Scaffold(
@@ -489,40 +492,6 @@ class _FandomDetail extends StatelessWidget {
       ),
     );
   }
-}
-
-class _ExploreTab extends StatelessWidget {
-  const _ExploreTab();
-  @override
-  Widget build(BuildContext context) => const _SimpleTab(
-    title: 'Explore',
-    subtitle: 'Find stories, lore, profiles, podcasts, and hidden trivia.',
-    icon: Icons.explore_outlined,
-    chips: ['All', 'Anime', 'Gaming', 'Sci-Fi', 'Fantasy', 'Comics', 'Music'],
-  );
-}
-
-class _EventsTab extends StatelessWidget {
-  const _EventsTab();
-  @override
-  Widget build(BuildContext context) => const _SimpleTab(
-    title: 'Events near you',
-    subtitle: 'Browse conventions and meetups without sharing your location.',
-    icon: Icons.location_on_outlined,
-    chips: ['Upcoming', 'Karachi', 'Lahore', 'Islamabad', 'Online'],
-  );
-}
-
-class _StoreTab extends StatelessWidget {
-  const _StoreTab();
-  @override
-  Widget build(BuildContext context) => const _SimpleTab(
-    title: 'Fan store',
-    subtitle:
-        'Official-style collectibles, apparel, and digital assets. Demo checkout only.',
-    icon: Icons.shopping_bag_outlined,
-    chips: ['Featured', 'Apparel', 'Collectibles', 'Digital'],
-  );
 }
 
 class _ProfileTab extends StatelessWidget {

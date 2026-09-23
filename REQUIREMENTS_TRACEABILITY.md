@@ -12,9 +12,9 @@ Status values: `planned`, `in progress`, `implemented`, `verified`, `external pr
 | Storage authorization | external prerequisite | Rules ready; new-project bucket provisioning requires billing |
 | Profiles and dashboard | planned | Phase 6-7 |
 | Fan dashboard visual shell | implemented | `lib/features/dashboard/presentation/fan_shell.dart` |
-| Content hub, search, bookmarks, offline sync | planned | Phase 8-10 |
-| Events, location, Maps, calendar | planned | Phase 11 |
-| Store, wishlist, cart, simulated checkout | planned | Phase 12-14 |
+| Content hub, search, bookmarks, offline cache | in progress | Search/filter/detail and local persistence implemented; remote sync pending |
+| Events, Maps links, calendar/agenda | in progress | City filter, details, external Maps, ticket validation, offline agenda implemented; GPS permission pending |
+| Store, wishlist, cart, simulated checkout | implemented | `lib/features/merchandise`, persistent local state and tests |
 | AI Fan Helper | planned | Phase 15 |
 | Contact, About, discussions | planned | Phase 16 |
 | Admin CRUD and moderation | planned | Phase 17 |
