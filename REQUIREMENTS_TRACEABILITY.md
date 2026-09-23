@@ -18,4 +18,4 @@ Status values: `planned`, `in progress`, `implemented`, `verified`, `external pr
 | AI Fan Helper | implemented | Offline curated FAQ conversation with loading and fallback states |
 | Contact, About, discussions | implemented | Firestore inquiry/discussion flows, ownership rules, project team screen |
 | Admin CRUD and moderation | in progress | Firestore-backed collection editors, status controls, moderation, inquiries, announcements, and audit events; trusted account provisioning, media uploads, and live device verification pending |
-| Backup, audit and deployment config | planned | Phase 18 |
+| Backup, audit and deployment config | external prerequisite | Atomic Admin audit records and backup/restore runbook prepared; billing, schedule activation, and restore drill pending |

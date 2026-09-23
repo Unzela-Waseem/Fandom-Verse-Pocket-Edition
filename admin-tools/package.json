@@ -1,0 +1,14 @@
+{
+  "name": "fandom-verse-admin-tools",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "dependencies": {
+    "firebase-admin": "^14.4.0"
+  },
+  "scripts": {
+    "provision-admin": "node provision-admin.mjs"
+  }
+}

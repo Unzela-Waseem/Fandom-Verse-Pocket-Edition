@@ -15,6 +15,7 @@ Core Fan flows are implemented and verified. Work is continuing on cloud-backed 
 ## External prerequisites
 
 - Cloud Storage provisioning requires a billing-enabled Firebase plan for new projects. Storage rules are ready but cannot be deployed until billing is enabled.
+- An owner must provision the first Admin using `admin-tools/provision-admin.mjs` with service-account Application Default Credentials and an owner-selected email/password. The mobile client cannot create or promote Admins.
 - Google/Apple sign-in provider configuration.
 - Google Maps API keys restricted per platform.
 - FCM and trusted serverless functions for price-drop notifications and privileged user administration.
