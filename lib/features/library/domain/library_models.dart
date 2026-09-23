@@ -21,6 +21,8 @@ class ContentItem {
     required this.creator,
     required this.tags,
     this.trending = false,
+    this.imageUrl,
+    this.videoUrl,
   });
 
   final String id;
@@ -32,6 +34,8 @@ class ContentItem {
   final String creator;
   final List<String> tags;
   final bool trending;
+  final String? imageUrl;
+  final String? videoUrl;
 
   Map<String, dynamic> toJson() => {
     'id': id,
@@ -43,6 +47,8 @@ class ContentItem {
     'creator': creator,
     'tags': tags,
     'trending': trending,
+    'imageUrl': imageUrl,
+    'videoUrl': videoUrl,
   };
 
   factory ContentItem.fromJson(Map<String, dynamic> json) {
@@ -60,6 +66,8 @@ class ContentItem {
       creator: json['creator'] as String,
       tags: List<String>.from(json['tags'] as List? ?? const []),
       trending: json['trending'] == true,
+      imageUrl: json['imageUrl'] as String?,
+      videoUrl: json['videoUrl'] as String?,
     );
   }
 }
@@ -77,6 +85,7 @@ class FandomEvent {
     required this.longitude,
     required this.ticketUrl,
     this.isDemo = false,
+    this.imageUrl,
   });
 
   final String id;
@@ -90,6 +99,7 @@ class FandomEvent {
   final double longitude;
   final String ticketUrl;
   final bool isDemo;
+  final String? imageUrl;
 
   Map<String, dynamic> toJson() => {
     'id': id,
@@ -103,6 +113,7 @@ class FandomEvent {
     'longitude': longitude,
     'ticketUrl': ticketUrl,
     'isDemo': isDemo,
+    'imageUrl': imageUrl,
   };
 
   factory FandomEvent.fromJson(Map<String, dynamic> json) {
@@ -120,6 +131,7 @@ class FandomEvent {
       longitude: (json['longitude'] as num).toDouble(),
       ticketUrl: legacyPreview ? '' : ticketUrl,
       isDemo: json['isDemo'] == true || legacyPreview,
+      imageUrl: json['imageUrl'] as String?,
     );
   }
 }
@@ -133,6 +145,7 @@ class Product {
     required this.price,
     required this.stock,
     this.previousPrice,
+    this.imageUrl,
   });
 
   final String id;
@@ -142,6 +155,7 @@ class Product {
   final double price;
   final double? previousPrice;
   final int stock;
+  final String? imageUrl;
 }
 
 class PurchaseOrder {

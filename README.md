@@ -34,7 +34,8 @@ The script is prepared but no Admin account has been provisioned for this projec
 - The Fan catalog combines bundled original demo items with published Firestore content, events, and active merchandise. Admin edits to Firestore records appear in Fan screens. Sample events are explicitly labeled and cannot open placeholder ticket or venue links.
 - Bookmarks, saved event details, wishlist, cart, and simulated purchase history are stored locally per account and mirrored to Firestore user subcollections. New devices can read that state; conflict and reconnection behavior still need emulator and device verification before release.
 - The AI Fan Helper uses curated offline FAQ responses. No external AI API key is embedded in the client.
-- Cloud Storage media upload, FCM delivery, embedded Maps, Apple sign-in, and scheduled backups require additional owner configuration. The avatar upload client and price-drop function are prepared but are not live. See [notification setup](docs/NOTIFICATIONS.md), [development notes](DEVELOPMENT.md), and the [backup runbook](docs/BACKUP_RESTORE.md).
+- Firebase remains on the free Spark plan. Firestore and email/password Authentication are configured and deployed. Cloudinary is the planned media host: Admin-supplied image URLs render in content, events, and merchandise, and content video URLs play online. Trusted-computer signed uploads are supported; Fan and Admin in-app uploads still need a separate signer. See [Cloudinary setup](docs/CLOUDINARY_SPARK.md).
+- Price-drop push delivery, embedded Maps, Apple sign-in, and scheduled backups remain external prerequisites. The price-drop function is prepared but cannot be deployed on Spark. See [notification setup](docs/NOTIFICATIONS.md), [development notes](DEVELOPMENT.md), and the [backup runbook](docs/BACKUP_RESTORE.md).
 
 ## Verification
 

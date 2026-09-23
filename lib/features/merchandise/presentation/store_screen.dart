@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
+import '../../../core/media/remote_media.dart';
+
 import '../../library/application/library_controller.dart';
 import '../../library/data/cloud_catalog.dart';
 import '../../library/data/demo_catalog.dart';
@@ -154,17 +156,12 @@ class _ProductCard extends ConsumerWidget {
         padding: const EdgeInsets.all(14),
         child: Row(
           children: [
-            Container(
+            SizedBox(
               width: 70,
               height: 82,
-              decoration: BoxDecoration(
-                color: const Color(0xFF302A48),
+              child: ClipRRect(
                 borderRadius: BorderRadius.circular(16),
-              ),
-              child: const Icon(
-                Icons.auto_awesome,
-                color: Color(0xFFFFD740),
-                size: 30,
+                child: RemoteMediaImage(url: product.imageUrl),
               ),
             ),
             const SizedBox(width: 14),

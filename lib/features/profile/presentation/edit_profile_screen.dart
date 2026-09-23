@@ -183,7 +183,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             ] else ...[
               const SizedBox(height: 8),
               const Text(
-                'Image uploads will be available after project Storage setup.',
+                'Profile image upload needs a secure Cloudinary connection.',
                 textAlign: TextAlign.center,
                 style: TextStyle(color: Colors.white60),
               ),

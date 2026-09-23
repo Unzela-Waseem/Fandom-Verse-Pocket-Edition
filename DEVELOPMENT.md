@@ -14,7 +14,7 @@ Core Fan flows are implemented and verified. Work is continuing on cloud-backed 
 
 ## External prerequisites
 
-- Cloud Storage provisioning requires a billing-enabled Firebase plan for new projects. Storage rules are ready but cannot be deployed until billing is enabled.
+- The owner chose Firebase Spark with Cloudinary media, so do not enable billing or Firebase Storage. The prepared Storage avatar code remains disabled. Signed in-app Cloudinary uploads need a separate trusted signer; trusted-computer Admin uploads are available without billing.
 - An owner must provision the first Admin using `admin-tools/provision-admin.mjs` with service-account Application Default Credentials and an owner-selected email/password. The mobile client cannot create or promote Admins.
 - Google/Apple sign-in provider configuration and native device verification. The code is present but neither provider is enabled in this Firebase project.
 - Google Maps API keys restricted per platform.
@@ -40,6 +40,7 @@ Core Fan flows are implemented and verified. Work is continuing on cloud-backed 
 - Device, Firebase emulator, and integration verification remain pending until platform configuration is available.
 - 2026-09-23: Added gated native Google/Apple Fan sign-in flows. First-time provider accounts create a default Fan profile; existing account roles are never rewritten, and incomplete sign-in fails closed. Labeled bundled sample events and removed their placeholder ticket/map actions. Static analysis and unit/widget tests pass; provider sign-in needs owner configuration and a real device test.
 - 2026-09-23: Prepared an owner-path avatar upload with file-signature MIME checks, a 5 MB limit, progress/cancel UI, and old-avatar cleanup. Image selection is hidden until Storage is provisioned; Storage rules are updated locally but are not deployed without a bucket. Static checks and 16 tests pass; upload itself remains unverified.
+- 2026-09-23: Reconfirmed the active Firebase project and deployed email/password Authentication plus Firestore rules and indexes on Spark. Added the Android Internet permission, remote content/event/merchandise images, online content video playback, and a trusted-computer signed Cloudinary upload tool. Cloudinary account claim and real media tests remain pending.
 
 ## Provider sign-in activation
 
@@ -51,4 +52,4 @@ Provider buttons are hidden by default. Enable them only after completing the na
 
 ## Avatar upload activation
 
-After the project owner enables billing, provisions Cloud Storage, and deploys `firebase/storage.rules`, run the app with `--dart-define=ENABLE_AVATAR_UPLOAD=true`. Verify upload, cancellation, replacement, unsupported files, oversized files, and account switching on Android/iOS. Until then, the profile editor honestly shows that image upload needs Storage setup. Do not enable the switch before the bucket and rules are ready.
+The owner chose Spark and Cloudinary instead of Firebase Storage. Do not enable `ENABLE_AVATAR_UPLOAD` or deploy Storage rules on this route. The prepared Firebase Storage avatar flow is superseded; a Cloudinary avatar uploader needs a separate trusted signing backend. See [Cloudinary setup](docs/CLOUDINARY_SPARK.md).

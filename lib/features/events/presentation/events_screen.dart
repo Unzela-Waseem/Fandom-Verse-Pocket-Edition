@@ -4,6 +4,8 @@ import 'package:geolocator/geolocator.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../../core/media/remote_media.dart';
+
 import '../../library/application/library_controller.dart';
 import '../../library/data/cloud_catalog.dart';
 import '../../library/data/demo_catalog.dart';
@@ -262,6 +264,16 @@ class EventDetailScreen extends ConsumerWidget {
       body: ListView(
         padding: const EdgeInsets.all(20),
         children: [
+          if (isHttpsMediaUrl(event.imageUrl)) ...[
+            ClipRRect(
+              borderRadius: BorderRadius.circular(20),
+              child: AspectRatio(
+                aspectRatio: 16 / 9,
+                child: RemoteMediaImage(url: event.imageUrl),
+              ),
+            ),
+            const SizedBox(height: 18),
+          ],
           Text(
             event.title,
             style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w900),

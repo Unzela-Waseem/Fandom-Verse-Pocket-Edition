@@ -64,6 +64,7 @@ class AdminCollectionConfig {
       AdminField('contentType', 'Content type'),
       AdminField('tags', 'Tags (comma separated)', required: false),
       AdminField('imageUrl', 'HTTPS image URL', required: false),
+      AdminField('videoUrl', 'HTTPS video URL', required: false),
       AdminField('published', 'Published', type: AdminFieldType.toggle),
       AdminField('trending', 'Featured on home', type: AdminFieldType.toggle),
     ],
@@ -454,6 +455,7 @@ class _AdminRecordEditorState extends State<_AdminRecordEditor> {
                       }
                       if (text.isNotEmpty &&
                           (field.key == 'imageUrl' ||
+                              field.key == 'videoUrl' ||
                               field.key == 'ticketLink')) {
                         final uri = Uri.tryParse(text);
                         if (uri == null ||

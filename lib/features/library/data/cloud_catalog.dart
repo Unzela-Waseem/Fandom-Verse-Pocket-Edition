@@ -86,6 +86,8 @@ ContentItem? contentFromDocument(
       growable: false,
     ),
     trending: data['trending'] == true,
+    imageUrl: data['imageUrl'] as String?,
+    videoUrl: data['videoUrl'] as String?,
   );
 }
 
@@ -113,6 +115,7 @@ FandomEvent? eventFromDocument(
     latitude: latitude.toDouble(),
     longitude: longitude.toDouble(),
     ticketUrl: data['ticketLink'] as String? ?? '',
+    imageUrl: data['imageUrl'] as String?,
   );
 }
 
@@ -137,5 +140,6 @@ Product? productFromDocument(
     price: price.toDouble(),
     previousPrice: previousPrice is num ? previousPrice.toDouble() : null,
     stock: stock is num ? stock.toInt() : 0,
+    imageUrl: data['imageUrl'] as String?,
   );
 }

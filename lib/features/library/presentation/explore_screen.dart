@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/constants/app_assets.dart';
+import '../../../core/media/remote_media.dart';
 import '../application/library_controller.dart';
 import '../data/cloud_catalog.dart';
 import '../data/demo_catalog.dart';
@@ -121,10 +121,7 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
                       SizedBox(
                         height: 120,
                         width: double.infinity,
-                        child: Image.asset(
-                          AppAssets.multiverse,
-                          fit: BoxFit.cover,
-                        ),
+                        child: RemoteMediaImage(url: item.imageUrl),
                       ),
                       Padding(
                         padding: const EdgeInsets.fromLTRB(16, 14, 8, 14),
@@ -224,7 +221,7 @@ class ContentDetailScreen extends ConsumerWidget {
             borderRadius: BorderRadius.circular(24),
             child: AspectRatio(
               aspectRatio: 16 / 9,
-              child: Image.asset(AppAssets.multiverse, fit: BoxFit.cover),
+              child: RemoteMediaImage(url: item.imageUrl),
             ),
           ),
           const SizedBox(height: 20),
@@ -250,6 +247,10 @@ class ContentDetailScreen extends ConsumerWidget {
               color: Colors.white70,
             ),
           ),
+          if (isHttpsMediaUrl(item.videoUrl)) ...[
+            const SizedBox(height: 20),
+            RemoteMediaVideo(url: item.videoUrl!),
+          ],
           const SizedBox(height: 22),
           Wrap(
             spacing: 8,
@@ -263,7 +264,9 @@ class ContentDetailScreen extends ConsumerWidget {
               contentPadding: EdgeInsets.zero,
               leading: Icon(Icons.offline_pin, color: Colors.greenAccent),
               title: Text('Available offline'),
-              subtitle: Text('Saved locally on this device.'),
+              subtitle: Text(
+                'Article text is saved on this device. Images and video require internet.',
+              ),
             ),
           ],
         ],
