@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/constants/app_assets.dart';
+import '../../authentication/domain/app_user.dart';
 import '../domain/fandom_item.dart';
 
 class FanShell extends StatefulWidget {
-  const FanShell({super.key});
+  const FanShell({super.key, this.profile});
+
+  final AppUser? profile;
 
   @override
   State<FanShell> createState() => _FanShellState();
@@ -15,12 +18,12 @@ class _FanShellState extends State<FanShell> {
 
   @override
   Widget build(BuildContext context) {
-    const pages = [
-      _HomeTab(),
-      _ExploreTab(),
-      _EventsTab(),
-      _StoreTab(),
-      _ProfileTab(),
+    final pages = [
+      _HomeTab(profile: widget.profile),
+      const _ExploreTab(),
+      const _EventsTab(),
+      const _StoreTab(),
+      const _ProfileTab(),
     ];
     return Scaffold(
       body: IndexedStack(index: _index, children: pages),
@@ -64,7 +67,9 @@ class _FanShellState extends State<FanShell> {
 }
 
 class _HomeTab extends StatelessWidget {
-  const _HomeTab();
+  const _HomeTab({this.profile});
+
+  final AppUser? profile;
 
   @override
   Widget build(BuildContext context) {
@@ -75,7 +80,7 @@ class _HomeTab extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(20, 18, 20, 0),
             sliver: SliverList.list(
               children: [
-                const _TopBar(),
+                _TopBar(profile: profile),
                 const SizedBox(height: 24),
                 const _HeroCard(),
                 const SizedBox(height: 28),
@@ -121,7 +126,9 @@ class _HomeTab extends StatelessWidget {
 }
 
 class _TopBar extends StatelessWidget {
-  const _TopBar();
+  const _TopBar({this.profile});
+
+  final AppUser? profile;
 
   @override
   Widget build(BuildContext context) {
@@ -133,17 +140,20 @@ class _TopBar extends StatelessWidget {
           child: Icon(Icons.person, color: Colors.white70),
         ),
         const SizedBox(width: 12),
-        const Expanded(
+        Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
+              const Text(
                 'Welcome back',
                 style: TextStyle(color: Colors.white54, fontSize: 12),
               ),
               Text(
-                'Fandom Explorer',
-                style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16),
+                profile?.displayName ?? 'Fandom Explorer',
+                style: const TextStyle(
+                  fontWeight: FontWeight.w800,
+                  fontSize: 16,
+                ),
               ),
             ],
           ),

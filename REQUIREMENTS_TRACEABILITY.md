@@ -7,9 +7,9 @@ Status values: `planned`, `in progress`, `implemented`, `verified`, `external pr
 | Flutter foundation and Android 9 baseline | implemented | `pubspec.yaml`, `android/app/build.gradle.kts` |
 | Theme and Fan/Admin entry experience | implemented | `lib/app`, `lib/features/authentication` |
 | Input validation | verified | `lib/core/validation`, unit tests |
-| Firebase Authentication and AuthGate | in progress | Firebase packages selected; project configuration required |
-| Firestore authorization | in progress | Default-deny rules foundation in `firebase/firestore.rules` |
-| Storage authorization | in progress | Owner-scoped image rules in `firebase/storage.rules` |
+| Email/password Authentication and AuthGate | implemented | `lib/features/authentication`, live Firebase provider configuration |
+| Firestore authorization | implemented | Deployed default-deny `firebase/firestore.rules` |
+| Storage authorization | external prerequisite | Rules ready; new-project bucket provisioning requires billing |
 | Profiles and dashboard | planned | Phase 6-7 |
 | Fan dashboard visual shell | implemented | `lib/features/dashboard/presentation/fan_shell.dart` |
 | Content hub, search, bookmarks, offline sync | planned | Phase 8-10 |

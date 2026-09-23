@@ -1,21 +1,26 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/validation/input_validators.dart';
+import '../application/auth_providers.dart';
+import '../data/auth_service.dart';
+import 'registration_screen.dart';
 
-class LoginScreen extends StatefulWidget {
+class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key, required this.adminMode});
 
   final bool adminMode;
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  ConsumerState<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
+  bool _submitting = false;
 
   @override
   void dispose() {
@@ -24,15 +29,54 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
-  void _submit() {
-    if (!_formKey.currentState!.validate()) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text(
-          'Firebase setup is required before sign-in can be enabled.',
-        ),
-      ),
-    );
+  Future<void> _submit() async {
+    if (_submitting || !_formKey.currentState!.validate()) return;
+    setState(() => _submitting = true);
+    try {
+      await ref
+          .read(authServiceProvider)
+          .signIn(
+            email: _emailController.text,
+            password: _passwordController.text,
+          );
+      if (mounted) Navigator.of(context).popUntil((route) => route.isFirst);
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(friendlyAuthError(error))));
+      }
+    } finally {
+      if (mounted) setState(() => _submitting = false);
+    }
+  }
+
+  Future<void> _resetPassword() async {
+    final emailError = InputValidators.email(_emailController.text);
+    if (emailError != null) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(emailError)));
+      return;
+    }
+    try {
+      await ref
+          .read(authServiceProvider)
+          .sendPasswordReset(_emailController.text);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Password reset instructions were sent.'),
+          ),
+        );
+      }
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(friendlyAuthError(error))));
+      }
+    }
   }
 
   @override
@@ -74,6 +118,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   obscureText: _obscurePassword,
                   autofillHints: const [AutofillHints.password],
                   validator: InputValidators.password,
+                  onFieldSubmitted: (_) => _submit(),
                   decoration: InputDecoration(
                     labelText: 'Password',
                     prefixIcon: const Icon(Icons.lock_outline),
@@ -92,19 +137,41 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
                 const SizedBox(height: 24),
-                FilledButton(onPressed: _submit, child: const Text('Sign in')),
+                FilledButton(
+                  onPressed: _submitting ? null : _submit,
+                  child: _submitting
+                      ? const SizedBox.square(
+                          dimension: 22,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Text('Sign in'),
+                ),
                 if (!widget.adminMode) ...[
                   TextButton(
-                    onPressed: () {},
+                    onPressed: _submitting ? null : _resetPassword,
                     child: const Text('Forgot password?'),
                   ),
                   const Divider(height: 32),
                   OutlinedButton.icon(
-                    onPressed: () {},
+                    onPressed: _submitting
+                        ? null
+                        : () => Navigator.of(context).push(
+                            MaterialPageRoute<void>(
+                              builder: (_) => const RegistrationScreen(),
+                            ),
+                          ),
                     icon: const Icon(Icons.person_add_alt_1_outlined),
                     label: const Text('Create fan account'),
                   ),
-                ],
+                ] else
+                  const Padding(
+                    padding: EdgeInsets.only(top: 16),
+                    child: Text(
+                      'Admin accounts must be provisioned through the trusted project process.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: Colors.white60),
+                    ),
+                  ),
               ],
             ),
           ),

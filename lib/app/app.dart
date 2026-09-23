@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 
-import '../features/authentication/presentation/landing_screen.dart';
+import '../features/authentication/presentation/auth_gate.dart';
 import 'theme/app_theme.dart';
 
 class FandomVerseApp extends StatelessWidget {
-  const FandomVerseApp({super.key});
+  const FandomVerseApp({super.key, this.home});
+
+  final Widget? home;
 
   @override
   Widget build(BuildContext context) {
@@ -14,7 +16,7 @@ class FandomVerseApp extends StatelessWidget {
       theme: AppTheme.light,
       darkTheme: AppTheme.dark,
       themeMode: ThemeMode.dark,
-      home: const LandingScreen(),
+      home: home ?? const AuthGate(),
     );
   }
 }

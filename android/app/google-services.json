@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "477827303954",
+    "project_id": "fandom-verse-pocket-unzela",
+    "storage_bucket": "fandom-verse-pocket-unzela.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:477827303954:android:4652141a5302461dcc26cb",
+        "android_client_info": {
+          "package_name": "com.fandomverse.fandom_verse_pocket"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCgVeHnMw-rU68HBBAu3NPOwKgSkA0CQf4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
