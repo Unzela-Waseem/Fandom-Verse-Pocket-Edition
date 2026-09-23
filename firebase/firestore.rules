@@ -46,7 +46,7 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
     match /announcements/{id} {
-      allow read: if signedIn();
+      allow read: if (signedIn() && resource.data.published == true) || isAdmin();
       allow write: if isAdmin();
     }
     match /audit_logs/{id} {

@@ -16,6 +16,7 @@ Status values: `planned`, `in progress`, `implemented`, `verified`, `external pr
 | Events, Maps links, calendar/agenda | implemented | City filter, contextual GPS permission, nearby sorting, external Maps, ticket validation, and offline agenda |
 | Store, wishlist, cart, simulated checkout | in progress | Live Firestore product records, account-scoped local wishlist/cart/orders, simulated checkout and tests; cross-device sync pending |
 | AI Fan Helper | implemented | Offline curated FAQ conversation with loading and fallback states |
+| In-app notifications | in progress | Published Admin announcements and personal read/unread notification center; price-drop generation and FCM delivery pending |
 | Contact, About, discussions | implemented | Firestore inquiry/discussion flows, ownership rules, project team screen |
 | Admin CRUD and moderation | in progress | Firestore-backed collection editors, status controls, moderation, inquiries, announcements, and audit events; trusted account provisioning, media uploads, and live device verification pending |
 | Backup, audit and deployment config | external prerequisite | Atomic Admin audit records and backup/restore runbook prepared; billing, schedule activation, and restore drill pending |

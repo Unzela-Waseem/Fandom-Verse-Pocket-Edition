@@ -1,12 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/constants/app_assets.dart';
 import '../../authentication/domain/app_user.dart';
 import '../../events/presentation/events_screen.dart';
+import '../../library/application/library_controller.dart';
+import '../../library/data/cloud_catalog.dart';
+import '../../library/data/demo_catalog.dart';
+import '../../library/domain/library_models.dart';
 import '../../library/presentation/explore_screen.dart';
 import '../../merchandise/presentation/store_screen.dart';
+import '../../notifications/presentation/notifications_screen.dart';
 import '../../profile/presentation/profile_screen.dart';
-import '../domain/fandom_item.dart';
 
 class FanShell extends StatefulWidget {
   const FanShell({super.key, this.profile});
@@ -23,7 +28,10 @@ class _FanShellState extends State<FanShell> {
   @override
   Widget build(BuildContext context) {
     final pages = [
-      _HomeTab(profile: widget.profile),
+      _HomeTab(
+        profile: widget.profile,
+        openExplore: () => setState(() => _index = 1),
+      ),
       const ExploreScreen(),
       const EventsScreen(),
       const StoreScreen(),
@@ -70,13 +78,19 @@ class _FanShellState extends State<FanShell> {
   }
 }
 
-class _HomeTab extends StatelessWidget {
-  const _HomeTab({this.profile});
+class _HomeTab extends ConsumerWidget {
+  const _HomeTab({required this.openExplore, this.profile});
 
   final AppUser? profile;
+  final VoidCallback openExplore;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final catalog =
+        ref.watch(contentCatalogProvider).asData?.value ?? contentCatalog;
+    final featured = catalog.where((item) => item.trending).toList();
+    if (featured.isEmpty) featured.addAll(catalog.take(4));
+    final categories = catalog.map((item) => item.category).toSet().toList();
     return SafeArea(
       child: CustomScrollView(
         slivers: [
@@ -84,26 +98,38 @@ class _HomeTab extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(20, 18, 20, 0),
             sliver: SliverList.list(
               children: [
-                _TopBar(profile: profile),
+                _TopBar(profile: profile, openExplore: openExplore),
                 const SizedBox(height: 24),
-                const _HeroCard(),
+                _HeroCard(openExplore: openExplore),
                 const SizedBox(height: 28),
-                const _SectionTitle(title: 'Live now', action: 'View all'),
+                _SectionTitle(
+                  title: 'Explore fandoms',
+                  action: 'View all',
+                  onPressed: openExplore,
+                ),
                 const SizedBox(height: 12),
                 SizedBox(
                   height: 96,
                   child: ListView.separated(
                     scrollDirection: Axis.horizontal,
-                    itemCount: demoFandoms.length,
+                    itemCount: categories.length,
                     separatorBuilder: (_, _) => const SizedBox(width: 16),
-                    itemBuilder: (_, index) =>
-                        _LiveAvatar(item: demoFandoms[index]),
+                    itemBuilder: (_, index) => _CategoryAvatar(
+                      category: categories[index],
+                      onTap: () => Navigator.of(context).push(
+                        MaterialPageRoute<void>(
+                          builder: (_) =>
+                              ExploreScreen(initialCategory: categories[index]),
+                        ),
+                      ),
+                    ),
                   ),
                 ),
                 const SizedBox(height: 28),
-                const _SectionTitle(
-                  title: 'Recommended for you',
+                _SectionTitle(
+                  title: 'Featured stories',
                   action: 'See more',
+                  onPressed: openExplore,
                 ),
                 const SizedBox(height: 12),
               ],
@@ -112,14 +138,14 @@ class _HomeTab extends StatelessWidget {
           SliverPadding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
             sliver: SliverGrid.builder(
-              itemCount: demoFandoms.length,
+              itemCount: featured.length,
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 2,
                 crossAxisSpacing: 14,
                 mainAxisSpacing: 14,
                 childAspectRatio: .76,
               ),
-              itemBuilder: (_, index) => _FandomCard(item: demoFandoms[index]),
+              itemBuilder: (_, index) => _StoryCard(item: featured[index]),
             ),
           ),
           const SliverToBoxAdapter(child: SizedBox(height: 28)),
@@ -130,122 +156,116 @@ class _HomeTab extends StatelessWidget {
 }
 
 class _TopBar extends StatelessWidget {
-  const _TopBar({this.profile});
+  const _TopBar({required this.openExplore, this.profile});
 
   final AppUser? profile;
+  final VoidCallback openExplore;
 
   @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        const CircleAvatar(
-          radius: 22,
-          backgroundColor: Color(0xFF332C4D),
-          child: Icon(Icons.person, color: Colors.white70),
+  Widget build(BuildContext context) => Row(
+    children: [
+      const CircleAvatar(
+        radius: 22,
+        backgroundColor: Color(0xFF332C4D),
+        child: Icon(Icons.person, color: Colors.white70),
+      ),
+      const SizedBox(width: 12),
+      Expanded(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Welcome back',
+              style: TextStyle(color: Colors.white54, fontSize: 12),
+            ),
+            Text(
+              profile?.displayName ?? 'Fandom Explorer',
+              style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16),
+            ),
+          ],
         ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+      ),
+      IconButton.filledTonal(
+        tooltip: 'Explore and search',
+        onPressed: openExplore,
+        icon: const Icon(Icons.search),
+      ),
+      const SizedBox(width: 6),
+      IconButton.filledTonal(
+        tooltip: 'Notifications',
+        onPressed: () => Navigator.of(context).push(
+          MaterialPageRoute<void>(builder: (_) => const NotificationsScreen()),
+        ),
+        icon: const Icon(Icons.notifications_none),
+      ),
+    ],
+  );
+}
+
+class _HeroCard extends StatelessWidget {
+  const _HeroCard({required this.openExplore});
+
+  final VoidCallback openExplore;
+
+  @override
+  Widget build(BuildContext context) => AspectRatio(
+    aspectRatio: 1.18,
+    child: ClipRRect(
+      borderRadius: BorderRadius.circular(28),
+      child: Material(
+        child: InkWell(
+          onTap: openExplore,
+          child: Stack(
+            fit: StackFit.expand,
             children: [
-              const Text(
-                'Welcome back',
-                style: TextStyle(color: Colors.white54, fontSize: 12),
+              Image.asset(AppAssets.multiverse, fit: BoxFit.cover),
+              const DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [Colors.transparent, Color(0xEE08080B)],
+                    stops: [.35, 1],
+                  ),
+                ),
               ),
-              Text(
-                profile?.displayName ?? 'Fandom Explorer',
-                style: const TextStyle(
-                  fontWeight: FontWeight.w800,
-                  fontSize: 16,
+              Positioned(
+                left: 20,
+                right: 20,
+                bottom: 20,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const _Pill(label: 'DISCOVER YOUR NEXT STORY'),
+                    const SizedBox(height: 10),
+                    Text(
+                      'The worlds are\ncalling you',
+                      style: Theme.of(context).textTheme.headlineMedium
+                          ?.copyWith(fontWeight: FontWeight.w900, height: 1),
+                    ),
+                    const SizedBox(height: 10),
+                    const Row(
+                      children: [
+                        Text(
+                          'Explore original fandom stories',
+                          style: TextStyle(color: Colors.white70),
+                        ),
+                        Spacer(),
+                        CircleAvatar(
+                          backgroundColor: Color(0xFFFFD740),
+                          child: Icon(Icons.arrow_forward, color: Colors.black),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
               ),
             ],
           ),
         ),
-        IconButton.filledTonal(
-          onPressed: () {},
-          icon: const Icon(Icons.search),
-        ),
-        const SizedBox(width: 6),
-        Badge(
-          smallSize: 8,
-          child: IconButton.filledTonal(
-            onPressed: () {},
-            icon: const Icon(Icons.notifications_none),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _HeroCard extends StatelessWidget {
-  const _HeroCard();
-
-  @override
-  Widget build(BuildContext context) {
-    return AspectRatio(
-      aspectRatio: 1.18,
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(28),
-        child: Stack(
-          fit: StackFit.expand,
-          children: [
-            Image.asset(AppAssets.multiverse, fit: BoxFit.cover),
-            const DecoratedBox(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [Colors.transparent, Color(0xEE08080B)],
-                  stops: [.35, 1],
-                ),
-              ),
-            ),
-            Positioned(
-              left: 20,
-              right: 20,
-              bottom: 20,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const _Pill(label: 'TRENDING UNIVERSE'),
-                  const SizedBox(height: 10),
-                  Text(
-                    'The worlds are\ncalling you',
-                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                      fontWeight: FontWeight.w900,
-                      height: 1,
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  const Row(
-                    children: [
-                      Icon(
-                        Icons.people_alt_outlined,
-                        size: 17,
-                        color: Colors.white70,
-                      ),
-                      SizedBox(width: 6),
-                      Text(
-                        '48.2K fans exploring',
-                        style: TextStyle(color: Colors.white70),
-                      ),
-                      Spacer(),
-                      CircleAvatar(
-                        backgroundColor: Color(0xFFFFD740),
-                        child: Icon(Icons.arrow_forward, color: Colors.black),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
       ),
-    );
-  }
+    ),
+  );
 }
 
 class _Pill extends StatelessWidget {
@@ -253,106 +273,117 @@ class _Pill extends StatelessWidget {
   final String label;
 
   @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.primary,
-        borderRadius: BorderRadius.circular(99),
+  Widget build(BuildContext context) => Container(
+    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+    decoration: BoxDecoration(
+      color: Theme.of(context).colorScheme.primary,
+      borderRadius: BorderRadius.circular(99),
+    ),
+    child: Text(
+      label,
+      style: const TextStyle(
+        color: Colors.black,
+        fontWeight: FontWeight.w900,
+        fontSize: 10,
       ),
-      child: Text(
-        label,
-        style: const TextStyle(
-          color: Colors.black,
-          fontWeight: FontWeight.w900,
-          fontSize: 10,
-        ),
-      ),
-    );
-  }
+    ),
+  );
 }
 
 class _SectionTitle extends StatelessWidget {
-  const _SectionTitle({required this.title, required this.action});
+  const _SectionTitle({
+    required this.title,
+    required this.action,
+    required this.onPressed,
+  });
   final String title;
   final String action;
+  final VoidCallback onPressed;
 
   @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Expanded(
-          child: Text(
-            title,
-            style: const TextStyle(fontSize: 19, fontWeight: FontWeight.w900),
-          ),
+  Widget build(BuildContext context) => Row(
+    children: [
+      Expanded(
+        child: Text(
+          title,
+          style: const TextStyle(fontSize: 19, fontWeight: FontWeight.w900),
         ),
-        TextButton(onPressed: () {}, child: Text(action)),
-      ],
-    );
-  }
+      ),
+      TextButton(onPressed: onPressed, child: Text(action)),
+    ],
+  );
 }
 
-class _LiveAvatar extends StatelessWidget {
-  const _LiveAvatar({required this.item});
-  final FandomItem item;
+class _CategoryAvatar extends StatelessWidget {
+  const _CategoryAvatar({required this.category, required this.onTap});
+  final String category;
+  final VoidCallback onTap;
 
   @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: 68,
+  Widget build(BuildContext context) => InkWell(
+    onTap: onTap,
+    child: SizedBox(
+      width: 76,
       child: Column(
         children: [
           Container(
             padding: const EdgeInsets.all(2),
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              border: Border.all(color: item.color, width: 2),
+              border: Border.all(color: const Color(0xFFFFD740), width: 2),
             ),
-            child: CircleAvatar(
+            child: const CircleAvatar(
               radius: 27,
-              backgroundColor: const Color(0xFF24232B),
-              child: Icon(item.icon, color: item.color),
+              backgroundColor: Color(0xFF24232B),
+              child: Icon(
+                Icons.auto_stories_outlined,
+                color: Color(0xFFFFD740),
+              ),
             ),
           ),
           const SizedBox(height: 6),
           Text(
-            item.category,
+            category,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: const TextStyle(fontSize: 11),
           ),
         ],
       ),
-    );
-  }
+    ),
+  );
 }
 
-class _FandomCard extends StatelessWidget {
-  const _FandomCard({required this.item});
-  final FandomItem item;
+class _StoryCard extends ConsumerWidget {
+  const _StoryCard({required this.item});
+  final ContentItem item;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final bookmarked = ref
+        .watch(libraryProvider)
+        .bookmarkedContent
+        .contains(item.id);
     return InkWell(
       borderRadius: BorderRadius.circular(22),
       onTap: () => Navigator.of(context).push(
-        MaterialPageRoute<void>(builder: (_) => _FandomDetail(item: item)),
+        MaterialPageRoute<void>(
+          builder: (_) => ContentDetailScreen(item: item),
+        ),
       ),
       child: Ink(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(22),
+        decoration: const BoxDecoration(
+          borderRadius: BorderRadius.all(Radius.circular(22)),
           image: DecorationImage(
-            image: const AssetImage(AppAssets.multiverse),
+            image: AssetImage(AppAssets.multiverse),
             fit: BoxFit.cover,
-            alignment: item.alignment,
           ),
         ),
         child: Container(
           padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(22),
-            gradient: const LinearGradient(
+          decoration: const BoxDecoration(
+            borderRadius: BorderRadius.all(Radius.circular(22)),
+            gradient: LinearGradient(
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
               colors: [Colors.transparent, Color(0xF20A0A0E)],
@@ -364,15 +395,21 @@ class _FandomCard extends StatelessWidget {
               Align(
                 alignment: Alignment.topRight,
                 child: IconButton.filledTonal(
-                  onPressed: () {},
-                  icon: const Icon(Icons.bookmark_border, size: 19),
+                  tooltip: bookmarked ? 'Remove bookmark' : 'Save offline',
+                  onPressed: () => ref
+                      .read(libraryProvider.notifier)
+                      .toggleBookmark(item.id, item: item),
+                  icon: Icon(
+                    bookmarked ? Icons.bookmark : Icons.bookmark_border,
+                    size: 19,
+                  ),
                 ),
               ),
               const Spacer(),
               Text(
                 item.category.toUpperCase(),
-                style: TextStyle(
-                  color: item.color,
+                style: const TextStyle(
+                  color: Color(0xFFFFD740),
                   fontSize: 10,
                   fontWeight: FontWeight.w900,
                 ),
@@ -380,214 +417,23 @@ class _FandomCard extends StatelessWidget {
               const SizedBox(height: 5),
               Text(
                 item.title,
+                maxLines: 3,
+                overflow: TextOverflow.ellipsis,
                 style: const TextStyle(
                   fontWeight: FontWeight.w900,
                   fontSize: 17,
                 ),
               ),
               const SizedBox(height: 6),
-              const Row(
-                children: [
-                  Icon(Icons.star, color: Color(0xFFFFD740), size: 15),
-                  SizedBox(width: 4),
-                  Text('4.9', style: TextStyle(fontSize: 11)),
-                  Spacer(),
-                  Text(
-                    '12K fans',
-                    style: TextStyle(fontSize: 10, color: Colors.white60),
-                  ),
-                ],
+              Text(
+                'By ${item.creator}',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(fontSize: 10, color: Colors.white60),
               ),
             ],
           ),
         ),
-      ),
-    );
-  }
-}
-
-class _FandomDetail extends StatelessWidget {
-  const _FandomDetail({required this.item});
-  final FandomItem item;
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: CustomScrollView(
-        slivers: [
-          SliverAppBar.large(
-            expandedHeight: 330,
-            pinned: true,
-            actions: [
-              IconButton.filledTonal(
-                onPressed: () {},
-                icon: const Icon(Icons.bookmark_border),
-              ),
-            ],
-            flexibleSpace: FlexibleSpaceBar(
-              title: Text(
-                item.title,
-                style: const TextStyle(fontWeight: FontWeight.w900),
-              ),
-              background: Stack(
-                fit: StackFit.expand,
-                children: [
-                  Image.asset(
-                    AppAssets.multiverse,
-                    fit: BoxFit.cover,
-                    alignment: item.alignment,
-                  ),
-                  const DecoratedBox(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [Colors.transparent, Color(0xFF101014)],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          SliverPadding(
-            padding: const EdgeInsets.all(20),
-            sliver: SliverList.list(
-              children: [
-                Text(
-                  item.subtitle,
-                  style: const TextStyle(
-                    fontSize: 17,
-                    height: 1.5,
-                    color: Colors.white70,
-                  ),
-                ),
-                const SizedBox(height: 24),
-                const _SectionTitle(
-                  title: 'Featured stories',
-                  action: 'View all',
-                ),
-                ...List.generate(
-                  3,
-                  (index) => ListTile(
-                    contentPadding: const EdgeInsets.symmetric(vertical: 6),
-                    leading: CircleAvatar(
-                      backgroundColor: item.color.withValues(alpha: .18),
-                      child: Icon(item.icon, color: item.color),
-                    ),
-                    title: Text(
-                      [
-                        'A beginner’s guide to the universe',
-                        'Seven details fans almost missed',
-                        'Creators share behind-the-scenes stories',
-                      ][index],
-                    ),
-                    subtitle: Text('${4 + index} min read · Available offline'),
-                    trailing: const Icon(Icons.chevron_right),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// TODO: Remove after the profile migration is verified on representative devices.
-// ignore: unused_element
-class _ProfileTab extends StatelessWidget {
-  const _ProfileTab();
-  @override
-  Widget build(BuildContext context) => const _SimpleTab(
-    title: 'Your profile',
-    subtitle:
-        'Manage fandoms, bookmarks, offline content, wishlist, and purchases.',
-    icon: Icons.person_outline,
-    chips: ['Bookmarks', 'Offline', 'Wishlist', 'Purchases'],
-  );
-}
-
-class _SimpleTab extends StatelessWidget {
-  const _SimpleTab({
-    required this.title,
-    required this.subtitle,
-    required this.icon,
-    required this.chips,
-  });
-  final String title;
-  final String subtitle;
-  final IconData icon;
-  final List<String> chips;
-
-  @override
-  Widget build(BuildContext context) {
-    return SafeArea(
-      child: ListView(
-        padding: const EdgeInsets.all(20),
-        children: [
-          const SizedBox(height: 12),
-          Icon(icon, size: 54, color: Theme.of(context).colorScheme.primary),
-          const SizedBox(height: 18),
-          Text(
-            title,
-            style: const TextStyle(fontSize: 30, fontWeight: FontWeight.w900),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            subtitle,
-            style: const TextStyle(color: Colors.white60, height: 1.5),
-          ),
-          const SizedBox(height: 22),
-          TextField(
-            decoration: InputDecoration(
-              hintText: 'Search $title',
-              prefixIcon: const Icon(Icons.search),
-              suffixIcon: const Icon(Icons.tune),
-            ),
-          ),
-          const SizedBox(height: 14),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: chips
-                .map(
-                  (label) => FilterChip(label: Text(label), onSelected: (_) {}),
-                )
-                .toList(),
-          ),
-          const SizedBox(height: 24),
-          ...demoFandoms
-              .take(3)
-              .map(
-                (item) => Card(
-                  margin: const EdgeInsets.only(bottom: 12),
-                  child: ListTile(
-                    contentPadding: const EdgeInsets.all(12),
-                    leading: Container(
-                      width: 56,
-                      height: 56,
-                      decoration: BoxDecoration(
-                        color: item.color.withValues(alpha: .16),
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: Icon(item.icon, color: item.color),
-                    ),
-                    title: Text(
-                      item.title,
-                      style: const TextStyle(fontWeight: FontWeight.w800),
-                    ),
-                    subtitle: Text(
-                      item.subtitle,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    trailing: const Icon(Icons.chevron_right),
-                  ),
-                ),
-              ),
-        ],
       ),
     );
   }

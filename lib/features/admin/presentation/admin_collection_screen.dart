@@ -56,6 +56,7 @@ class AdminCollectionConfig {
       AdminField('tags', 'Tags (comma separated)', required: false),
       AdminField('imageUrl', 'HTTPS image URL', required: false),
       AdminField('published', 'Published', type: AdminFieldType.toggle),
+      AdminField('trending', 'Featured on home', type: AdminFieldType.toggle),
     ],
   );
   static const events = AdminCollectionConfig(
@@ -103,7 +104,6 @@ class AdminCollectionConfig {
     fields: [
       AdminField('title', 'Title'),
       AdminField('message', 'Message', type: AdminFieldType.multiline),
-      AdminField('audience', 'Audience'),
       AdminField('published', 'Published', type: AdminFieldType.toggle),
     ],
   );

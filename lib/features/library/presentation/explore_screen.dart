@@ -8,7 +8,9 @@ import '../data/demo_catalog.dart';
 import '../domain/library_models.dart';
 
 class ExploreScreen extends ConsumerStatefulWidget {
-  const ExploreScreen({super.key});
+  const ExploreScreen({super.key, this.initialCategory = 'All'});
+
+  final String initialCategory;
 
   @override
   ConsumerState<ExploreScreen> createState() => _ExploreScreenState();
@@ -16,7 +18,13 @@ class ExploreScreen extends ConsumerStatefulWidget {
 
 class _ExploreScreenState extends ConsumerState<ExploreScreen> {
   String _query = '';
-  String _category = 'All';
+  late String _category;
+
+  @override
+  void initState() {
+    super.initState();
+    _category = widget.initialCategory;
+  }
 
   @override
   Widget build(BuildContext context) {
