@@ -17,5 +17,5 @@ Status values: `planned`, `in progress`, `implemented`, `verified`, `external pr
 | Store, wishlist, cart, simulated checkout | implemented | `lib/features/merchandise`, persistent local state and tests |
 | AI Fan Helper | implemented | Offline curated FAQ conversation with loading and fallback states |
 | Contact, About, discussions | implemented | Firestore inquiry/discussion flows, ownership rules, project team screen |
-| Admin CRUD and moderation | planned | Phase 17 |
+| Admin CRUD and moderation | in progress | Firestore-backed collection editors, status controls, moderation, inquiries, announcements, and audit events; trusted account provisioning, media uploads, and live device verification pending |
 | Backup, audit and deployment config | planned | Phase 18 |

@@ -32,9 +32,19 @@ class AuthGate extends ConsumerWidget {
                         : 'Your profile could not be loaded. No privileged access was granted.',
                     onSignOut: () => ref.read(authServiceProvider).signOut(),
                   ),
-                  data: (profile) => switch (profile.role) {
-                    UserRole.fan => FanShell(profile: profile),
-                    UserRole.admin => AdminDashboard(profile: profile),
+                  data: (profile) {
+                    if (profile.accountStatus != 'active') {
+                      return _RecoveryScreen(
+                        message:
+                            'This account is disabled. Contact project support if you believe this is a mistake.',
+                        onSignOut: () =>
+                            ref.read(authServiceProvider).signOut(),
+                      );
+                    }
+                    return switch (profile.role) {
+                      UserRole.fan => FanShell(profile: profile),
+                      UserRole.admin => AdminDashboard(profile: profile),
+                    };
                   },
                 );
           },

@@ -42,6 +42,7 @@ class AuthService {
         'selectedFandoms': fandoms,
         'badge': badge,
         'role': 'fan',
+        'accountStatus': 'active',
         'createdAt': FieldValue.serverTimestamp(),
         'updatedAt': FieldValue.serverTimestamp(),
       });

@@ -12,6 +12,7 @@ class AppUser {
     required this.badge,
     this.bio = '',
     this.avatarUrl,
+    this.accountStatus = 'active',
   });
 
   final String uid;
@@ -22,6 +23,7 @@ class AppUser {
   final String badge;
   final String bio;
   final String? avatarUrl;
+  final String accountStatus;
 
   factory AppUser.fromFirestore(
     DocumentSnapshot<Map<String, dynamic>> snapshot,
@@ -45,6 +47,7 @@ class AppUser {
       badge: data['badge'] as String? ?? 'New Explorer',
       bio: data['bio'] as String? ?? '',
       avatarUrl: data['avatarUrl'] as String?,
+      accountStatus: data['accountStatus'] as String? ?? 'active',
     );
   }
 }

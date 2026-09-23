@@ -1,10 +1,17 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    function signedIn() { return request.auth != null; }
+    function authenticated() { return request.auth != null; }
+    function userPath() {
+      return /databases/$(database)/documents/users/$(request.auth.uid);
+    }
+    function signedIn() {
+      return authenticated() && exists(userPath())
+        && get(userPath()).data.get('accountStatus', 'active') == 'active';
+    }
     function owns(uid) { return signedIn() && request.auth.uid == uid; }
     function role() {
-      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
+      return get(userPath()).data.role;
     }
     function isAdmin() { return signedIn() && role() == 'admin'; }
     function hasOnlyProfileFields() {
@@ -14,10 +21,13 @@ service cloud.firestore {
     }
 
     match /users/{uid} {
-      allow create: if owns(uid) && request.resource.data.role == 'fan';
-      allow read: if owns(uid) || isAdmin();
-      allow update: if (owns(uid) && hasOnlyProfileFields()) || isAdmin();
-      allow delete: if isAdmin();
+      allow create: if authenticated() && request.auth.uid == uid
+        && request.resource.data.role == 'fan'
+        && request.resource.data.get('accountStatus', 'active') == 'active';
+      allow read: if (authenticated() && request.auth.uid == uid) || isAdmin();
+      allow update: if (owns(uid) && hasOnlyProfileFields()) ||
+        (isAdmin() && request.resource.data.role == resource.data.role);
+      allow delete: if false;
     }
     match /categories/{id} {
       allow read: if true;
@@ -35,9 +45,19 @@ service cloud.firestore {
       allow read: if true;
       allow write: if isAdmin();
     }
+    match /announcements/{id} {
+      allow read: if signedIn();
+      allow write: if isAdmin();
+    }
+    match /audit_logs/{id} {
+      allow read: if isAdmin();
+      allow create: if isAdmin()
+        && request.resource.data.actorId == request.auth.uid;
+      allow update, delete: if false;
+    }
     match /users/{uid}/{collection}/{id} {
       allow read, write: if owns(uid) && collection in [
-        'bookmarks', 'wishlist', 'cart', 'orders', 'inquiries', 'notifications'
+        'bookmarks', 'wishlist', 'cart', 'orders', 'notifications'
       ];
     }
     match /users/{uid}/inquiries/{id} {
@@ -46,6 +66,9 @@ service cloud.firestore {
         && request.resource.data.userId == uid
         && request.resource.data.status == 'open';
       allow update, delete: if isAdmin();
+    }
+    match /{path=**}/inquiries/{id} {
+      allow read: if isAdmin();
     }
     match /discussions/{id} {
       allow read: if signedIn();
