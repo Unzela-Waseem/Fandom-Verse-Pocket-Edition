@@ -2,7 +2,7 @@
 
 ## Current phase
 
-The repository foundation is in progress. Firebase platform files are intentionally not committed until a Firebase project is selected and configured with `flutterfire configure`.
+Core Fan flows are implemented and verified. Work is continuing on cloud-backed catalog synchronization, privileged Admin CRUD, notifications, and provider integrations.
 
 ## Decisions
 
@@ -29,4 +29,5 @@ The repository foundation is in progress. Firebase platform files are intentiona
 - 2026-09-23: Added real Firebase initialization, Fan registration/profile creation, login, password reset, session-aware AuthGate, trusted role loading, and fail-closed recovery states. Analyzer and five tests pass.
 - 2026-09-23: Added working content search/category filters/details, persistent offline bookmarks, saved event agendas, city-filtered event details, validated HTTPS ticket/map links, merchandise search/filter/price sort, persistent wishlist/cart, simulated checkout, bills, and local purchase history. Analyzer passes and seven tests pass.
 - 2026-09-23: Added offline curated AI Fan Helper, Firestore-backed discussions with author edit/delete controls, secure persisted inquiries, About Us, saved/offline views, wishlist/order counters, purchase history, and sign-out access. Strengthened and deployed inquiry/discussion ownership rules.
+- 2026-09-23: Added Firestore-backed profile editing plus contextual location permission, nearby-event sorting, city fallback, and explicit denied/permanently-denied/unavailable states. Analyzer passes and all seven tests pass.
 - Device, Firebase emulator, and integration verification remain pending until platform configuration is available.

@@ -10,10 +10,10 @@ Status values: `planned`, `in progress`, `implemented`, `verified`, `external pr
 | Email/password Authentication and AuthGate | implemented | `lib/features/authentication`, live Firebase provider configuration |
 | Firestore authorization | implemented | Deployed default-deny `firebase/firestore.rules` |
 | Storage authorization | external prerequisite | Rules ready; new-project bucket provisioning requires billing |
-| Profiles and dashboard | planned | Phase 6-7 |
+| Profiles and dashboard | implemented | Firestore-backed profile creation/editing, fandoms, badge, bio, counters, and dashboard navigation |
 | Fan dashboard visual shell | implemented | `lib/features/dashboard/presentation/fan_shell.dart` |
 | Content hub, search, bookmarks, offline cache | in progress | Search/filter/detail and local persistence implemented; remote sync pending |
-| Events, Maps links, calendar/agenda | in progress | City filter, details, external Maps, ticket validation, offline agenda implemented; GPS permission pending |
+| Events, Maps links, calendar/agenda | implemented | City filter, contextual GPS permission, nearby sorting, external Maps, ticket validation, and offline agenda |
 | Store, wishlist, cart, simulated checkout | implemented | `lib/features/merchandise`, persistent local state and tests |
 | AI Fan Helper | implemented | Offline curated FAQ conversation with loading and fallback states |
 | Contact, About, discussions | implemented | Firestore inquiry/discussion flows, ownership rules, project team screen |

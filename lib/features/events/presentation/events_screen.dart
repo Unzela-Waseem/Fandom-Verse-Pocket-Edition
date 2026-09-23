@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -16,6 +17,66 @@ class EventsScreen extends ConsumerStatefulWidget {
 
 class _EventsScreenState extends ConsumerState<EventsScreen> {
   String _city = 'All cities';
+  Position? _position;
+  bool _locating = false;
+  String? _locationMessage;
+
+  Future<void> _findNearby() async {
+    if (_locating) return;
+    setState(() {
+      _locating = true;
+      _locationMessage = null;
+    });
+    try {
+      if (!await Geolocator.isLocationServiceEnabled()) {
+        setState(
+          () => _locationMessage =
+              'Location services are turned off. You can still browse by city.',
+        );
+        return;
+      }
+      var permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+      }
+      if (permission == LocationPermission.denied) {
+        setState(
+          () => _locationMessage =
+              'Location permission was denied. You can still browse every event.',
+        );
+        return;
+      }
+      if (permission == LocationPermission.deniedForever) {
+        setState(
+          () => _locationMessage =
+              'Location permission is permanently denied. Enable it in system settings to sort nearby events.',
+        );
+        return;
+      }
+      final position = await Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.medium,
+          timeLimit: Duration(seconds: 12),
+        ),
+      );
+      setState(() {
+        _position = position;
+        _city = 'All cities';
+        _locationMessage =
+            'Events are sorted by distance from your current location.';
+      });
+    } catch (_) {
+      if (mounted) {
+        setState(
+          () => _locationMessage = 'Your location is unavailable right now.',
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _locating = false);
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -23,9 +84,12 @@ class _EventsScreenState extends ConsumerState<EventsScreen> {
       'All cities',
       ...{for (final event in eventCatalog) event.city},
     ];
-    final events = eventCatalog.where(
-      (event) => _city == 'All cities' || event.city == _city,
-    );
+    final events = eventCatalog
+        .where((event) => _city == 'All cities' || event.city == _city)
+        .toList(growable: false);
+    if (_position != null) {
+      events.sort((a, b) => _distance(a).compareTo(_distance(b)));
+    }
     final saved = ref.watch(libraryProvider).savedEvents;
     return SafeArea(
       child: ListView(
@@ -40,6 +104,25 @@ class _EventsScreenState extends ConsumerState<EventsScreen> {
             'Browse every event without granting location access.',
             style: TextStyle(color: Colors.white60),
           ),
+          const SizedBox(height: 12),
+          OutlinedButton.icon(
+            onPressed: _locating ? null : _findNearby,
+            icon: _locating
+                ? const SizedBox.square(
+                    dimension: 18,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Icon(Icons.near_me_outlined),
+            label: const Text('Sort events near me'),
+          ),
+          if (_locationMessage != null)
+            Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: Text(
+                _locationMessage!,
+                style: const TextStyle(color: Colors.white60),
+              ),
+            ),
           const SizedBox(height: 18),
           DropdownButtonFormField<String>(
             initialValue: _city,
@@ -91,7 +174,11 @@ class _EventsScreenState extends ConsumerState<EventsScreen> {
                   event.title,
                   style: const TextStyle(fontWeight: FontWeight.w800),
                 ),
-                subtitle: Text('${event.city} · ${event.category}'),
+                subtitle: Text(
+                  _position == null
+                      ? '${event.city} · ${event.category}'
+                      : '${event.city} · ${(_distance(event) / 1000).toStringAsFixed(0)} km away',
+                ),
                 trailing: Icon(
                   saved.contains(event.id)
                       ? Icons.bookmark
@@ -107,6 +194,17 @@ class _EventsScreenState extends ConsumerState<EventsScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  double _distance(FandomEvent event) {
+    final position = _position;
+    if (position == null) return double.infinity;
+    return Geolocator.distanceBetween(
+      position.latitude,
+      position.longitude,
+      event.latitude,
+      event.longitude,
     );
   }
 }

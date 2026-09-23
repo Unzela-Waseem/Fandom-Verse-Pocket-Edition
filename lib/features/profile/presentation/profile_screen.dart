@@ -9,6 +9,7 @@ import '../../contact/presentation/contact_screen.dart';
 import '../../discussions/presentation/discussions_screen.dart';
 import '../../library/application/library_controller.dart';
 import '../../library/data/demo_catalog.dart';
+import 'edit_profile_screen.dart';
 
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key, this.profile});
@@ -50,6 +51,13 @@ class ProfileScreen extends ConsumerWidget {
             ],
           ),
           const SizedBox(height: 20),
+          if (profile != null)
+            _ProfileTile(
+              icon: Icons.edit_outlined,
+              title: 'Edit profile',
+              subtitle: 'Update bio, badge, and favorite fandoms',
+              onTap: () => _open(context, EditProfileScreen(profile: profile!)),
+            ),
           _ProfileTile(
             icon: Icons.smart_toy_outlined,
             title: 'AI Fan Helper',
