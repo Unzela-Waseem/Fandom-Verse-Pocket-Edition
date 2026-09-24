@@ -16,4 +16,11 @@ void main() {
     );
     expect(friendlyAuthError(error), contains('no profile'));
   });
+
+  test('unauthorized browser domain explains Firebase setup', () {
+    final message = friendlyAuthError(
+      FirebaseAuthException(code: 'unauthorized-domain'),
+    );
+    expect(message, contains('Firebase Authentication settings'));
+  });
 }

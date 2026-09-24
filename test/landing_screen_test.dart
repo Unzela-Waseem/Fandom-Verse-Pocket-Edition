@@ -1,5 +1,6 @@
 import 'package:fandom_verse_pocket/app/app.dart';
 import 'package:fandom_verse_pocket/features/authentication/presentation/landing_screen.dart';
+import 'package:fandom_verse_pocket/features/authentication/presentation/login_screen.dart';
 import 'package:fandom_verse_pocket/features/library/data/demo_catalog.dart';
 import 'package:fandom_verse_pocket/features/library/presentation/explore_screen.dart';
 import 'package:flutter/material.dart';
@@ -15,6 +16,27 @@ void main() {
     );
     expect(find.text('CONTINUE AS A FAN'), findsOneWidget);
     expect(find.text('Admin sign in'), findsOneWidget);
+  });
+
+  testWidgets('fan login offers Google and registration but admin does not', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      const ProviderScope(
+        child: FandomVerseApp(home: LoginScreen(adminMode: false)),
+      ),
+    );
+    await tester.ensureVisible(find.text('Continue with Google'));
+    expect(find.text('Continue with Google'), findsOneWidget);
+    expect(find.text('Create fan account'), findsOneWidget);
+
+    await tester.pumpWidget(
+      const ProviderScope(
+        child: FandomVerseApp(home: LoginScreen(adminMode: true)),
+      ),
+    );
+    expect(find.text('Continue with Google'), findsNothing);
+    expect(find.text('Create fan account'), findsNothing);
   });
 
   testWidgets('preview opens the fan dashboard', (tester) async {

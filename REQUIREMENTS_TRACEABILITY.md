@@ -8,7 +8,7 @@ Status values: `planned`, `in progress`, `implemented`, `verified`, `external pr
 | Theme and Fan/Admin entry experience | implemented | `lib/app`, `lib/features/authentication` |
 | Input validation | verified | `lib/core/validation`, unit tests |
 | Email/password Authentication and AuthGate | implemented | `lib/features/authentication`, live Firebase provider configuration |
-| Google/Apple sign-in | external prerequisite | Native provider flows and fail-closed Fan profile creation are implemented behind build-time switches; provider consoles, Android SHA keys, iOS capability, and device verification remain pending |
+| Google/Apple sign-in | in progress | Google provider enabled on Spark; Web popup, Android debug SHA/config, iOS URL scheme, consent, and Fan profile completion implemented. Real-account/device acceptance and Android release SHA remain pending. Apple code is gated until Apple Developer/Firebase provider setup. |
 | Firestore authorization | implemented | Deployed default-deny `firebase/firestore.rules`; Admin requires active profile role plus trusted custom claim |
 | Image/video delivery | in progress | Admin URLs now reach Fan images and content video playback; Cloudinary account claim, real-device playback, and actual editorial assets pending |
 | Avatar and in-app media upload | external prerequisite | Firebase Storage client remains disabled on Spark; trusted-computer signed Cloudinary upload tool is ready, but in-app upload needs a separate authenticated signing backend |

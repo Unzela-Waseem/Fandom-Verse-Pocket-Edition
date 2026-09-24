@@ -6,6 +6,7 @@ import '../../admin/presentation/admin_dashboard.dart';
 import '../../dashboard/presentation/fan_shell.dart';
 import '../application/auth_providers.dart';
 import '../domain/app_user.dart';
+import 'complete_fan_profile_screen.dart';
 import 'landing_screen.dart';
 
 class AuthGate extends ConsumerWidget {
@@ -41,6 +42,10 @@ class AuthGate extends ConsumerWidget {
                         onSignOut: () =>
                             ref.read(authServiceProvider).signOut(),
                       );
+                    }
+                    if (profile.role == UserRole.fan &&
+                        profile.selectedFandoms.isEmpty) {
+                      return CompleteFanProfileScreen(profile: profile);
                     }
                     return switch (profile.role) {
                       UserRole.fan => FanShell(profile: profile),

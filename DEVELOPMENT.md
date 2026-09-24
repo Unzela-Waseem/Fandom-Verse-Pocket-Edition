@@ -16,7 +16,7 @@ Core Fan flows are implemented and verified. Work is continuing on cloud-backed 
 
 - The owner chose Firebase Spark with Cloudinary media, so do not enable billing or Firebase Storage. Signed Android, iOS, and Web Cloudinary uploads need the separate trusted backend; trusted-computer Admin uploads remain available without billing.
 - An owner must provision the first Admin using `admin-tools/provision-admin.mjs` with service-account Application Default Credentials and an owner-selected email/password. The mobile client cannot create or promote Admins.
-- Google/Apple sign-in provider configuration and native device verification. The code is present but neither provider is enabled in this Firebase project.
+- Google real-account/browser/device verification and Android release signing SHA. Google is enabled in Firebase; Apple Developer and Firebase provider setup remain external prerequisites.
 - Google Maps API keys restricted per platform.
 - FCM and trusted serverless functions for price-drop notifications and privileged user administration.
 - Billing/permissions for scheduled Firestore exports.
@@ -37,18 +37,18 @@ Core Fan flows are implemented and verified. Work is continuing on cloud-backed 
 - 2026-09-23: Added Admin user profile editing, disable confirmation, stricter catalog validation, and safer delete error handling. Firestore Admin access now requires both an active Admin profile and a trusted custom claim; the rule compiled and deployed successfully. Removed an unverified office-visit claim from Contact Us while awaiting actual team contact details. Analyzer and eight tests pass.
 - 2026-09-23: Added Firestore user-subcollection mirroring for bookmarks, saved events, wishlist, cart, and simulated orders with one-time local migration, account-switch guards, cache-aware listeners, and a visible sync failure state. Saved article text survives a tested local restart. Rules for saved events deployed; analyzer and nine tests pass. Two-device conflict and offline reconnection tests remain pending.
 - 2026-09-23: Prepared a Firestore merchandise price-drop trigger with duplicate-resistant in-app notifications and best-effort FCM dispatch, plus explicit Fan permission/opt-in and device token registration. The Node price comparison test passes, the function loads locally, Flutter analysis and nine tests pass, and supporting Firestore rules/indexes are deployed. Function deployment is blocked by the project's unbilled plan; no push delivery is claimed.
-- Device, Firebase emulator, and integration verification remain pending until platform configuration is available.
+- Real-device and interactive OAuth verification remain pending. A local Auth/Firestore emulator smoke test now covers Fan registration, login, profile access/update, and denied self-promotion.
 - 2026-09-23: Added gated native Google/Apple Fan sign-in flows. First-time provider accounts create a default Fan profile; existing account roles are never rewritten, and incomplete sign-in fails closed. Labeled bundled sample events and removed their placeholder ticket/map actions. Static analysis and unit/widget tests pass; provider sign-in needs owner configuration and a real device test.
 - 2026-09-23: Prepared an owner-path avatar upload with file-signature MIME checks, a 5 MB limit, progress/cancel UI, and old-avatar cleanup. Image selection is hidden until Storage is provisioned; Storage rules are updated locally but are not deployed without a bucket. Static checks and 16 tests pass; upload itself remains unverified.
 - 2026-09-23: Reconfirmed the active Firebase project and deployed email/password Authentication plus Firestore rules and indexes on Spark. Added the Android Internet permission, remote content/event/merchandise images, online content video playback, and a trusted-computer signed Cloudinary upload tool. Cloudinary account claim and real media tests remain pending.
 
 ## Provider sign-in activation
 
-Provider buttons are hidden by default. Enable them only after completing the native Firebase setup and device verification; never add OAuth secrets or a service-account file to Git.
+Google buttons are shown for Fans by default. Apple remains hidden until its external provider setup is complete. Never add OAuth secrets or a service-account file to Git.
 
-1. For Google, enable the Google provider in Firebase Authentication, register the signing certificate SHA-1 fingerprints for Android debug and release keys, then refresh the Android Firebase configuration. For iOS, complete the Google Sign-In plugin's client ID and URL-scheme setup in the native project.
+1. Google is enabled in Firebase with owner-approved support email `unzelawaseem3@gmail.com`. This machine's Android debug SHA-1/SHA-256 and refreshed config, plus iOS client ID/URL scheme, are committed. Register the release signing SHA before shipping Android; test on real devices and Chrome. `localhost` is authorized in Firebase for local Web testing and should be reviewed/removed before production.
 2. For Apple, configure Sign in with Apple in the Apple Developer account and Firebase Authentication, and add the Sign in with Apple capability to the iOS Runner target.
-3. Run the app with `--dart-define=ENABLE_GOOGLE_SIGN_IN=true` and/or `--dart-define=ENABLE_APPLE_SIGN_IN=true` only for providers that are configured. Apple is shown on iOS only. Confirm first-time Fan profile creation, repeat sign-in, existing Admin role preservation, cancellation, and account switching on a real device before release.
+3. Google is on by default; use `--dart-define=ENABLE_GOOGLE_SIGN_IN=false` only to hide it temporarily. After Apple is configured, run with `--dart-define=ENABLE_APPLE_SIGN_IN=true` (iOS, Android, and Web). Confirm first-time Fan profile creation, mandatory fandom completion, repeat sign-in, Admin role preservation, cancellation, and account switching on real devices before release.
 
 ## Avatar upload activation
 

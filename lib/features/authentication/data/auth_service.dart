@@ -27,11 +27,20 @@ class AuthService {
     );
   }
 
-  Future<void> signInWithGoogle() async {
+  Future<void> signInWithGoogle({
+    String? displayName,
+    List<String> fandoms = const [],
+    String badge = 'New Explorer',
+  }) async {
     if (kIsWeb) {
-      throw const FederatedSignInException(
-        'Google sign-in is unavailable on this platform.',
+      final credential = await _auth.signInWithPopup(GoogleAuthProvider());
+      await _ensureFanProfile(
+        credential,
+        displayName: displayName,
+        fandoms: fandoms,
+        badge: badge,
       );
+      return;
     }
     _googleInitialization ??= GoogleSignIn.instance.initialize();
     await _googleInitialization;
@@ -50,20 +59,37 @@ class AuthService {
     final credential = await _auth.signInWithCredential(
       GoogleAuthProvider.credential(idToken: idToken),
     );
-    await _ensureFanProfile(credential);
+    await _ensureFanProfile(
+      credential,
+      displayName: displayName,
+      fandoms: fandoms,
+      badge: badge,
+    );
   }
 
-  Future<void> signInWithApple() async {
-    if (kIsWeb) {
-      throw const FederatedSignInException(
-        'Apple sign-in is unavailable on this platform.',
-      );
-    }
-    final credential = await _auth.signInWithProvider(AppleAuthProvider());
-    await _ensureFanProfile(credential);
+  Future<void> signInWithApple({
+    String? displayName,
+    List<String> fandoms = const [],
+    String badge = 'New Explorer',
+  }) async {
+    final provider = AppleAuthProvider();
+    final credential = kIsWeb
+        ? await _auth.signInWithPopup(provider)
+        : await _auth.signInWithProvider(provider);
+    await _ensureFanProfile(
+      credential,
+      displayName: displayName,
+      fandoms: fandoms,
+      badge: badge,
+    );
   }
 
-  Future<void> _ensureFanProfile(UserCredential credential) async {
+  Future<void> _ensureFanProfile(
+    UserCredential credential, {
+    String? displayName,
+    required List<String> fandoms,
+    required String badge,
+  }) async {
     final user = credential.user;
     if (user == null) {
       throw const FederatedSignInException('No account was returned.');
@@ -78,14 +104,16 @@ class AuthService {
       }
       await profile.set({
         'uid': user.uid,
-        'displayName': user.displayName?.trim().isNotEmpty == true
+        'displayName': displayName?.trim().isNotEmpty == true
+            ? displayName!.trim()
+            : user.displayName?.trim().isNotEmpty == true
             ? user.displayName!.trim()
             : 'New Explorer',
         'email': (user.email ?? '').trim().toLowerCase(),
         'bio': '',
         'avatarUrl': user.photoURL,
-        'selectedFandoms': <String>[],
-        'badge': 'New Explorer',
+        'selectedFandoms': fandoms,
+        'badge': badge,
         'role': 'fan',
         'accountStatus': 'active',
         'priceDropNotifications': false,
@@ -133,6 +161,7 @@ class AuthService {
     } catch (_) {
       if (credential?.user != null) {
         await credential!.user!.delete().catchError((_) {});
+        await _auth.signOut().catchError((_) {});
       }
       rethrow;
     }
@@ -165,6 +194,11 @@ String friendlyAuthError(Object error) {
         'Check your internet connection and try again.',
       'operation-not-allowed' =>
         'This sign-in method has not been enabled for the project.',
+      'unauthorized-domain' =>
+        'This website is not authorized for sign-in. Add its domain in Firebase Authentication settings.',
+      'popup-blocked' =>
+        'Your browser blocked the sign-in popup. Allow popups and try again.',
+      'popup-closed-by-user' => 'Sign-in was canceled.',
       'account-exists-with-different-credential' =>
         'An account already exists with a different sign-in method.',
       _ => error.message ?? 'Authentication failed. Please try again.',

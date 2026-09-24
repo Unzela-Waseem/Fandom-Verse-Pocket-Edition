@@ -15,7 +15,7 @@ Open the local address printed by Flutter. To test Cloudinary upload after the H
 
 ## Before public release
 
-- Deploy the Flutter Web output to an HTTPS host and add that exact origin to `ALLOWED_WEB_ORIGINS` if uploads are enabled. Add any production domain needed for Firebase Authentication under Firebase Console → Authentication → Settings → Authorized domains.
+- Deploy the Flutter Web output to an HTTPS host and add that exact origin to `ALLOWED_WEB_ORIGINS` if uploads are enabled. Add any production domain needed for Firebase Authentication under Firebase Console → Authentication → Settings → Authorized domains. `localhost` is currently authorized only for development; review/remove it before a production release.
 - Browser push notifications are not configured: there is no Web Push VAPID key or Firebase Messaging service worker. The in-app notification center remains available; the Web UI does not request a browser push token.
-- Google and Apple sign-in are still disabled pending provider setup. Email/password sign-in is the supported Web route.
+- Email/password and Google sign-in are enabled in Firebase; Google Web uses a browser popup and must be acceptance-tested with a real account on the intended origin. If popups are blocked, allow them for the app. Apple remains hidden until its provider is configured in Apple Developer and Firebase; then run with `--dart-define=ENABLE_APPLE_SIGN_IN=true`.
 - Test the app in the intended browsers and screen sizes, plus a real account against the production Firebase project. The Chrome build and local automated checks do not substitute for that acceptance test.

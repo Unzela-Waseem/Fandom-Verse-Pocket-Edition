@@ -17,7 +17,10 @@ class LoginScreen extends ConsumerStatefulWidget {
 }
 
 class _LoginScreenState extends ConsumerState<LoginScreen> {
-  static const _googleEnabled = bool.fromEnvironment('ENABLE_GOOGLE_SIGN_IN');
+  static const _googleEnabled = bool.fromEnvironment(
+    'ENABLE_GOOGLE_SIGN_IN',
+    defaultValue: true,
+  );
   static const _appleEnabled = bool.fromEnvironment('ENABLE_APPLE_SIGN_IN');
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
@@ -56,6 +59,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }
 
   Future<void> _resetPassword() async {
+    if (_submitting) return;
     final emailError = InputValidators.email(_emailController.text);
     if (emailError != null) {
       ScaffoldMessenger.of(
@@ -63,6 +67,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       ).showSnackBar(SnackBar(content: Text(emailError)));
       return;
     }
+    setState(() => _submitting = true);
     try {
       await ref
           .read(authServiceProvider)
@@ -80,6 +85,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           context,
         ).showSnackBar(SnackBar(content: Text(friendlyAuthError(error))));
       }
+    } finally {
+      if (mounted) setState(() => _submitting = false);
     }
   }
 
@@ -154,7 +161,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       controller: _passwordController,
                       obscureText: _obscurePassword,
                       autofillHints: const [AutofillHints.password],
-                      validator: InputValidators.password,
+                      validator: InputValidators.loginPassword,
                       onFieldSubmitted: (_) => _submit(),
                       decoration: InputDecoration(
                         labelText: 'Password',
@@ -201,10 +208,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         icon: const Icon(Icons.person_add_alt_1_outlined),
                         label: const Text('Create fan account'),
                       ),
-                      if (_googleEnabled ||
-                          (_appleEnabled &&
-                              !kIsWeb &&
-                              defaultTargetPlatform == TargetPlatform.iOS)) ...[
+                      if (_googleEnabled || _appleEnabled) ...[
                         const SizedBox(height: 16),
                         CheckboxListTile(
                           contentPadding: EdgeInsets.zero,
@@ -221,7 +225,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           controlAffinity: ListTileControlAffinity.leading,
                         ),
                       ],
-                      if (_googleEnabled && !kIsWeb) ...[
+                      if (_googleEnabled) ...[
                         const SizedBox(height: 10),
                         OutlinedButton.icon(
                           onPressed: _submitting
@@ -232,8 +236,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         ),
                       ],
                       if (_appleEnabled &&
-                          !kIsWeb &&
-                          defaultTargetPlatform == TargetPlatform.iOS) ...[
+                          (kIsWeb ||
+                              defaultTargetPlatform == TargetPlatform.iOS ||
+                              defaultTargetPlatform ==
+                                  TargetPlatform.android)) ...[
                         const SizedBox(height: 10),
                         OutlinedButton.icon(
                           onPressed: _submitting

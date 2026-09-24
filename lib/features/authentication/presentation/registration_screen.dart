@@ -1,9 +1,11 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/validation/input_validators.dart';
 import '../application/auth_providers.dart';
 import '../data/auth_service.dart';
+import '../domain/registration_options.dart';
 
 class RegistrationScreen extends ConsumerStatefulWidget {
   const RegistrationScreen({super.key});
@@ -13,28 +15,18 @@ class RegistrationScreen extends ConsumerStatefulWidget {
 }
 
 class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
-  static const _fandoms = [
-    'Anime',
-    'Gaming',
-    'Movies & TV',
-    'Sci-Fi',
-    'Comics',
-    'Music',
-  ];
-  static const _badges = [
-    'New Explorer',
-    'Lore Keeper',
-    'Collector',
-    'Cosplayer',
-  ];
-
+  static const _googleEnabled = bool.fromEnvironment(
+    'ENABLE_GOOGLE_SIGN_IN',
+    defaultValue: true,
+  );
+  static const _appleEnabled = bool.fromEnvironment('ENABLE_APPLE_SIGN_IN');
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmController = TextEditingController();
   final Set<String> _selectedFandoms = {};
-  String _badge = _badges.first;
+  String _badge = fanBadgeChoices.first;
   bool _acceptedTerms = false;
   bool _submitting = false;
 
@@ -49,18 +41,7 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
 
   Future<void> _register() async {
     if (_submitting || !_formKey.currentState!.validate()) return;
-    if (_selectedFandoms.isEmpty || !_acceptedTerms) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            _selectedFandoms.isEmpty
-                ? 'Select at least one fandom.'
-                : 'Accept the Terms and Privacy notice to continue.',
-          ),
-        ),
-      );
-      return;
-    }
+    if (!_validateInterestsAndTerms()) return;
     setState(() => _submitting = true);
     try {
       await ref
@@ -72,6 +53,64 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
             fandoms: _selectedFandoms.toList(growable: false),
             badge: _badge,
           );
+      if (mounted) Navigator.of(context).popUntil((route) => route.isFirst);
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(friendlyAuthError(error))));
+      }
+    } finally {
+      if (mounted) setState(() => _submitting = false);
+    }
+  }
+
+  bool _validateInterestsAndTerms() {
+    if (_selectedFandoms.isEmpty || !_acceptedTerms) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            _selectedFandoms.isEmpty
+                ? 'Select at least one fandom.'
+                : 'Accept the Terms and Privacy notice to continue.',
+          ),
+        ),
+      );
+      return false;
+    }
+    return true;
+  }
+
+  Future<void> _registerWithProvider({required bool google}) async {
+    if (_submitting) return;
+    final nameError = InputValidators.required(
+      _nameController.text,
+      label: 'Display name',
+    );
+    if (nameError != null) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(nameError)));
+      return;
+    }
+    if (!_validateInterestsAndTerms()) return;
+    setState(() => _submitting = true);
+    try {
+      final auth = ref.read(authServiceProvider);
+      final fandoms = _selectedFandoms.toList(growable: false);
+      if (google) {
+        await auth.signInWithGoogle(
+          displayName: _nameController.text,
+          fandoms: fandoms,
+          badge: _badge,
+        );
+      } else {
+        await auth.signInWithApple(
+          displayName: _nameController.text,
+          fandoms: fandoms,
+          badge: _badge,
+        );
+      }
       if (mounted) Navigator.of(context).popUntil((route) => route.isFirst);
     } catch (error) {
       if (mounted) {
@@ -143,7 +182,7 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
                   Wrap(
                     spacing: 8,
                     runSpacing: 8,
-                    children: _fandoms.map((fandom) {
+                    children: fanFandomChoices.map((fandom) {
                       return FilterChip(
                         label: Text(fandom),
                         selected: _selectedFandoms.contains(fandom),
@@ -163,7 +202,7 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
                     decoration: const InputDecoration(
                       labelText: 'Profile badge',
                     ),
-                    items: _badges
+                    items: fanBadgeChoices
                         .map(
                           (badge) => DropdownMenuItem(
                             value: badge,
@@ -193,6 +232,32 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
                           )
                         : const Text('Create account'),
                   ),
+                  if (_googleEnabled || _appleEnabled) ...[
+                    const SizedBox(height: 20),
+                    const Center(child: Text('Or register with')),
+                    const SizedBox(height: 12),
+                  ],
+                  if (_googleEnabled)
+                    OutlinedButton.icon(
+                      onPressed: _submitting
+                          ? null
+                          : () => _registerWithProvider(google: true),
+                      icon: const Icon(Icons.account_circle_outlined),
+                      label: const Text('Continue with Google'),
+                    ),
+                  if (_appleEnabled &&
+                      (kIsWeb ||
+                          defaultTargetPlatform == TargetPlatform.iOS ||
+                          defaultTargetPlatform == TargetPlatform.android)) ...[
+                    const SizedBox(height: 10),
+                    OutlinedButton.icon(
+                      onPressed: _submitting
+                          ? null
+                          : () => _registerWithProvider(google: false),
+                      icon: const Icon(Icons.apple),
+                      label: const Text('Continue with Apple'),
+                    ),
+                  ],
                 ],
               ),
             ),

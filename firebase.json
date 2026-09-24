@@ -2,7 +2,11 @@
   "auth": {
     "providers": {
       "anonymous": false,
-      "emailPassword": true
+      "emailPassword": true,
+      "googleSignIn": {
+        "oAuthBrandDisplayName": "Fandom Verse",
+        "supportEmail": "unzelawaseem3@gmail.com"
+      }
     }
   },
   "firestore": {

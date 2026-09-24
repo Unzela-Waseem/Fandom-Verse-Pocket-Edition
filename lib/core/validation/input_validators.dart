@@ -21,4 +21,7 @@ abstract final class InputValidators {
     if (!RegExp(r'[0-9]').hasMatch(value)) return 'Add a number.';
     return null;
   }
+
+  static String? loginPassword(String? value) =>
+      required(value, label: 'Password');
 }

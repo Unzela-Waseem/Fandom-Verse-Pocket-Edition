@@ -16,5 +16,10 @@ void main() {
       expect(InputValidators.password('longpassword'), isNotNull);
       expect(InputValidators.password('Fandom123'), isNull);
     });
+
+    test('login accepts existing passwords without applying signup policy', () {
+      expect(InputValidators.loginPassword(''), isNotNull);
+      expect(InputValidators.loginPassword('oldpassword'), isNull);
+    });
   });
 }
