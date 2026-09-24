@@ -75,7 +75,10 @@ service cloud.firestore {
       allow read: if isAdmin();
     }
     match /discussions/{id} {
-      allow read: if signedIn();
+      // Fans can only read visible (non-hidden) posts.
+      // Admins can read all posts regardless of hidden state.
+      allow read: if isAdmin() ||
+        (signedIn() && resource.data.get('hidden', false) == false);
       allow create: if signedIn()
         && request.resource.data.userId == request.auth.uid
         && request.resource.data.title is string
@@ -86,10 +89,15 @@ service cloud.firestore {
         && request.resource.data.body.size() <= 1500
         && request.resource.data.rating is int
         && request.resource.data.rating >= 1
-        && request.resource.data.rating <= 5;
+        && request.resource.data.rating <= 5
+        // Fans cannot create a post that is already hidden.
+        && request.resource.data.get('hidden', false) == false;
+      // Admins can update any field (including hidden). Fans can only
+      // update their own allowed content fields, and may not change hidden.
       allow update: if isAdmin() ||
-        (signedIn() && resource.data.userId == request.auth.uid &&
-         request.resource.data.userId == resource.data.userId);
+        (signedIn() && resource.data.userId == request.auth.uid
+         && request.resource.data.userId == resource.data.userId
+         && request.resource.data.get('hidden', false) == false);
       allow delete: if isAdmin() ||
         (signedIn() && resource.data.userId == request.auth.uid);
     }

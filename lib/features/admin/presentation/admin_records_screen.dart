@@ -1264,3 +1264,270 @@ class _AdminAuditLogsScreenState extends State<AdminAuditLogsScreen> {
 
   String _p(int n) => n.toString().padLeft(2, '0');
 }
+
+// ── User Provisioning Screen ──────────────────────────────────────────────────
+// New users (fan or admin) must be created via the trusted server-side CLI tool
+// (admin-tools/manage-users.mjs) because Firebase Auth user creation requires
+// the Admin SDK, which must never run inside an untrusted mobile client.
+// This screen surfaces the exact commands needed and shows existing users so
+// the admin can copy UIDs for the disable/enable/delete commands.
+
+class AdminUserProvisioningScreen extends StatelessWidget {
+  const AdminUserProvisioningScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('User provisioning')),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // ── Why CLI? ──────────────────────────────────────────────────────
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.security_outlined,
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
+                        const SizedBox(width: 8),
+                        const Text(
+                          'Why is this done via CLI?',
+                          style: TextStyle(fontWeight: FontWeight.w800),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                    const Text(
+                      'Creating or permanently deleting Firebase Auth accounts '
+                      'requires the Admin SDK, which holds privileged credentials '
+                      'that must never be embedded in a mobile app. '
+                      'The manage-users.mjs script runs on a trusted machine '
+                      'with application-default credentials and performs both '
+                      'Firebase Auth + Firestore operations atomically, '
+                      'with rollback on failure and an audit log entry.',
+                      style: TextStyle(height: 1.5),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
+
+            // ── Commands ──────────────────────────────────────────────────────
+            _SectionTitle('Available commands'),
+            const SizedBox(height: 10),
+            _CommandCard(
+              icon: Icons.person_add_outlined,
+              title: 'Create a Fan account',
+              command:
+                  'node manage-users.mjs create-fan \\\n'
+                  '  --email=fan@example.com \\\n'
+                  '  --password=SecurePass1 \\\n'
+                  '  --name="Fan Name"',
+              description:
+                  'Creates a Firebase Auth user + Firestore profile with role=fan.',
+            ),
+            const SizedBox(height: 10),
+            _CommandCard(
+              icon: Icons.admin_panel_settings_outlined,
+              title: 'Create an Admin account',
+              command:
+                  'node manage-users.mjs create-admin \\\n'
+                  '  --email=admin@example.com \\\n'
+                  '  --password=StrongPass12! \\\n'
+                  '  --name="Admin Name"',
+              description:
+                  'Creates Auth user, sets admin custom claim, and writes Firestore profile with role=admin.',
+            ),
+            const SizedBox(height: 10),
+            _CommandCard(
+              icon: Icons.delete_outline,
+              title: 'Permanently delete a user',
+              command:
+                  'node manage-users.mjs delete-user \\\n'
+                  '  --uid=<user-uid>',
+              description:
+                  'Writes an audit log, removes Firestore profile, then deletes the Auth account. Requires typing DELETE to confirm.',
+            ),
+            const SizedBox(height: 10),
+            _CommandCard(
+              icon: Icons.block_outlined,
+              title: 'Disable a user (Auth + Firestore)',
+              command:
+                  'node manage-users.mjs disable-user \\\n'
+                  '  --uid=<user-uid>',
+              description:
+                  'Disables Firebase Auth login AND sets accountStatus=disabled in Firestore. Use for hard lockout.',
+            ),
+            const SizedBox(height: 10),
+            _CommandCard(
+              icon: Icons.check_circle_outline,
+              title: 'Re-enable a user',
+              command:
+                  'node manage-users.mjs enable-user \\\n'
+                  '  --uid=<user-uid>',
+              description: 'Re-enables both Auth login and Firestore status.',
+            ),
+            const SizedBox(height: 10),
+            _CommandCard(
+              icon: Icons.list_outlined,
+              title: 'List all users',
+              command: 'node manage-users.mjs list-users --limit=100',
+              description:
+                  'Lists Auth users with their Firestore role and account status.',
+            ),
+
+            const SizedBox(height: 24),
+            _SectionTitle('Setup (run once in admin-tools/)'),
+            const SizedBox(height: 10),
+            _CommandCard(
+              icon: Icons.terminal_outlined,
+              title: 'Install dependencies',
+              command:
+                  'cd admin-tools\n'
+                  'npm install\n'
+                  'gcloud auth application-default login',
+              description:
+                  'Installs firebase-admin and authenticates your machine with Google Cloud credentials.',
+            ),
+
+            const SizedBox(height: 24),
+            // ── In-app soft disable note ──────────────────────────────────────
+            Card(
+              color: Theme.of(context).colorScheme.secondaryContainer,
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.info_outline,
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.onSecondaryContainer,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          'In-app account status toggle',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w800,
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onSecondaryContainer,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'The Users screen already provides a soft disable toggle '
+                      'that sets accountStatus=disabled in Firestore. '
+                      'This prevents app access via Firestore rules immediately. '
+                      'To also block Firebase Auth token refresh (hard lockout), '
+                      'use the disable-user CLI command above.',
+                      style: TextStyle(
+                        height: 1.5,
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.onSecondaryContainer,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _SectionTitle extends StatelessWidget {
+  const _SectionTitle(this.text);
+  final String text;
+
+  @override
+  Widget build(BuildContext context) => Text(
+    text,
+    style: Theme.of(
+      context,
+    ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+  );
+}
+
+class _CommandCard extends StatelessWidget {
+  const _CommandCard({
+    required this.icon,
+    required this.title,
+    required this.command,
+    required this.description,
+  });
+
+  final IconData icon;
+  final String title;
+  final String command;
+  final String description;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(14),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(
+                  icon,
+                  size: 18,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    title,
+                    style: const TextStyle(fontWeight: FontWeight.w700),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 6),
+            Text(description, style: const TextStyle(fontSize: 13)),
+            const SizedBox(height: 10),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.surface,
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(
+                  color: Theme.of(context).colorScheme.outlineVariant,
+                ),
+              ),
+              child: SelectableText(
+                command,
+                style: const TextStyle(
+                  fontFamily: 'monospace',
+                  fontSize: 12,
+                  height: 1.6,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}

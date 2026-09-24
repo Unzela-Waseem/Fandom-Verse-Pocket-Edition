@@ -276,6 +276,12 @@ class _AdminModuleGrid extends StatelessWidget {
             AdminCollectionScreen(config: AdminCollectionConfig.announcements),
       ),
       _AdminModule(
+        Icons.person_add_outlined,
+        'Provisioning',
+        'Create & delete users',
+        () => const AdminUserProvisioningScreen(),
+      ),
+      _AdminModule(
         Icons.history_outlined,
         'Audit Logs',
         'All admin actions',

@@ -16,11 +16,17 @@ class DiscussionsScreen extends StatelessWidget {
         ),
       );
     }
+
+    // Only load non-hidden posts for fans. The admin moderation screen
+    // queries without this filter so moderators can still see hidden threads.
     final stream = FirebaseFirestore.instance
         .collection('discussions')
+        .where('hidden', isNotEqualTo: true)
+        .orderBy('hidden') // required composite index field when using !=
         .orderBy('createdAt', descending: true)
         .limit(50)
         .snapshots();
+
     return Scaffold(
       appBar: AppBar(title: const Text('Community discussions')),
       floatingActionButton: FloatingActionButton.extended(
@@ -55,21 +61,56 @@ class DiscussionsScreen extends StatelessWidget {
               final document = documents[index];
               final data = document.data();
               final owned = data['userId'] == user.uid;
+              final createdAt = data['createdAt'] as Timestamp?;
+              final rating = data['rating'] as int?;
+
               return Card(
+                margin: const EdgeInsets.only(bottom: 10),
                 child: ListTile(
                   contentPadding: const EdgeInsets.all(14),
                   title: Text(
                     data['title'] as String? ?? 'Untitled',
                     style: const TextStyle(fontWeight: FontWeight.w800),
                   ),
-                  subtitle: Padding(
-                    padding: const EdgeInsets.only(top: 8),
-                    child: Text(
-                      data['body'] as String? ?? '',
-                      maxLines: 3,
-                      overflow: TextOverflow.ellipsis,
-                    ),
+                  subtitle: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const SizedBox(height: 6),
+                      Text(
+                        data['body'] as String? ?? '',
+                        maxLines: 3,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 6),
+                      Row(
+                        children: [
+                          Text(
+                            data['authorName'] as String? ?? 'Fan',
+                            style: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          if (rating != null) ...[
+                            const SizedBox(width: 8),
+                            const Icon(Icons.star, size: 12),
+                            Text(
+                              '$rating',
+                              style: const TextStyle(fontSize: 12),
+                            ),
+                          ],
+                          if (createdAt != null) ...[
+                            const SizedBox(width: 8),
+                            Text(
+                              _fmtDate(createdAt),
+                              style: const TextStyle(fontSize: 11),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ],
                   ),
+                  isThreeLine: true,
                   trailing: owned
                       ? PopupMenuButton<String>(
                           onSelected: (action) async {
@@ -105,10 +146,23 @@ class DiscussionsScreen extends StatelessWidget {
                             }
                           },
                           itemBuilder: (_) => const [
-                            PopupMenuItem(value: 'edit', child: Text('Edit')),
+                            PopupMenuItem(
+                              value: 'edit',
+                              child: ListTile(
+                                leading: Icon(Icons.edit_outlined, size: 18),
+                                title: Text('Edit'),
+                                dense: true,
+                                contentPadding: EdgeInsets.zero,
+                              ),
+                            ),
                             PopupMenuItem(
                               value: 'delete',
-                              child: Text('Delete'),
+                              child: ListTile(
+                                leading: Icon(Icons.delete_outline, size: 18),
+                                title: Text('Delete'),
+                                dense: true,
+                                contentPadding: EdgeInsets.zero,
+                              ),
                             ),
                           ],
                         )
@@ -121,7 +175,21 @@ class DiscussionsScreen extends StatelessWidget {
       ),
     );
   }
+
+  String _fmtDate(Timestamp ts) {
+    final dt = ts.toDate().toLocal();
+    final now = DateTime.now();
+    final diff = now.difference(dt);
+    if (diff.inDays == 0) return 'Today';
+    if (diff.inDays == 1) return 'Yesterday';
+    if (diff.inDays < 7) return '${diff.inDays}d ago';
+    return '${dt.year}-${_p(dt.month)}-${_p(dt.day)}';
+  }
+
+  String _p(int n) => n.toString().padLeft(2, '0');
 }
+
+// ── Discussion Editor ─────────────────────────────────────────────────────────
 
 class _DiscussionEditor extends StatefulWidget {
   const _DiscussionEditor({this.document});
@@ -162,23 +230,34 @@ class _DiscussionEditorState extends State<_DiscussionEditor> {
       return;
     }
     setState(() => _saving = true);
-    final data = {
-      'userId': user.uid,
-      'authorName': user.displayName ?? 'Fan',
-      'title': _titleController.text.trim(),
-      'body': _bodyController.text.trim(),
-      'rating': _rating,
-      'updatedAt': FieldValue.serverTimestamp(),
-    };
-    if (widget.document == null) {
-      await FirebaseFirestore.instance.collection('discussions').add({
-        ...data,
-        'createdAt': FieldValue.serverTimestamp(),
-      });
-    } else {
-      await widget.document!.reference.update(data);
+    try {
+      final data = {
+        'userId': user.uid,
+        'authorName': user.displayName ?? 'Fan',
+        'title': _titleController.text.trim(),
+        'body': _bodyController.text.trim(),
+        'rating': _rating,
+        'updatedAt': FieldValue.serverTimestamp(),
+      };
+      if (widget.document == null) {
+        await FirebaseFirestore.instance.collection('discussions').add({
+          ...data,
+          'createdAt': FieldValue.serverTimestamp(),
+          'hidden': false, // explicitly mark as visible on creation
+        });
+      } else {
+        await widget.document!.reference.update(data);
+      }
+      if (mounted) Navigator.of(context).pop();
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Could not save. Please try again.')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _saving = false);
     }
-    if (mounted) Navigator.of(context).pop();
   }
 
   @override
@@ -219,6 +298,7 @@ class _DiscussionEditorState extends State<_DiscussionEditor> {
                         setState(() => _rating = value.round()),
                   ),
                 ),
+                Text('$_rating / 5'),
               ],
             ),
           ],
@@ -231,7 +311,12 @@ class _DiscussionEditorState extends State<_DiscussionEditor> {
         ),
         FilledButton(
           onPressed: _saving ? null : _save,
-          child: const Text('Save'),
+          child: _saving
+              ? const SizedBox.square(
+                  dimension: 20,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              : const Text('Save'),
         ),
       ],
     );
