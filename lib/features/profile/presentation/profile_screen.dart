@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
@@ -232,7 +233,11 @@ class _NotificationPreferenceTileState
     child: SwitchListTile(
       secondary: const Icon(Icons.notifications_outlined),
       title: const Text('Price-drop alerts'),
-      subtitle: const Text('Only for merchandise on your wishlist'),
+      subtitle: Text(
+        kIsWeb
+            ? 'In-app alerts only; browser push is not configured'
+            : 'Only for merchandise on your wishlist',
+      ),
       value: widget.profile.priceDropNotifications,
       onChanged: _busy ? null : _change,
     ),

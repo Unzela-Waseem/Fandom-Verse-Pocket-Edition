@@ -1,12 +1,11 @@
 {
-    "name": "fandom_verse_pocket",
-    "short_name": "fandom_verse_pocket",
+    "name": "Fandom Verse",
+    "short_name": "Fandom Verse",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
-    "orientation": "portrait-primary",
+    "background_color": "#101014",
+    "theme_color": "#17171C",
+    "description": "Discover fandom stories, events, communities, and collectibles.",
     "prefer_related_applications": false,
     "icons": [
         {

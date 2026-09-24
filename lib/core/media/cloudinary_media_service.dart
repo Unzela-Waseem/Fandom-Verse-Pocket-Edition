@@ -37,7 +37,7 @@ class CloudinaryMediaService {
   }
 
   static bool get isSupportedPlatform =>
-      !kIsWeb &&
+      kIsWeb ||
       (defaultTargetPlatform == TargetPlatform.android ||
           defaultTargetPlatform == TargetPlatform.iOS);
 
@@ -129,13 +129,22 @@ class CloudinaryMediaService {
           parameters['upload_preset'] is! String) {
         throw const MediaUploadException('The upload ticket is incomplete.');
       }
+      final mimeType = isVideo
+          ? picked.name.toLowerCase().endsWith('.webm')
+                ? 'video/webm'
+                : picked.name.toLowerCase().endsWith('.mov')
+                ? 'video/quicktime'
+                : 'video/mp4'
+          : supportedImageMime(Uint8List.fromList(signatureBytes))!;
       final form = FormData.fromMap({
         ...parameters,
         'api_key': ticket['apiKey'],
         'signature': ticket['signature'],
-        'file': await MultipartFile.fromFile(
-          picked.path,
+        'file': MultipartFile.fromStream(
+          () => picked.openRead(),
+          size,
           filename: picked.name,
+          contentType: DioMediaType.parse(mimeType),
         ),
       });
       final uploaded = await _dio.post<Map<String, dynamic>>(

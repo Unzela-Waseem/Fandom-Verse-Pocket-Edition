@@ -21,6 +21,7 @@ class NotificationDeviceService {
   }
 
   static Future<void> saveCurrentToken(String uid) async {
+    if (kIsWeb) return;
     final token = await FirebaseMessaging.instance.getToken();
     if (token == null || token.isEmpty) return;
     await saveToken(uid, token);
@@ -42,6 +43,13 @@ class NotificationDeviceService {
   }
 
   static Future<bool> enable(String uid) async {
+    if (kIsWeb) {
+      await FirebaseFirestore.instance.collection('users').doc(uid).update({
+        'priceDropNotifications': true,
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+      return true;
+    }
     final settings = await FirebaseMessaging.instance.requestPermission();
     if (settings.authorizationStatus == AuthorizationStatus.denied ||
         settings.authorizationStatus == AuthorizationStatus.notDetermined) {
@@ -64,6 +72,7 @@ class NotificationDeviceService {
       'priceDropNotifications': false,
       'updatedAt': FieldValue.serverTimestamp(),
     });
+    if (kIsWeb) return;
     final deviceId = await _deviceId();
     await FirebaseFirestore.instance
         .collection('users')

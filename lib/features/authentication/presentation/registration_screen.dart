@@ -89,101 +89,113 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
     return Scaffold(
       appBar: AppBar(title: const Text('Create fan account')),
       body: SafeArea(
-        child: Form(
-          key: _formKey,
-          child: ListView(
-            padding: const EdgeInsets.all(24),
-            children: [
-              TextFormField(
-                controller: _nameController,
-                textCapitalization: TextCapitalization.words,
-                validator: (value) =>
-                    InputValidators.required(value, label: 'Display name'),
-                decoration: const InputDecoration(labelText: 'Display name'),
-              ),
-              const SizedBox(height: 14),
-              TextFormField(
-                controller: _emailController,
-                keyboardType: TextInputType.emailAddress,
-                validator: InputValidators.email,
-                decoration: const InputDecoration(labelText: 'Email'),
-              ),
-              const SizedBox(height: 14),
-              TextFormField(
-                controller: _passwordController,
-                obscureText: true,
-                validator: InputValidators.password,
-                decoration: const InputDecoration(labelText: 'Password'),
-              ),
-              const SizedBox(height: 14),
-              TextFormField(
-                controller: _confirmController,
-                obscureText: true,
-                validator: (value) {
-                  if (value != _passwordController.text) {
-                    return 'Passwords do not match.';
-                  }
-                  return InputValidators.password(value);
-                },
-                decoration: const InputDecoration(
-                  labelText: 'Confirm password',
-                ),
-              ),
-              const SizedBox(height: 24),
-              const Text(
-                'Choose your fandoms',
-                style: TextStyle(fontWeight: FontWeight.w800),
-              ),
-              const SizedBox(height: 10),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: _fandoms.map((fandom) {
-                  return FilterChip(
-                    label: Text(fandom),
-                    selected: _selectedFandoms.contains(fandom),
-                    onSelected: (selected) => setState(() {
-                      if (selected) {
-                        _selectedFandoms.add(fandom);
-                      } else {
-                        _selectedFandoms.remove(fandom);
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 600),
+            child: Form(
+              key: _formKey,
+              child: ListView(
+                padding: const EdgeInsets.all(24),
+                children: [
+                  TextFormField(
+                    controller: _nameController,
+                    textCapitalization: TextCapitalization.words,
+                    validator: (value) =>
+                        InputValidators.required(value, label: 'Display name'),
+                    decoration: const InputDecoration(
+                      labelText: 'Display name',
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  TextFormField(
+                    controller: _emailController,
+                    keyboardType: TextInputType.emailAddress,
+                    validator: InputValidators.email,
+                    decoration: const InputDecoration(labelText: 'Email'),
+                  ),
+                  const SizedBox(height: 14),
+                  TextFormField(
+                    controller: _passwordController,
+                    obscureText: true,
+                    validator: InputValidators.password,
+                    decoration: const InputDecoration(labelText: 'Password'),
+                  ),
+                  const SizedBox(height: 14),
+                  TextFormField(
+                    controller: _confirmController,
+                    obscureText: true,
+                    validator: (value) {
+                      if (value != _passwordController.text) {
+                        return 'Passwords do not match.';
                       }
-                    }),
-                  );
-                }).toList(),
+                      return InputValidators.password(value);
+                    },
+                    decoration: const InputDecoration(
+                      labelText: 'Confirm password',
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  const Text(
+                    'Choose your fandoms',
+                    style: TextStyle(fontWeight: FontWeight.w800),
+                  ),
+                  const SizedBox(height: 10),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: _fandoms.map((fandom) {
+                      return FilterChip(
+                        label: Text(fandom),
+                        selected: _selectedFandoms.contains(fandom),
+                        onSelected: (selected) => setState(() {
+                          if (selected) {
+                            _selectedFandoms.add(fandom);
+                          } else {
+                            _selectedFandoms.remove(fandom);
+                          }
+                        }),
+                      );
+                    }).toList(),
+                  ),
+                  const SizedBox(height: 20),
+                  DropdownButtonFormField<String>(
+                    initialValue: _badge,
+                    decoration: const InputDecoration(
+                      labelText: 'Profile badge',
+                    ),
+                    items: _badges
+                        .map(
+                          (badge) => DropdownMenuItem(
+                            value: badge,
+                            child: Text(badge),
+                          ),
+                        )
+                        .toList(),
+                    onChanged: (value) =>
+                        setState(() => _badge = value ?? _badge),
+                  ),
+                  const SizedBox(height: 14),
+                  CheckboxListTile(
+                    contentPadding: EdgeInsets.zero,
+                    value: _acceptedTerms,
+                    onChanged: (value) =>
+                        setState(() => _acceptedTerms = value ?? false),
+                    title: const Text('I accept the Terms and Privacy notice.'),
+                    controlAffinity: ListTileControlAffinity.leading,
+                  ),
+                  const SizedBox(height: 16),
+                  FilledButton(
+                    onPressed: _submitting ? null : _register,
+                    child: _submitting
+                        ? const SizedBox.square(
+                            dimension: 22,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Text('Create account'),
+                  ),
+                ],
               ),
-              const SizedBox(height: 20),
-              DropdownButtonFormField<String>(
-                initialValue: _badge,
-                decoration: const InputDecoration(labelText: 'Profile badge'),
-                items: _badges
-                    .map(
-                      (badge) =>
-                          DropdownMenuItem(value: badge, child: Text(badge)),
-                    )
-                    .toList(),
-                onChanged: (value) => setState(() => _badge = value ?? _badge),
-              ),
-              const SizedBox(height: 14),
-              CheckboxListTile(
-                contentPadding: EdgeInsets.zero,
-                value: _acceptedTerms,
-                onChanged: (value) =>
-                    setState(() => _acceptedTerms = value ?? false),
-                title: const Text('I accept the Terms and Privacy notice.'),
-                controlAffinity: ListTileControlAffinity.leading,
-              ),
-              const SizedBox(height: 16),
-              FilledButton(
-                onPressed: _submitting ? null : _register,
-                child: _submitting
-                    ? const SizedBox.square(
-                        dimension: 22,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : const Text('Create account'),
-              ),
-            ],
+            ),
           ),
         ),
       ),

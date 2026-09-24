@@ -36,7 +36,8 @@
           "projectId": "fandom-verse-pocket-unzela",
           "configurations": {
             "android": "1:477827303954:android:4652141a5302461dcc26cb",
-            "ios": "1:477827303954:ios:f3f08ccadd961be5cc26cb"
+            "ios": "1:477827303954:ios:f3f08ccadd961be5cc26cb",
+            "web": "1:477827303954:web:d31180872a196600cc26cb"
           }
         }
       }

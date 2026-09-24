@@ -8,8 +8,8 @@ This repository is under active development. See [requirements traceability](REQ
 
 1. Install Flutter 3.44.7 or a compatible Flutter 3.x version and Dart 3.12.2.
 2. Run `flutter pub get`.
-3. Confirm the Android or iOS Firebase files match the intended Firebase project. This repository is configured for `fandom-verse-pocket-unzela`.
-4. Run `flutter run` on a supported device.
+3. Confirm the Firebase configuration matches `fandom-verse-pocket-unzela`. Android, iOS, and Web are registered.
+4. Run `flutter run -d YOUR_ANDROID_DEVICE_ID` on Android, or `flutter run -d chrome --web-port=7357` for local Web development. See [Web setup](docs/WEB.md).
 
 Android minimum SDK is 28. Email/password sign-in is active. Google/Apple Fan sign-in code is gated until the corresponding provider is configured; see [development notes](DEVELOPMENT.md). Admin registration is intentionally unavailable in the mobile app.
 
@@ -34,7 +34,7 @@ The script is prepared but no Admin account has been provisioned for this projec
 - The Fan catalog combines bundled original demo items with published Firestore content, events, and active merchandise. Admin edits to Firestore records appear in Fan screens. Sample events are explicitly labeled and cannot open placeholder ticket or venue links.
 - Bookmarks, saved event details, wishlist, cart, and simulated purchase history are stored locally per account and mirrored to Firestore user subcollections. New devices can read that state; conflict and reconnection behavior still need emulator and device verification before release.
 - The AI Fan Helper uses curated offline FAQ responses. No external AI API key is embedded in the client.
-- Firebase remains on the free Spark plan. Firestore and email/password Authentication are configured. Cloudinary image/video upload logic for Fan avatars and Admin media is implemented with a separate trusted signer and completion verifier; live uploads need the owner's Cloudinary presets, credentials, and HTTPS backend deployment. See [Cloudinary setup](docs/CLOUDINARY_SPARK.md).
+- Firebase remains on the free Spark plan. Firestore and email/password Authentication are configured for Android, iOS, and Web. Cloudinary image/video upload logic for Fan avatars and Admin media is implemented with a separate trusted signer and completion verifier; live uploads need the owner's Cloudinary presets, credentials, and HTTPS backend deployment. See [Cloudinary setup](docs/CLOUDINARY_SPARK.md).
 - Price-drop push delivery, embedded Maps, Apple sign-in, and scheduled backups remain external prerequisites. The price-drop function is prepared but cannot be deployed on Spark. See [notification setup](docs/NOTIFICATIONS.md), [development notes](DEVELOPMENT.md), and the [backup runbook](docs/BACKUP_RESTORE.md).
 
 ## Verification

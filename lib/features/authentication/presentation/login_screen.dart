@@ -120,134 +120,141 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         title: Text(widget.adminMode ? 'Admin sign in' : 'Welcome back'),
       ),
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                const SizedBox(height: 32),
-                Icon(
-                  widget.adminMode
-                      ? Icons.shield_outlined
-                      : Icons.favorite_outline,
-                  size: 64,
-                  color: Theme.of(context).colorScheme.primary,
-                ),
-                const SizedBox(height: 24),
-                TextFormField(
-                  controller: _emailController,
-                  keyboardType: TextInputType.emailAddress,
-                  autofillHints: const [AutofillHints.email],
-                  validator: InputValidators.email,
-                  decoration: const InputDecoration(
-                    labelText: 'Email',
-                    prefixIcon: Icon(Icons.mail_outline),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                TextFormField(
-                  controller: _passwordController,
-                  obscureText: _obscurePassword,
-                  autofillHints: const [AutofillHints.password],
-                  validator: InputValidators.password,
-                  onFieldSubmitted: (_) => _submit(),
-                  decoration: InputDecoration(
-                    labelText: 'Password',
-                    prefixIcon: const Icon(Icons.lock_outline),
-                    suffixIcon: IconButton(
-                      tooltip: _obscurePassword
-                          ? 'Show password'
-                          : 'Hide password',
-                      onPressed: () =>
-                          setState(() => _obscurePassword = !_obscurePassword),
-                      icon: Icon(
-                        _obscurePassword
-                            ? Icons.visibility_outlined
-                            : Icons.visibility_off_outlined,
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 560),
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(24),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    const SizedBox(height: 32),
+                    Icon(
+                      widget.adminMode
+                          ? Icons.shield_outlined
+                          : Icons.favorite_outline,
+                      size: 64,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                    const SizedBox(height: 24),
+                    TextFormField(
+                      controller: _emailController,
+                      keyboardType: TextInputType.emailAddress,
+                      autofillHints: const [AutofillHints.email],
+                      validator: InputValidators.email,
+                      decoration: const InputDecoration(
+                        labelText: 'Email',
+                        prefixIcon: Icon(Icons.mail_outline),
                       ),
                     ),
-                  ),
-                ),
-                const SizedBox(height: 24),
-                FilledButton(
-                  onPressed: _submitting ? null : _submit,
-                  child: _submitting
-                      ? const SizedBox.square(
-                          dimension: 22,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : const Text('Sign in'),
-                ),
-                if (!widget.adminMode) ...[
-                  TextButton(
-                    onPressed: _submitting ? null : _resetPassword,
-                    child: const Text('Forgot password?'),
-                  ),
-                  const Divider(height: 32),
-                  OutlinedButton.icon(
-                    onPressed: _submitting
-                        ? null
-                        : () => Navigator.of(context).push(
-                            MaterialPageRoute<void>(
-                              builder: (_) => const RegistrationScreen(),
-                            ),
-                          ),
-                    icon: const Icon(Icons.person_add_alt_1_outlined),
-                    label: const Text('Create fan account'),
-                  ),
-                  if (_googleEnabled ||
-                      (_appleEnabled &&
-                          !kIsWeb &&
-                          defaultTargetPlatform == TargetPlatform.iOS)) ...[
                     const SizedBox(height: 16),
-                    CheckboxListTile(
-                      contentPadding: EdgeInsets.zero,
-                      value: _acceptedFederatedTerms,
-                      onChanged: _submitting
-                          ? null
-                          : (value) => setState(
-                              () => _acceptedFederatedTerms = value ?? false,
-                            ),
-                      title: const Text(
-                        'I accept the Terms and Privacy notice.',
+                    TextFormField(
+                      controller: _passwordController,
+                      obscureText: _obscurePassword,
+                      autofillHints: const [AutofillHints.password],
+                      validator: InputValidators.password,
+                      onFieldSubmitted: (_) => _submit(),
+                      decoration: InputDecoration(
+                        labelText: 'Password',
+                        prefixIcon: const Icon(Icons.lock_outline),
+                        suffixIcon: IconButton(
+                          tooltip: _obscurePassword
+                              ? 'Show password'
+                              : 'Hide password',
+                          onPressed: () => setState(
+                            () => _obscurePassword = !_obscurePassword,
+                          ),
+                          icon: Icon(
+                            _obscurePassword
+                                ? Icons.visibility_outlined
+                                : Icons.visibility_off_outlined,
+                          ),
+                        ),
                       ),
-                      controlAffinity: ListTileControlAffinity.leading,
                     ),
+                    const SizedBox(height: 24),
+                    FilledButton(
+                      onPressed: _submitting ? null : _submit,
+                      child: _submitting
+                          ? const SizedBox.square(
+                              dimension: 22,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : const Text('Sign in'),
+                    ),
+                    if (!widget.adminMode) ...[
+                      TextButton(
+                        onPressed: _submitting ? null : _resetPassword,
+                        child: const Text('Forgot password?'),
+                      ),
+                      const Divider(height: 32),
+                      OutlinedButton.icon(
+                        onPressed: _submitting
+                            ? null
+                            : () => Navigator.of(context).push(
+                                MaterialPageRoute<void>(
+                                  builder: (_) => const RegistrationScreen(),
+                                ),
+                              ),
+                        icon: const Icon(Icons.person_add_alt_1_outlined),
+                        label: const Text('Create fan account'),
+                      ),
+                      if (_googleEnabled ||
+                          (_appleEnabled &&
+                              !kIsWeb &&
+                              defaultTargetPlatform == TargetPlatform.iOS)) ...[
+                        const SizedBox(height: 16),
+                        CheckboxListTile(
+                          contentPadding: EdgeInsets.zero,
+                          value: _acceptedFederatedTerms,
+                          onChanged: _submitting
+                              ? null
+                              : (value) => setState(
+                                  () =>
+                                      _acceptedFederatedTerms = value ?? false,
+                                ),
+                          title: const Text(
+                            'I accept the Terms and Privacy notice.',
+                          ),
+                          controlAffinity: ListTileControlAffinity.leading,
+                        ),
+                      ],
+                      if (_googleEnabled && !kIsWeb) ...[
+                        const SizedBox(height: 10),
+                        OutlinedButton.icon(
+                          onPressed: _submitting
+                              ? null
+                              : () => _signInWithProvider(google: true),
+                          icon: const Icon(Icons.account_circle_outlined),
+                          label: const Text('Continue with Google'),
+                        ),
+                      ],
+                      if (_appleEnabled &&
+                          !kIsWeb &&
+                          defaultTargetPlatform == TargetPlatform.iOS) ...[
+                        const SizedBox(height: 10),
+                        OutlinedButton.icon(
+                          onPressed: _submitting
+                              ? null
+                              : () => _signInWithProvider(google: false),
+                          icon: const Icon(Icons.apple),
+                          label: const Text('Continue with Apple'),
+                        ),
+                      ],
+                    ] else
+                      const Padding(
+                        padding: EdgeInsets.only(top: 16),
+                        child: Text(
+                          'Admin accounts must be provisioned through the trusted project process.',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(color: Colors.white60),
+                        ),
+                      ),
                   ],
-                  if (_googleEnabled && !kIsWeb) ...[
-                    const SizedBox(height: 10),
-                    OutlinedButton.icon(
-                      onPressed: _submitting
-                          ? null
-                          : () => _signInWithProvider(google: true),
-                      icon: const Icon(Icons.account_circle_outlined),
-                      label: const Text('Continue with Google'),
-                    ),
-                  ],
-                  if (_appleEnabled &&
-                      !kIsWeb &&
-                      defaultTargetPlatform == TargetPlatform.iOS) ...[
-                    const SizedBox(height: 10),
-                    OutlinedButton.icon(
-                      onPressed: _submitting
-                          ? null
-                          : () => _signInWithProvider(google: false),
-                      icon: const Icon(Icons.apple),
-                      label: const Text('Continue with Apple'),
-                    ),
-                  ],
-                ] else
-                  const Padding(
-                    padding: EdgeInsets.only(top: 16),
-                    child: Text(
-                      'Admin accounts must be provisioned through the trusted project process.',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(color: Colors.white60),
-                    ),
-                  ),
-              ],
+                ),
+              ),
             ),
           ),
         ),

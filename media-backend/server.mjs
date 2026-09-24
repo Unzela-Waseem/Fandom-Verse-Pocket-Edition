@@ -7,8 +7,10 @@ import {
   CLOUD_NAME, credentialsFromEnvironment, mediaPolicy,
   signParameters, validAsset, validPublicId, validResponseSignature,
 } from './cloudinary.mjs';
+import { allowedWebOrigins, isAllowedWebOrigin } from './cors.mjs';
 
 const credentials = credentialsFromEnvironment();
+const webOrigins = allowedWebOrigins(process.env.ALLOWED_WEB_ORIGINS);
 const presets = {
   avatar: process.env.CLOUDINARY_AVATAR_PRESET,
   image: process.env.CLOUDINARY_IMAGE_PRESET,
@@ -182,6 +184,25 @@ async function complete(request, response) {
 }
 
 const server = createServer(async (request, response) => {
+  const origin = request.headers.origin;
+  if (origin != null) {
+    if (!isAllowedWebOrigin(origin, webOrigins)) {
+      return reply(response, 403, { error: 'This web origin is not allowed.' });
+    }
+    response.setHeader('access-control-allow-origin', origin);
+    response.setHeader('vary', 'Origin');
+  }
+  if (request.method === 'OPTIONS' &&
+      ['/media/sign', '/media/complete'].includes(request.url)) {
+    if (origin == null) return reply(response, 400, { error: 'Origin is required.' });
+    response.writeHead(204, {
+      'access-control-allow-methods': 'POST, OPTIONS',
+      'access-control-allow-headers': 'Authorization, Content-Type',
+      'access-control-max-age': '600',
+    });
+    response.end();
+    return;
+  }
   if (request.method === 'GET' && request.url === '/health') {
     return reply(response, 200, { status: 'ok' });
   }

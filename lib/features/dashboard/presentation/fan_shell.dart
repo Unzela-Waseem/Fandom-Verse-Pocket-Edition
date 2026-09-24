@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -34,7 +35,7 @@ class _FanShellState extends State<FanShell> {
   @override
   void initState() {
     super.initState();
-    if (widget.profile != null) {
+    if (widget.profile != null && !kIsWeb) {
       _tokenSubscription = FirebaseMessaging.instance.onTokenRefresh.listen((
         token,
       ) {
@@ -57,13 +58,15 @@ class _FanShellState extends State<FanShell> {
   @override
   void didUpdateWidget(covariant FanShell oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.profile?.priceDropNotifications != true &&
+    if (!kIsWeb &&
+        oldWidget.profile?.priceDropNotifications != true &&
         widget.profile?.priceDropNotifications == true) {
       unawaited(_registerIfPermitted());
     }
   }
 
   Future<void> _registerIfPermitted() async {
+    if (kIsWeb) return;
     final profile = widget.profile;
     if (profile?.priceDropNotifications != true) return;
     try {
@@ -98,43 +101,95 @@ class _FanShellState extends State<FanShell> {
       const StoreScreen(),
       ProfileScreen(profile: widget.profile),
     ];
-    return Scaffold(
-      body: IndexedStack(index: _index, children: pages),
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: _index,
-        height: 68,
-        backgroundColor: const Color(0xFF17171C),
-        indicatorColor: Theme.of(context).colorScheme.primary,
-        labelBehavior: NavigationDestinationLabelBehavior.onlyShowSelected,
-        onDestinationSelected: (value) => setState(() => _index = value),
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.home_outlined),
-            selectedIcon: Icon(Icons.home),
-            label: 'Home',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.explore_outlined),
-            selectedIcon: Icon(Icons.explore),
-            label: 'Explore',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.calendar_month_outlined),
-            selectedIcon: Icon(Icons.calendar_month),
-            label: 'Events',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.shopping_bag_outlined),
-            selectedIcon: Icon(Icons.shopping_bag),
-            label: 'Store',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.person_outline),
-            selectedIcon: Icon(Icons.person),
-            label: 'Profile',
-          ),
-        ],
-      ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final wide = constraints.maxWidth >= 800;
+        return Scaffold(
+          body: wide
+              ? Row(
+                  children: [
+                    NavigationRail(
+                      selectedIndex: _index,
+                      onDestinationSelected: (value) =>
+                          setState(() => _index = value),
+                      labelType: NavigationRailLabelType.all,
+                      backgroundColor: const Color(0xFF17171C),
+                      destinations: const [
+                        NavigationRailDestination(
+                          icon: Icon(Icons.home_outlined),
+                          selectedIcon: Icon(Icons.home),
+                          label: Text('Home'),
+                        ),
+                        NavigationRailDestination(
+                          icon: Icon(Icons.explore_outlined),
+                          selectedIcon: Icon(Icons.explore),
+                          label: Text('Explore'),
+                        ),
+                        NavigationRailDestination(
+                          icon: Icon(Icons.calendar_month_outlined),
+                          selectedIcon: Icon(Icons.calendar_month),
+                          label: Text('Events'),
+                        ),
+                        NavigationRailDestination(
+                          icon: Icon(Icons.shopping_bag_outlined),
+                          selectedIcon: Icon(Icons.shopping_bag),
+                          label: Text('Store'),
+                        ),
+                        NavigationRailDestination(
+                          icon: Icon(Icons.person_outline),
+                          selectedIcon: Icon(Icons.person),
+                          label: Text('Profile'),
+                        ),
+                      ],
+                    ),
+                    const VerticalDivider(width: 1),
+                    Expanded(
+                      child: IndexedStack(index: _index, children: pages),
+                    ),
+                  ],
+                )
+              : IndexedStack(index: _index, children: pages),
+          bottomNavigationBar: wide
+              ? null
+              : NavigationBar(
+                  selectedIndex: _index,
+                  height: 68,
+                  backgroundColor: const Color(0xFF17171C),
+                  indicatorColor: Theme.of(context).colorScheme.primary,
+                  labelBehavior:
+                      NavigationDestinationLabelBehavior.onlyShowSelected,
+                  onDestinationSelected: (value) =>
+                      setState(() => _index = value),
+                  destinations: const [
+                    NavigationDestination(
+                      icon: Icon(Icons.home_outlined),
+                      selectedIcon: Icon(Icons.home),
+                      label: 'Home',
+                    ),
+                    NavigationDestination(
+                      icon: Icon(Icons.explore_outlined),
+                      selectedIcon: Icon(Icons.explore),
+                      label: 'Explore',
+                    ),
+                    NavigationDestination(
+                      icon: Icon(Icons.calendar_month_outlined),
+                      selectedIcon: Icon(Icons.calendar_month),
+                      label: 'Events',
+                    ),
+                    NavigationDestination(
+                      icon: Icon(Icons.shopping_bag_outlined),
+                      selectedIcon: Icon(Icons.shopping_bag),
+                      label: 'Store',
+                    ),
+                    NavigationDestination(
+                      icon: Icon(Icons.person_outline),
+                      selectedIcon: Icon(Icons.person),
+                      label: 'Profile',
+                    ),
+                  ],
+                ),
+        );
+      },
     );
   }
 }

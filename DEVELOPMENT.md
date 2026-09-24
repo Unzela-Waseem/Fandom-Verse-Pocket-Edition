@@ -14,7 +14,7 @@ Core Fan flows are implemented and verified. Work is continuing on cloud-backed 
 
 ## External prerequisites
 
-- The owner chose Firebase Spark with Cloudinary media, so do not enable billing or Firebase Storage. The prepared Storage avatar code remains disabled. Signed in-app Cloudinary uploads need a separate trusted signer; trusted-computer Admin uploads are available without billing.
+- The owner chose Firebase Spark with Cloudinary media, so do not enable billing or Firebase Storage. Signed Android, iOS, and Web Cloudinary uploads need the separate trusted backend; trusted-computer Admin uploads remain available without billing.
 - An owner must provision the first Admin using `admin-tools/provision-admin.mjs` with service-account Application Default Credentials and an owner-selected email/password. The mobile client cannot create or promote Admins.
 - Google/Apple sign-in provider configuration and native device verification. The code is present but neither provider is enabled in this Firebase project.
 - Google Maps API keys restricted per platform.
@@ -52,4 +52,4 @@ Provider buttons are hidden by default. Enable them only after completing the na
 
 ## Avatar upload activation
 
-The owner chose Spark and Cloudinary instead of Firebase Storage. Do not enable `ENABLE_AVATAR_UPLOAD` or deploy Storage rules on this route. The prepared Firebase Storage avatar flow is superseded; a Cloudinary avatar uploader needs a separate trusted signing backend. See [Cloudinary setup](docs/CLOUDINARY_SPARK.md).
+The owner chose Spark and Cloudinary instead of Firebase Storage. Do not deploy Storage rules on this route. The Cloudinary avatar uploader is available on Android, iOS, and Web only when the HTTPS media backend is configured using `CLOUDINARY_SIGNER_URL`. See [Cloudinary setup](docs/CLOUDINARY_SPARK.md).
