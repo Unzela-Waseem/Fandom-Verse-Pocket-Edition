@@ -8,9 +8,14 @@ import '../data/demo_catalog.dart';
 import '../domain/library_models.dart';
 
 class ExploreScreen extends ConsumerStatefulWidget {
-  const ExploreScreen({super.key, this.initialCategory = 'All'});
+  const ExploreScreen({
+    super.key,
+    this.initialCategory = 'All',
+    this.standalone = false,
+  });
 
   final String initialCategory;
+  final bool standalone;
 
   @override
   ConsumerState<ExploreScreen> createState() => _ExploreScreenState();
@@ -49,140 +54,143 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
         .toList(growable: false);
     final library = ref.watch(libraryProvider);
 
-    return SafeArea(
-      child: ListView(
-        padding: const EdgeInsets.fromLTRB(20, 18, 20, 24),
-        children: [
-          const Text(
-            'Explore',
-            style: TextStyle(fontSize: 30, fontWeight: FontWeight.w900),
-          ),
-          const SizedBox(height: 6),
-          const Text(
-            'Stories, profiles, news, media, glossary terms, and advanced lore.',
-            style: TextStyle(color: Colors.white60),
-          ),
-          const SizedBox(height: 18),
-          if (cloudCatalog.hasError)
-            const Padding(
-              padding: EdgeInsets.only(bottom: 12),
-              child: Text(
-                'Cloud content is unavailable. Showing bundled items.',
-                style: TextStyle(color: Colors.orangeAccent),
+    return Scaffold(
+      appBar: widget.standalone ? AppBar(title: Text(_category)) : null,
+      body: SafeArea(
+        child: ListView(
+          padding: const EdgeInsets.fromLTRB(20, 18, 20, 24),
+          children: [
+            const Text(
+              'Explore',
+              style: TextStyle(fontSize: 30, fontWeight: FontWeight.w900),
+            ),
+            const SizedBox(height: 6),
+            const Text(
+              'Stories, profiles, news, media, glossary terms, and advanced lore.',
+              style: TextStyle(color: Colors.white60),
+            ),
+            const SizedBox(height: 18),
+            if (cloudCatalog.hasError)
+              const Padding(
+                padding: EdgeInsets.only(bottom: 12),
+                child: Text(
+                  'Cloud content is unavailable. Showing bundled items.',
+                  style: TextStyle(color: Colors.orangeAccent),
+                ),
+              ),
+            TextField(
+              onChanged: (value) => setState(() => _query = value),
+              decoration: InputDecoration(
+                hintText: 'Search by keyword, creator, or tag',
+                prefixIcon: const Icon(Icons.search),
+                suffixIcon: _query.isEmpty
+                    ? null
+                    : IconButton(
+                        onPressed: () => setState(() => _query = ''),
+                        icon: const Icon(Icons.clear),
+                      ),
               ),
             ),
-          TextField(
-            onChanged: (value) => setState(() => _query = value),
-            decoration: InputDecoration(
-              hintText: 'Search by keyword, creator, or tag',
-              prefixIcon: const Icon(Icons.search),
-              suffixIcon: _query.isEmpty
-                  ? null
-                  : IconButton(
-                      onPressed: () => setState(() => _query = ''),
-                      icon: const Icon(Icons.clear),
-                    ),
+            const SizedBox(height: 12),
+            SizedBox(
+              height: 42,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                itemCount: categories.length,
+                separatorBuilder: (_, _) => const SizedBox(width: 8),
+                itemBuilder: (_, index) {
+                  final category = categories[index];
+                  return ChoiceChip(
+                    label: Text(category),
+                    selected: category == _category,
+                    onSelected: (_) => setState(() => _category = category),
+                  );
+                },
+              ),
             ),
-          ),
-          const SizedBox(height: 12),
-          SizedBox(
-            height: 42,
-            child: ListView.separated(
-              scrollDirection: Axis.horizontal,
-              itemCount: categories.length,
-              separatorBuilder: (_, _) => const SizedBox(width: 8),
-              itemBuilder: (_, index) {
-                final category = categories[index];
-                return ChoiceChip(
-                  label: Text(category),
-                  selected: category == _category,
-                  onSelected: (_) => setState(() => _category = category),
-                );
-              },
-            ),
-          ),
-          const SizedBox(height: 18),
-          if (results.isEmpty)
-            const _EmptyResults()
-          else
-            ...results.map(
-              (item) => Card(
-                margin: const EdgeInsets.only(bottom: 12),
-                clipBehavior: Clip.antiAlias,
-                child: InkWell(
-                  onTap: () => Navigator.of(context).push(
-                    MaterialPageRoute<void>(
-                      builder: (_) => ContentDetailScreen(item: item),
-                    ),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      SizedBox(
-                        height: 120,
-                        width: double.infinity,
-                        child: RemoteMediaImage(url: item.imageUrl),
+            const SizedBox(height: 18),
+            if (results.isEmpty)
+              const _EmptyResults()
+            else
+              ...results.map(
+                (item) => Card(
+                  margin: const EdgeInsets.only(bottom: 12),
+                  clipBehavior: Clip.antiAlias,
+                  child: InkWell(
+                    onTap: () => Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) => ContentDetailScreen(item: item),
                       ),
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(16, 14, 8, 14),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    item.category.toUpperCase(),
-                                    style: const TextStyle(
-                                      color: Color(0xFFFFD740),
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.w900,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 5),
-                                  Text(
-                                    item.title,
-                                    style: const TextStyle(
-                                      fontSize: 17,
-                                      fontWeight: FontWeight.w900,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 6),
-                                  Text(
-                                    item.summary,
-                                    maxLines: 2,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: const TextStyle(
-                                      color: Colors.white60,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            IconButton(
-                              tooltip:
-                                  library.bookmarkedContent.contains(item.id)
-                                  ? 'Remove offline bookmark'
-                                  : 'Save offline',
-                              onPressed: () => ref
-                                  .read(libraryProvider.notifier)
-                                  .toggleBookmark(item.id, item: item),
-                              icon: Icon(
-                                library.bookmarkedContent.contains(item.id)
-                                    ? Icons.bookmark
-                                    : Icons.bookmark_border,
-                              ),
-                            ),
-                          ],
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        SizedBox(
+                          height: 120,
+                          width: double.infinity,
+                          child: RemoteMediaImage(url: item.imageUrl),
                         ),
-                      ),
-                    ],
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(16, 14, 8, 14),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      item.category.toUpperCase(),
+                                      style: const TextStyle(
+                                        color: Color(0xFFFFD740),
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.w900,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 5),
+                                    Text(
+                                      item.title,
+                                      style: const TextStyle(
+                                        fontSize: 17,
+                                        fontWeight: FontWeight.w900,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 6),
+                                    Text(
+                                      item.summary,
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: const TextStyle(
+                                        color: Colors.white60,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              IconButton(
+                                tooltip:
+                                    library.bookmarkedContent.contains(item.id)
+                                    ? 'Remove offline bookmark'
+                                    : 'Save offline',
+                                onPressed: () => ref
+                                    .read(libraryProvider.notifier)
+                                    .toggleBookmark(item.id, item: item),
+                                icon: Icon(
+                                  library.bookmarkedContent.contains(item.id)
+                                      ? Icons.bookmark
+                                      : Icons.bookmark_border,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
-            ),
-        ],
+          ],
+        ),
       ),
     );
   }

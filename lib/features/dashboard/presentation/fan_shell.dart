@@ -234,8 +234,10 @@ class _HomeTab extends ConsumerWidget {
                       category: categories[index],
                       onTap: () => Navigator.of(context).push(
                         MaterialPageRoute<void>(
-                          builder: (_) =>
-                              ExploreScreen(initialCategory: categories[index]),
+                          builder: (_) => ExploreScreen(
+                            initialCategory: categories[index],
+                            standalone: true,
+                          ),
                         ),
                       ),
                     ),
