@@ -1,0 +1,54 @@
+{
+  "project_info": {
+    "project_number": "477827303954",
+    "project_id": "fandom-verse-pocket-unzela",
+    "storage_bucket": "fandom-verse-pocket-unzela.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:477827303954:android:4652141a5302461dcc26cb",
+        "android_client_info": {
+          "package_name": "com.fandomverse.fandom_verse_pocket"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "477827303954-ndvafk29058jo8pjattdn3p53lit161b.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.fandomverse.fandom_verse_pocket",
+            "certificate_hash": "67ae01e5d27c9d154aafc58c347398d5cc34525f"
+          }
+        },
+        {
+          "client_id": "477827303954-78u5ddkmeog1eo79gbhqq8f0bst8gn8e.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCgVeHnMw-rU68HBBAu3NPOwKgSkA0CQf4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "477827303954-78u5ddkmeog1eo79gbhqq8f0bst8gn8e.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "477827303954-itmmh8ibk665a5d3unksg6fk9gdl3qqe.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.fandomverse.fandomVersePocket"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
