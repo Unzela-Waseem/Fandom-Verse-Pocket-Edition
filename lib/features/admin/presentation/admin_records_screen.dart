@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
@@ -116,12 +117,16 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
   Future<void> _deleteUser(
     QueryDocumentSnapshot<Map<String, dynamic>> user,
   ) async {
+    final data = user.data();
+    final name = data['displayName'] as String? ?? 'this user';
+    final email = data['email'] as String? ?? '';
+
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete this user?'),
-        content: const Text(
-          'This will delete their profile from Firestore. Note: For full removal, their Firebase Auth credential must also be deleted via the Firebase Console.',
+        title: const Text('Permanently delete user?'),
+        content: Text(
+          'This will remove $name ($email) from Firebase Auth AND Firestore.\n\nThis action cannot be undone.',
         ),
         actions: [
           TextButton(
@@ -133,7 +138,7 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
               backgroundColor: Theme.of(context).colorScheme.error,
             ),
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Delete'),
+            child: const Text('Delete Permanently'),
           ),
         ],
       ),
@@ -141,16 +146,24 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
     if (confirmed != true || !mounted) return;
     setState(() => _busyId = user.id);
     try {
-      final batch = FirebaseFirestore.instance.batch();
-      batch.delete(user.reference);
-      addAdminAudit(
-        batch,
-        action: 'delete',
-        collection: 'users',
-        recordId: user.id,
-      );
-      await batch.commit();
+      // Call the Cloud Function — runs with Admin SDK so it deletes
+      // the Firebase Auth account AND the Firestore profile atomically.
+      final callable = FirebaseFunctions.instanceFor(
+        region: 'asia-south1',
+      ).httpsCallable('deleteAuthUser');
+      await callable.call<Map<String, dynamic>>({'uid': user.id});
       await _refresh();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('$name deleted from Auth and Firestore.')),
+        );
+      }
+    } on FirebaseFunctionsException catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(error.message ?? 'Deletion failed.')),
+        );
+      }
     } on FirebaseException catch (error) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -369,8 +382,12 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
                                           ),
                                         IconButton(
                                           tooltip: 'Delete user',
-                                          icon: const Icon(Icons.delete_outline),
-                                          color: Theme.of(context).colorScheme.error,
+                                          icon: const Icon(
+                                            Icons.delete_outline,
+                                          ),
+                                          color: Theme.of(
+                                            context,
+                                          ).colorScheme.error,
                                           onPressed: _busyId != null
                                               ? null
                                               : () => _deleteUser(user),
@@ -546,6 +563,11 @@ class _AdminUserEditorState extends State<_AdminUserEditor> {
 }
 
 // ── User Provisioning Dialog ──────────────────────────────────────────────────
+// Two-step user creation:
+//   Step 1: Tries the provisionUser Cloud Function (Blaze plan required).
+//           On Spark plan, falls back: writes a pending Firestore profile
+//           immediately and shows the exact CLI command to finish Auth creation.
+//   Step 2 (CLI dialog): Copyable terminal command shown only on Spark plan.
 
 class _AdminUserProvisioningDialog extends StatefulWidget {
   const _AdminUserProvisioningDialog();
@@ -560,66 +582,113 @@ class _AdminUserProvisioningDialogState
   final _formKey = GlobalKey<FormState>();
   final _name = TextEditingController();
   final _email = TextEditingController();
+  final _password = TextEditingController();
   String _role = 'fan';
   bool _saving = false;
+  bool _obscurePassword = true;
+  String? _errorMessage;
 
   @override
   void dispose() {
     _name.dispose();
     _email.dispose();
+    _password.dispose();
     super.dispose();
   }
 
-  Future<void> _save() async {
+  Future<void> _submit() async {
     if (_saving || !_formKey.currentState!.validate()) return;
-    setState(() => _saving = true);
+    setState(() {
+      _saving = true;
+      _errorMessage = null;
+    });
     try {
-      final docRef = FirebaseFirestore.instance.collection('users').doc();
-      final batch = FirebaseFirestore.instance.batch();
-      
-      batch.set(docRef, {
+      final callable = FirebaseFunctions.instanceFor(region: 'asia-south1')
+          .httpsCallable(
+            'provisionUser',
+            options: HttpsCallableOptions(timeout: const Duration(seconds: 15)),
+          );
+      final result = await callable.call<Map<String, dynamic>>({
         'displayName': _name.text.trim(),
         'email': _email.text.trim().toLowerCase(),
+        'password': _password.text,
         'role': _role,
-        'accountStatus': 'active',
-        'createdAt': FieldValue.serverTimestamp(),
-        'updatedAt': FieldValue.serverTimestamp(),
-        'createdBy': FirebaseAuth.instance.currentUser!.uid,
       });
-
-      addAdminAudit(
-        batch,
-        action: 'provision',
-        collection: 'users',
-        recordId: docRef.id,
-      );
-
-      await batch.commit();
-
+      final uid = result.data['uid'] as String? ?? '';
       if (mounted) {
         Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
+          SnackBar(
             content: Text(
-              'Profile created! Note: User must still register their email in Auth to sign in.',
+              '\u2705 ${_role == 'admin' ? 'Admin' : 'Fan'} account created! UID: $uid',
             ),
+            duration: const Duration(seconds: 5),
           ),
         );
       }
-    } on FirebaseException catch (error) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(error.message ?? 'Provisioning failed.')),
-        );
+    } on FirebaseFunctionsException catch (fnErr) {
+      if (fnErr.code == 'not-found' ||
+          fnErr.code == 'internal' ||
+          fnErr.code == 'unavailable' ||
+          fnErr.code == 'deadline-exceeded') {
+        await _fallbackFirestoreAndShowCli();
+      } else {
+        setState(() => _errorMessage = fnErr.message ?? 'Provisioning failed.');
       }
+    } catch (_) {
+      await _fallbackFirestoreAndShowCli();
     } finally {
       if (mounted) setState(() => _saving = false);
     }
   }
 
+  Future<void> _fallbackFirestoreAndShowCli() async {
+    final db = FirebaseFirestore.instance;
+    final docRef = db.collection('users').doc();
+    final batch = db.batch();
+    batch.set(docRef, {
+      'uid': docRef.id,
+      'displayName': _name.text.trim(),
+      'email': _email.text.trim().toLowerCase(),
+      'bio': '',
+      'avatarUrl': null,
+      'selectedFandoms': const [],
+      'badge': _role == 'admin' ? 'Admin' : 'New Explorer',
+      'role': _role,
+      'accountStatus': 'pending_auth',
+      'priceDropNotifications': false,
+      'createdAt': FieldValue.serverTimestamp(),
+      'updatedAt': FieldValue.serverTimestamp(),
+      'createdBy': FirebaseAuth.instance.currentUser?.uid ?? 'admin',
+    });
+    addAdminAudit(
+      batch,
+      action: 'provision-pending',
+      collection: 'users',
+      recordId: docRef.id,
+    );
+    await batch.commit();
+
+    final subcmd = _role == 'admin' ? 'create-admin' : 'create-fan';
+    final cliCmd =
+        'cd admin-tools\n'
+        'node manage-users.mjs $subcmd \\\n'
+        '  --email="${_email.text.trim()}" \\\n'
+        '  --password="${_password.text}" \\\n'
+        '  --name="${_name.text.trim()}"';
+
+    if (!mounted) return;
+    await showDialog<void>(
+      context: context,
+      builder: (_) =>
+          _CliCommandDialog(email: _email.text.trim(), command: cliCmd),
+    );
+    if (mounted) Navigator.pop(context);
+  }
+
   @override
   Widget build(BuildContext context) => AlertDialog(
-    title: const Text('Provision New User'),
+    title: const Text('Create New User'),
     content: SizedBox(
       width: 480,
       child: Form(
@@ -628,40 +697,130 @@ class _AdminUserProvisioningDialogState
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.primaryContainer.withAlpha(120),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.security_outlined,
+                      size: 16,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                    const SizedBox(width: 8),
+                    const Expanded(
+                      child: Text(
+                        'Creates a Firebase Auth account + Firestore profile. '
+                        'User can log in immediately.',
+                        style: TextStyle(fontSize: 12),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
               TextFormField(
                 controller: _name,
                 maxLength: 60,
-                decoration: const InputDecoration(labelText: 'Display name'),
-                validator: (value) => (value?.trim().isEmpty ?? true)
-                    ? 'Display name is required.'
-                    : null,
+                decoration: const InputDecoration(
+                  labelText: 'Display name',
+                  prefixIcon: Icon(Icons.person_outline),
+                ),
+                validator: (v) =>
+                    (v?.trim().isEmpty ?? true) ? 'Required.' : null,
               ),
               const SizedBox(height: 8),
               TextFormField(
                 controller: _email,
                 keyboardType: TextInputType.emailAddress,
-                decoration: const InputDecoration(labelText: 'Email Address'),
-                validator: (value) {
-                  if (value?.trim().isEmpty ?? true) return 'Email is required.';
-                  if (!value!.contains('@')) return 'Invalid email format.';
+                decoration: const InputDecoration(
+                  labelText: 'Email address',
+                  prefixIcon: Icon(Icons.email_outlined),
+                ),
+                validator: (v) {
+                  if (v?.trim().isEmpty ?? true) return 'Email is required.';
+                  if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(v!.trim())) {
+                    return 'Invalid email format.';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 8),
+              TextFormField(
+                controller: _password,
+                obscureText: _obscurePassword,
+                decoration: InputDecoration(
+                  labelText: _role == 'admin'
+                      ? 'Password (min 12 chars)'
+                      : 'Password (min 8 chars)',
+                  prefixIcon: const Icon(Icons.lock_outline),
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      _obscurePassword
+                          ? Icons.visibility_outlined
+                          : Icons.visibility_off_outlined,
+                    ),
+                    onPressed: () =>
+                        setState(() => _obscurePassword = !_obscurePassword),
+                  ),
+                ),
+                validator: (v) {
+                  final min = _role == 'admin' ? 12 : 8;
+                  if ((v?.length ?? 0) < min) {
+                    return 'Password must be at least $min characters.';
+                  }
                   return null;
                 },
               ),
               const SizedBox(height: 16),
               DropdownButtonFormField<String>(
                 value: _role,
-                decoration: const InputDecoration(labelText: 'Role'),
+                decoration: const InputDecoration(
+                  labelText: 'Role',
+                  prefixIcon: Icon(Icons.admin_panel_settings_outlined),
+                ),
                 items: const [
                   DropdownMenuItem(value: 'fan', child: Text('Fan')),
                   DropdownMenuItem(value: 'admin', child: Text('Admin')),
                 ],
-                onChanged: (val) => setState(() => _role = val ?? 'fan'),
+                onChanged: (v) => setState(() => _role = v ?? 'fan'),
               ),
-              const SizedBox(height: 16),
-              const Text(
-                'Note: Creating a profile here sets up their database record. The user still needs to Sign Up with this exact email to link their Auth credentials, OR an Owner must run the CLI provisioner for full Admin setup.',
-                style: TextStyle(fontSize: 12, color: Colors.grey),
-              )
+              if (_errorMessage != null) ...[
+                const SizedBox(height: 12),
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.errorContainer,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.error_outline,
+                        size: 16,
+                        color: Theme.of(context).colorScheme.error,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          _errorMessage!,
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onErrorContainer,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ],
           ),
         ),
@@ -672,19 +831,134 @@ class _AdminUserProvisioningDialogState
         onPressed: _saving ? null : () => Navigator.pop(context),
         child: const Text('Cancel'),
       ),
-      FilledButton(
-        onPressed: _saving ? null : _save,
-        child: _saving
+      FilledButton.icon(
+        onPressed: _saving ? null : _submit,
+        icon: _saving
             ? const SizedBox.square(
-                dimension: 20,
+                dimension: 16,
                 child: CircularProgressIndicator(strokeWidth: 2),
               )
-            : const Text('Create'),
+            : const Icon(Icons.person_add_outlined, size: 18),
+        label: Text(_saving ? 'Creating\u2026' : 'Create Account'),
       ),
     ],
   );
 }
 
+// ── CLI Command Dialog ──────────────────────────────────────────────────────────
+
+class _CliCommandDialog extends StatelessWidget {
+  const _CliCommandDialog({required this.email, required this.command});
+
+  final String email;
+  final String command;
+
+  @override
+  Widget build(BuildContext context) => AlertDialog(
+    title: Row(
+      children: [
+        Icon(
+          Icons.terminal_outlined,
+          color: Theme.of(context).colorScheme.primary,
+        ),
+        const SizedBox(width: 8),
+        const Text('One more step'),
+      ],
+    ),
+    content: SizedBox(
+      width: 520,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: Colors.green.withAlpha(30),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: Colors.green.withAlpha(80)),
+            ),
+            child: Row(
+              children: [
+                const Icon(
+                  Icons.check_circle_outline,
+                  color: Colors.green,
+                  size: 18,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    '\u2705 Firestore profile for $email saved (status: pending_auth).',
+                    style: const TextStyle(fontSize: 13),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 14),
+          const Text(
+            'Run this in terminal (admin-tools/) to create the Firebase Auth account:',
+            style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13),
+          ),
+          const SizedBox(height: 8),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: const Color(0xFF1E1E2E),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: SelectableText(
+              command,
+              style: const TextStyle(
+                fontFamily: 'monospace',
+                fontSize: 12.5,
+                color: Color(0xFF89DCEB),
+                height: 1.7,
+              ),
+            ),
+          ),
+          const SizedBox(height: 10),
+          const Text(
+            'After the command succeeds, the user can log in immediately.',
+            style: TextStyle(fontSize: 12, color: Colors.grey),
+          ),
+          const SizedBox(height: 10),
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: Theme.of(
+                context,
+              ).colorScheme.secondaryContainer.withAlpha(100),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: const Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(Icons.lightbulb_outline, size: 14),
+                SizedBox(width: 6),
+                Expanded(
+                  child: Text(
+                    'Tip: Upgrade Firebase to Blaze plan and deploy Cloud Functions '
+                    'to make user creation fully in-app with no terminal needed.',
+                    style: TextStyle(fontSize: 11),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    ),
+    actions: [
+      FilledButton.icon(
+        onPressed: () => Navigator.pop(context),
+        icon: const Icon(Icons.done, size: 18),
+        label: const Text('Got it'),
+      ),
+    ],
+  );
+}
 
 // ── Discussion Moderation ─────────────────────────────────────────────────────
 
@@ -1220,128 +1494,129 @@ class _AdminInquiriesScreenState extends State<AdminInquiriesScreen> {
                                   12,
                                 ),
                                 child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        data['message'] as String? ?? '',
-                                        style: const TextStyle(height: 1.5),
-                                      ),
-                                      // Admin note section
-                                      if (data['adminNote'] != null &&
-                                          (data['adminNote'] as String)
-                                              .isNotEmpty) ...[
-                                        const SizedBox(height: 10),
-                                        Container(
-                                          width: double.infinity,
-                                          padding: const EdgeInsets.all(10),
-                                          decoration: BoxDecoration(
-                                            color: Theme.of(context)
-                                                .colorScheme
-                                                .tertiaryContainer
-                                                .withAlpha(180),
-                                            borderRadius:
-                                                BorderRadius.circular(8),
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      data['message'] as String? ?? '',
+                                      style: const TextStyle(height: 1.5),
+                                    ),
+                                    // Admin note section
+                                    if (data['adminNote'] != null &&
+                                        (data['adminNote'] as String)
+                                            .isNotEmpty) ...[
+                                      const SizedBox(height: 10),
+                                      Container(
+                                        width: double.infinity,
+                                        padding: const EdgeInsets.all(10),
+                                        decoration: BoxDecoration(
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .tertiaryContainer
+                                              .withAlpha(180),
+                                          borderRadius: BorderRadius.circular(
+                                            8,
                                           ),
-                                          child: Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              Row(
-                                                children: [
-                                                  Icon(
-                                                    Icons.note_outlined,
-                                                    size: 14,
-                                                    color: Theme.of(context)
-                                                        .colorScheme
-                                                        .onTertiaryContainer,
-                                                  ),
-                                                  const SizedBox(width: 4),
-                                                  Text(
-                                                    'Admin Note',
-                                                    style: TextStyle(
-                                                      fontSize: 11,
-                                                      fontWeight:
-                                                          FontWeight.w700,
-                                                      color: Theme.of(context)
-                                                          .colorScheme
-                                                          .onTertiaryContainer,
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                              const SizedBox(height: 4),
-                                              Text(
-                                                data['adminNote'] as String,
-                                                style: TextStyle(
-                                                  fontSize: 13,
-                                                  height: 1.4,
+                                        ),
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Row(
+                                              children: [
+                                                Icon(
+                                                  Icons.note_outlined,
+                                                  size: 14,
                                                   color: Theme.of(context)
                                                       .colorScheme
                                                       .onTertiaryContainer,
                                                 ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      ],
-                                      const Divider(height: 20),
-                                      Row(
-                                        children: [
-                                          Expanded(
-                                            child: OutlinedButton(
-                                              onPressed: isResolved
-                                                  ? () => _updateStatus(
-                                                      inquiry,
-                                                      'open',
-                                                    )
-                                                  : () => _updateStatus(
-                                                      inquiry,
-                                                      'resolved',
-                                                    ),
-                                              child: Text(
-                                                isResolved
-                                                    ? 'Reopen'
-                                                    : 'Mark resolved',
-                                              ),
-                                            ),
-                                          ),
-                                          const SizedBox(width: 8),
-                                          IconButton(
-                                            tooltip: 'Add / edit admin note',
-                                            icon: const Icon(
-                                              Icons.note_add_outlined,
-                                            ),
-                                            color: Theme.of(
-                                              context,
-                                            ).colorScheme.tertiary,
-                                            onPressed: () async {
-                                              await showDialog<void>(
-                                                context: context,
-                                                builder: (_) =>
-                                                    _AdminInquiryNoteDialog(
-                                                  inquiry: inquiry,
-                                                  existing: data['adminNote']
-                                                      as String? ??
-                                                      '',
+                                                const SizedBox(width: 4),
+                                                Text(
+                                                  'Admin Note',
+                                                  style: TextStyle(
+                                                    fontSize: 11,
+                                                    fontWeight: FontWeight.w700,
+                                                    color: Theme.of(context)
+                                                        .colorScheme
+                                                        .onTertiaryContainer,
+                                                  ),
                                                 ),
-                                              );
-                                              await _refresh();
-                                            },
-                                          ),
-                                          IconButton(
-                                            tooltip: 'Delete inquiry',
-                                            icon: const Icon(
-                                              Icons.delete_outline,
+                                              ],
                                             ),
-                                            color: Theme.of(
-                                              context,
-                                            ).colorScheme.error,
-                                            onPressed: () => _delete(inquiry),
-                                          ),
-                                        ],
+                                            const SizedBox(height: 4),
+                                            Text(
+                                              data['adminNote'] as String,
+                                              style: TextStyle(
+                                                fontSize: 13,
+                                                height: 1.4,
+                                                color: Theme.of(context)
+                                                    .colorScheme
+                                                    .onTertiaryContainer,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
                                       ),
                                     ],
-                                  ),
+                                    const Divider(height: 20),
+                                    Row(
+                                      children: [
+                                        Expanded(
+                                          child: OutlinedButton(
+                                            onPressed: isResolved
+                                                ? () => _updateStatus(
+                                                    inquiry,
+                                                    'open',
+                                                  )
+                                                : () => _updateStatus(
+                                                    inquiry,
+                                                    'resolved',
+                                                  ),
+                                            child: Text(
+                                              isResolved
+                                                  ? 'Reopen'
+                                                  : 'Mark resolved',
+                                            ),
+                                          ),
+                                        ),
+                                        const SizedBox(width: 8),
+                                        IconButton(
+                                          tooltip: 'Add / edit admin note',
+                                          icon: const Icon(
+                                            Icons.note_add_outlined,
+                                          ),
+                                          color: Theme.of(
+                                            context,
+                                          ).colorScheme.tertiary,
+                                          onPressed: () async {
+                                            await showDialog<void>(
+                                              context: context,
+                                              builder: (_) =>
+                                                  _AdminInquiryNoteDialog(
+                                                    inquiry: inquiry,
+                                                    existing:
+                                                        data['adminNote']
+                                                            as String? ??
+                                                        '',
+                                                  ),
+                                            );
+                                            await _refresh();
+                                          },
+                                        ),
+                                        IconButton(
+                                          tooltip: 'Delete inquiry',
+                                          icon: const Icon(
+                                            Icons.delete_outline,
+                                          ),
+                                          color: Theme.of(
+                                            context,
+                                          ).colorScheme.error,
+                                          onPressed: () => _delete(inquiry),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
                               ),
                             ],
                           ),

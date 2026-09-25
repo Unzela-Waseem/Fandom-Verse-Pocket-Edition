@@ -16,7 +16,6 @@ class LandingScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
     return Scaffold(
       backgroundColor: const Color(0xFF09040E),
       body: Stack(
@@ -54,12 +53,18 @@ class LandingScreen extends StatelessWidget {
                               borderRadius: BorderRadius.circular(14),
                               boxShadow: [
                                 BoxShadow(
-                                  color: const Color(0xFFA855F7).withValues(alpha: 0.4),
+                                  color: const Color(
+                                    0xFFA855F7,
+                                  ).withValues(alpha: 0.4),
                                   blurRadius: 10,
                                 ),
                               ],
                             ),
-                            child: const Icon(Icons.bolt, color: Colors.white, size: 26),
+                            child: const Icon(
+                              Icons.bolt,
+                              color: Colors.white,
+                              size: 26,
+                            ),
                           ),
                           const SizedBox(width: 12),
                           const Text(
@@ -76,7 +81,8 @@ class LandingScreen extends StatelessWidget {
                       const Spacer(),
                       RichText(
                         text: TextSpan(
-                          style: Theme.of(context).textTheme.displaySmall?.copyWith(
+                          style: Theme.of(context).textTheme.displaySmall
+                              ?.copyWith(
                                 fontWeight: FontWeight.w900,
                                 height: .98,
                                 letterSpacing: -1.4,
@@ -89,7 +95,10 @@ class LandingScreen extends StatelessWidget {
                               style: TextStyle(
                                 color: Color(0xFFD946EF),
                                 shadows: [
-                                  Shadow(color: Color(0xFFA855F7), blurRadius: 12),
+                                  Shadow(
+                                    color: Color(0xFFA855F7),
+                                    blurRadius: 12,
+                                  ),
                                 ],
                               ),
                             ),
@@ -124,18 +133,34 @@ class LandingScreen extends StatelessWidget {
                       const SizedBox(height: 6),
                       TextButton.icon(
                         onPressed: () => Navigator.of(context).push(
-                          MaterialPageRoute<void>(builder: (_) => const OnboardingScreen()),
+                          MaterialPageRoute<void>(
+                            builder: (_) => const OnboardingScreen(),
+                          ),
                         ),
-                        icon: const Icon(Icons.rocket_launch, size: 16, color: Color(0xFFE879F9)),
+                        icon: const Icon(
+                          Icons.rocket_launch,
+                          size: 16,
+                          color: Color(0xFFE879F9),
+                        ),
                         label: const Text(
                           'Start Onboarding Tour 🚀',
-                          style: TextStyle(color: Color(0xFFE879F9), fontWeight: FontWeight.bold),
+                          style: TextStyle(
+                            color: Color(0xFFE879F9),
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
                       TextButton.icon(
                         onPressed: () => _openLogin(context, admin: true),
-                        icon: const Icon(Icons.shield_outlined, size: 18, color: Colors.white70),
-                        label: const Text('Admin sign in', style: TextStyle(color: Colors.white70)),
+                        icon: const Icon(
+                          Icons.shield_outlined,
+                          size: 18,
+                          color: Colors.white70,
+                        ),
+                        label: const Text(
+                          'Admin sign in',
+                          style: TextStyle(color: Colors.white70),
+                        ),
                       ),
                     ],
                   ),
