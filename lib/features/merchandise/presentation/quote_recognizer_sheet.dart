@@ -46,8 +46,8 @@ class _QuoteRecognizerSheetState extends State<QuoteRecognizerSheet> {
           _currentMatch = QuoteRecognizerService.recognize(_lastWords);
         });
 
-        // If a match is found and user stopped speaking
-        if (_currentMatch != null && result.finalResult) {
+        // If a match is found, handle it immediately!
+        if (_currentMatch != null) {
           _handleMatch();
         }
       },
@@ -64,8 +64,11 @@ class _QuoteRecognizerSheetState extends State<QuoteRecognizerSheet> {
     setState(() {});
   }
   
+  bool _isHandlingMatch = false;
+
   void _handleMatch() async {
-    if (_currentMatch == null) return;
+    if (_currentMatch == null || _isHandlingMatch) return;
+    _isHandlingMatch = true;
     
     // Stop listening just in case
     await _speechToText.stop();
