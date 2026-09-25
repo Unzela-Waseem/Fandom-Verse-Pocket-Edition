@@ -89,17 +89,23 @@ class _ContactScreenState extends State<ContactScreen> {
               contentPadding: EdgeInsets.zero,
               leading: Icon(Icons.phone_outlined),
               title: Text('Phone Support'),
-              subtitle: Text('+1 (555) 019-2023'),
+              subtitle: Text('+92 316 2705226'),
             ),
             const ListTile(
               contentPadding: EdgeInsets.zero,
               leading: Icon(Icons.location_on_outlined),
               title: Text('Global Headquarters'),
-              subtitle: Text('123 Multiverse Way, Nexus City, NY 10001'),
+              subtitle: Text('North Karachi, Pakistan'),
+            ),
+            const ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: Icon(Icons.email_outlined),
+              title: Text('Email Support'),
+              subtitle: Text('unzelawaseem3@gmail.com'),
             ),
             const SizedBox(height: 10),
             InkWell(
-              onTap: () => launchUrl(Uri.parse('https://maps.google.com/?q=123+Multiverse+Way+New+York')),
+              onTap: () => launchUrl(Uri.parse('https://maps.google.com/?q=North+Karachi,+Pakistan')),
               borderRadius: BorderRadius.circular(16),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(16),

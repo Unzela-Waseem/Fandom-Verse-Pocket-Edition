@@ -35,7 +35,12 @@ class OfflineMediaService {
     final filename = _hashUrl(url.trim());
     final file = File('${_cacheDir!.path}/$filename');
     if (await file.exists()) {
-      return file.path;
+      if (await file.length() > 0) {
+        return file.path;
+      } else {
+        // Corrupted/empty file, clean it up
+        await file.delete();
+      }
     }
     return null;
   }
