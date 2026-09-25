@@ -41,6 +41,8 @@
 	<true/>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Choose a profile image for your Fandom Verse account.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Fandom Verse needs access to your camera to project Augmented Reality (AR) merchandise into your environment.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>

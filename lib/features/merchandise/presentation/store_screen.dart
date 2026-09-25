@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../../core/media/remote_media.dart';
+import 'ar_preview_screen.dart';
 
 import '../../library/application/library_controller.dart';
 import '../../library/data/cloud_catalog.dart';
@@ -200,14 +201,29 @@ class _ProductCard extends ConsumerWidget {
                     ],
                   ),
                   const SizedBox(height: 8),
-                  FilledButton.tonalIcon(
-                    onPressed: product.stock == 0
-                        ? null
-                        : () => ref
-                              .read(libraryProvider.notifier)
-                              .addToCart(product.id, catalog: catalog),
-                    icon: const Icon(Icons.add_shopping_cart, size: 18),
-                    label: const Text('Add to cart'),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
+                      FilledButton.tonalIcon(
+                        onPressed: product.stock == 0
+                            ? null
+                            : () => ref
+                                  .read(libraryProvider.notifier)
+                                  .addToCart(product.id, catalog: catalog),
+                        icon: const Icon(Icons.add_shopping_cart, size: 16),
+                        label: const Text('Add to cart'),
+                      ),
+                      OutlinedButton.icon(
+                        onPressed: () => Navigator.of(context).push(
+                          MaterialPageRoute<void>(
+                            builder: (_) => ARPreviewScreen(productName: product.name),
+                          ),
+                        ),
+                        icon: const Icon(Icons.view_in_ar, size: 16),
+                        label: const Text('View AR'),
+                      ),
+                    ],
                   ),
                 ],
               ),
