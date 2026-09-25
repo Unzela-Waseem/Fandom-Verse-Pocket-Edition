@@ -77,26 +77,36 @@ class CloudinaryMediaService {
             requestFullMetadata: false,
           );
     if (picked == null) return null;
-    final size = await picked.length();
+
+    final bytes = await picked.readAsBytes();
+    if (bytes.isEmpty) {
+      throw const MediaUploadException('Selected file is empty.');
+    }
     final maxBytes = purpose == CloudinaryPurpose.avatar
         ? 5 * 1024 * 1024
         : isVideo
         ? 100 * 1024 * 1024
-        : 10 * 1024 * 1024;
-    if (size <= 0 || size > maxBytes) {
+        : 15 * 1024 * 1024;
+    if (bytes.length > maxBytes) {
       throw MediaUploadException(
         'Choose a file smaller than ${maxBytes ~/ (1024 * 1024)} MB.',
       );
     }
-    final signatureBytes = <int>[];
-    await for (final chunk in picked.openRead(0, 32)) {
-      signatureBytes.addAll(chunk);
-    }
-    if (!supportedMediaFile(
-      picked.name,
-      Uint8List.fromList(signatureBytes),
-      video: isVideo,
-    )) {
+
+    final lowerName = picked.name.toLowerCase();
+    final isAllowed = isVideo
+        ? (lowerName.endsWith('.mp4') ||
+            lowerName.endsWith('.mov') ||
+            lowerName.endsWith('.webm') ||
+            lowerName.endsWith('.mkv') ||
+            lowerName.endsWith('.avi'))
+        : (lowerName.endsWith('.jpg') ||
+            lowerName.endsWith('.jpeg') ||
+            lowerName.endsWith('.png') ||
+            lowerName.endsWith('.webp') ||
+            lowerName.endsWith('.gif'));
+
+    if (!isAllowed) {
       throw MediaUploadException(
         isVideo
             ? 'Choose an MP4, MOV, or WebM video.'
@@ -143,14 +153,13 @@ class CloudinaryMediaService {
                 : picked.name.toLowerCase().endsWith('.mov')
                 ? 'video/quicktime'
                 : 'video/mp4'
-            : supportedImageMime(Uint8List.fromList(signatureBytes))!;
+            : (supportedImageMime(bytes) ?? 'image/jpeg');
         final form = FormData.fromMap({
           ...parameters,
           'api_key': ticket['apiKey'],
           'signature': ticket['signature'],
-          'file': MultipartFile.fromStream(
-            () => picked.openRead(),
-            size,
+          'file': MultipartFile.fromBytes(
+            bytes,
             filename: picked.name,
             contentType: DioMediaType.parse(mimeType),
           ),
@@ -206,11 +215,10 @@ class CloudinaryMediaService {
                 : picked.name.toLowerCase().endsWith('.mov')
                 ? 'video/quicktime'
                 : 'video/mp4'
-            : supportedImageMime(Uint8List.fromList(signatureBytes))!;
+            : (supportedImageMime(bytes) ?? 'image/jpeg');
         final folder = isVideo
             ? 'fandom-verse/content/videos'
             : 'fandom-verse/content/images';
-        final bytes = await picked.readAsBytes();
         final form = FormData.fromMap({
           'upload_preset': uploadPreset,
           'folder': folder,

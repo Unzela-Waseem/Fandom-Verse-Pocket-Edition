@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import '../../../core/media/cloudinary_media_service.dart';
+import '../../../core/media/remote_media.dart';
 import '../../library/domain/library_models.dart';
 
 enum AdminFieldType {
@@ -267,9 +268,60 @@ class _AdminCollectionScreenState extends State<AdminCollectionScreen> {
                         }
                         final record = filtered[index];
                         final data = record.data();
+                        final imageUrl = data['imageUrl'] as String?;
+                        final videoUrl = data['videoUrl'] as String?;
+                        final hasMedia = isHttpsMediaUrl(imageUrl) || isHttpsMediaUrl(videoUrl);
+
                         return Card(
                           margin: const EdgeInsets.only(bottom: 8),
                           child: ListTile(
+                            leading: hasMedia
+                                ? ClipRRect(
+                                    borderRadius: BorderRadius.circular(8),
+                                    child: SizedBox(
+                                      width: 48,
+                                      height: 48,
+                                      child: Stack(
+                                        fit: StackFit.expand,
+                                        children: [
+                                          RemoteMediaImage(
+                                            url: imageUrl,
+                                            videoUrlForPoster: videoUrl,
+                                          ),
+                                          if (isHttpsMediaUrl(videoUrl))
+                                            const Center(
+                                              child: CircleAvatar(
+                                                radius: 10,
+                                                backgroundColor: Colors.black54,
+                                                child: Icon(
+                                                  Icons.play_arrow,
+                                                  size: 14,
+                                                  color: Colors.white,
+                                                ),
+                                              ),
+                                            ),
+                                        ],
+                                      ),
+                                    ),
+                                  )
+                                : CircleAvatar(
+                                    backgroundColor: Theme.of(context)
+                                        .colorScheme
+                                        .primaryContainer,
+                                    child: Icon(
+                                      widget.config.collection == 'content'
+                                          ? Icons.article_outlined
+                                          : widget.config.collection == 'events'
+                                          ? Icons.event_outlined
+                                          : widget.config.collection == 'merchandise'
+                                          ? Icons.shopping_bag_outlined
+                                          : Icons.category_outlined,
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .primary,
+                                      size: 20,
+                                    ),
+                                  ),
                             title: Text(
                               data[widget.config.primaryField]?.toString() ??
                                   'Untitled',
@@ -958,6 +1010,75 @@ class _AdminRecordEditorState extends State<_AdminRecordEditor> {
                           ),
                         ],
                       ],
+                      if (field.key == 'imageUrl')
+                        ValueListenableBuilder<TextEditingValue>(
+                          valueListenable: _controllers[field.key]!,
+                          builder: (context, value, _) {
+                            final url = value.text.trim();
+                            if (!isHttpsMediaUrl(url)) {
+                              return const SizedBox.shrink();
+                            }
+                            return Padding(
+                              padding: const EdgeInsets.only(top: 10),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    'Image Preview:',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white70,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 6),
+                                  ClipRRect(
+                                    borderRadius: BorderRadius.circular(12),
+                                    child: SizedBox(
+                                      height: 140,
+                                      width: double.infinity,
+                                      child: RemoteMediaImage(url: url),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
+                        ),
+                      if (field.key == 'videoUrl')
+                        ValueListenableBuilder<TextEditingValue>(
+                          valueListenable: _controllers[field.key]!,
+                          builder: (context, value, _) {
+                            final url = value.text.trim();
+                            if (!isHttpsMediaUrl(url)) {
+                              return const SizedBox.shrink();
+                            }
+                            return Padding(
+                              padding: const EdgeInsets.only(top: 10),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    'Video Preview:',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white70,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 6),
+                                  ClipRRect(
+                                    borderRadius: BorderRadius.circular(12),
+                                    child: RemoteMediaVideo(
+                                      url: url,
+                                      posterUrl: _controllers['imageUrl']?.text,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
+                        ),
                     ],
                   ),
                 );
