@@ -1,7 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 
+import '../../../core/constants/app_assets.dart';
 import '../../../core/validation/input_validators.dart';
 
 class ContactScreen extends StatefulWidget {
@@ -85,11 +87,60 @@ class _ContactScreenState extends State<ContactScreen> {
             ),
             const ListTile(
               contentPadding: EdgeInsets.zero,
-              leading: Icon(Icons.public_outlined),
-              title: Text('Online support'),
-              subtitle: Text(
-                'A public office address has not been confirmed. Please use the form below.',
+              leading: Icon(Icons.phone_outlined),
+              title: Text('Phone Support'),
+              subtitle: Text('+1 (555) 019-2023'),
+            ),
+            const ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: Icon(Icons.location_on_outlined),
+              title: Text('Global Headquarters'),
+              subtitle: Text('123 Multiverse Way, Nexus City, NY 10001'),
+            ),
+            const SizedBox(height: 10),
+            InkWell(
+              onTap: () => launchUrl(Uri.parse('https://maps.google.com/?q=123+Multiverse+Way+New+York')),
+              borderRadius: BorderRadius.circular(16),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(16),
+                child: Container(
+                  height: 150,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF1E1E26),
+                    image: DecorationImage(
+                      image: AssetImage(AppAssets.multiverse),
+                      fit: BoxFit.cover,
+                      colorFilter: ColorFilter.mode(
+                        Colors.black.withOpacity(0.5),
+                        BlendMode.darken,
+                      ),
+                    ),
+                  ),
+                  child: const Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.map_outlined, size: 40, color: Colors.white),
+                        SizedBox(height: 8),
+                        Text(
+                          'Open in Google Maps',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
               ),
+            ),
+            const SizedBox(height: 24),
+            const Divider(),
+            const SizedBox(height: 8),
+            const Text(
+              'Send us an inquiry',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
             TextFormField(

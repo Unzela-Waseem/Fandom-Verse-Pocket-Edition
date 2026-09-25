@@ -4,6 +4,7 @@ import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -465,7 +466,20 @@ class LibraryController extends Notifier<LibraryState> {
 
   void toggleWishlist(String id) {
     final next = {...state.wishlist};
-    next.contains(id) ? next.remove(id) : next.add(id);
+    final isAdding = !next.contains(id);
+    
+    if (isAdding) {
+      next.add(id);
+      try {
+        FirebaseMessaging.instance.subscribeToTopic('price_drops_$id');
+      } catch (_) {}
+    } else {
+      next.remove(id);
+      try {
+        FirebaseMessaging.instance.unsubscribeFromTopic('price_drops_$id');
+      } catch (_) {}
+    }
+    
     state = state.copyWith(wishlist: next);
     unawaited(_persist());
     _writeCloud(
