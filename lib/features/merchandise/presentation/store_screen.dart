@@ -183,7 +183,7 @@ class _ProductCard extends ConsumerWidget {
                       Text(
                         _currency.format(product.price),
                         style: const TextStyle(
-                          color: Color(0xFFFFD740),
+                          color: Color(0xFFE879F9),
                           fontWeight: FontWeight.w800,
                         ),
                       ),

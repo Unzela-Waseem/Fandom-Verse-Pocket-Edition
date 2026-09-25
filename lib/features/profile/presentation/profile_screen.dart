@@ -36,10 +36,28 @@ class ProfileScreen extends ConsumerWidget {
       child: ListView(
         padding: const EdgeInsets.fromLTRB(20, 20, 20, 28),
         children: [
-          CircleAvatar(
-            radius: 42,
-            backgroundImage: validAvatarUrl ? NetworkImage(avatarUrl) : null,
-            child: !validAvatarUrl ? const Icon(Icons.person, size: 42) : null,
+          Center(
+            child: Container(
+              padding: const EdgeInsets.all(3),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: const LinearGradient(
+                  colors: [Color(0xFFA855F7), Color(0xFFD946EF)],
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFFA855F7).withValues(alpha: 0.4),
+                    blurRadius: 14,
+                  ),
+                ],
+              ),
+              child: CircleAvatar(
+                radius: 42,
+                backgroundColor: const Color(0xFF160B28),
+                backgroundImage: validAvatarUrl ? NetworkImage(avatarUrl) : null,
+                child: !validAvatarUrl ? const Icon(Icons.person, size: 42, color: Color(0xFFE9D5FF)) : null,
+              ),
+            ),
           ),
           const SizedBox(height: 14),
           Text(
@@ -52,7 +70,7 @@ class ProfileScreen extends ConsumerWidget {
             profile == null ? 'Preview mode' : profile!.badge,
             textAlign: TextAlign.center,
             style: const TextStyle(
-              color: Color(0xFFFFD740),
+              color: Color(0xFFE879F9),
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -86,10 +104,10 @@ class ProfileScreen extends ConsumerWidget {
                           vertical: 4,
                         ),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF2E2640),
+                          color: const Color(0xFF1B0E35),
                           borderRadius: BorderRadius.circular(99),
                           border: Border.all(
-                            color: const Color(0xFFFFD740).withAlpha(120),
+                            color: const Color(0xFFA855F7).withAlpha(140),
                           ),
                         ),
                         child: Row(
@@ -98,7 +116,7 @@ class ProfileScreen extends ConsumerWidget {
                             const Icon(
                               Icons.favorite,
                               size: 12,
-                              color: Colors.redAccent,
+                              color: Color(0xFFD946EF),
                             ),
                             const SizedBox(width: 4),
                             Text(

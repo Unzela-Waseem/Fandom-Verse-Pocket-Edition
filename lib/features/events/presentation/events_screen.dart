@@ -206,8 +206,18 @@ class _EventsScreenState extends ConsumerState<EventsScreen> {
                   width: 54,
                   height: 58,
                   decoration: BoxDecoration(
-                    color: const Color(0xFFFFD740),
+                    gradient: const LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [Color(0xFFA855F7), Color(0xFF7E22CE)],
+                    ),
                     borderRadius: BorderRadius.circular(14),
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFFA855F7).withValues(alpha: 0.35),
+                        blurRadius: 8,
+                      ),
+                    ],
                   ),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -215,7 +225,7 @@ class _EventsScreenState extends ConsumerState<EventsScreen> {
                       Text(
                         DateFormat('MMM').format(event.date).toUpperCase(),
                         style: const TextStyle(
-                          color: Colors.black,
+                          color: Colors.white,
                           fontSize: 10,
                           fontWeight: FontWeight.w900,
                         ),
@@ -223,7 +233,7 @@ class _EventsScreenState extends ConsumerState<EventsScreen> {
                       Text(
                         '${event.date.day}',
                         style: const TextStyle(
-                          color: Colors.black,
+                          color: Colors.white,
                           fontSize: 20,
                           fontWeight: FontWeight.w900,
                         ),
@@ -345,9 +355,9 @@ class _InteractiveEventMapContainer extends StatelessWidget {
     return Container(
       height: 240,
       decoration: BoxDecoration(
-        color: const Color(0xFF141824),
+        color: const Color(0xFF130924),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFFFFD740).withValues(alpha: 0.3)),
+        border: Border.all(color: const Color(0xFFA855F7).withValues(alpha: 0.4)),
         boxShadow: const [
           BoxShadow(
             color: Colors.black45,
@@ -375,12 +385,12 @@ class _InteractiveEventMapContainer extends StatelessWidget {
               decoration: BoxDecoration(
                 color: Colors.black.withValues(alpha: 0.7),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.white24),
+                border: Border.all(color: const Color(0xFFA855F7).withValues(alpha: 0.4)),
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(Icons.map_sharp, color: Color(0xFFFFD740), size: 14),
+                  const Icon(Icons.map_sharp, color: Color(0xFFE879F9), size: 14),
                   const SizedBox(width: 6),
                   Text(
                     userPosition != null
@@ -424,11 +434,11 @@ class _InteractiveEventMapContainer extends StatelessWidget {
                               duration: const Duration(milliseconds: 250),
                               padding: const EdgeInsets.all(8),
                               decoration: BoxDecoration(
-                                color: isSelected ? const Color(0xFFFFD740) : const Color(0xFF6C5CE7),
+                                color: isSelected ? const Color(0xFFD946EF) : const Color(0xFFA855F7),
                                 shape: BoxShape.circle,
                                 boxShadow: [
                                   BoxShadow(
-                                    color: (isSelected ? const Color(0xFFFFD740) : const Color(0xFF6C5CE7)).withValues(alpha: 0.6),
+                                    color: (isSelected ? const Color(0xFFD946EF) : const Color(0xFFA855F7)).withValues(alpha: 0.6),
                                     blurRadius: isSelected ? 14 : 6,
                                     spreadRadius: isSelected ? 3 : 1,
                                   ),
