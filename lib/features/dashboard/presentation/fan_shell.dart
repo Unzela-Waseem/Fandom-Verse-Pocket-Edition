@@ -8,6 +8,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/constants/app_assets.dart';
 import '../../../core/media/remote_media.dart';
+import '../../ai_helper/presentation/ai_helper_screen.dart';
 import '../../authentication/domain/app_user.dart';
 import '../../events/presentation/events_screen.dart';
 import '../../library/application/library_controller.dart';
@@ -304,6 +305,14 @@ class _TopBar extends StatelessWidget {
           ],
         ),
       ),
+      IconButton.filledTonal(
+        tooltip: 'AI Fan Helper',
+        onPressed: () => Navigator.of(context).push(
+          MaterialPageRoute<void>(builder: (_) => const AiHelperScreen()),
+        ),
+        icon: const Icon(Icons.smart_toy_outlined),
+      ),
+      const SizedBox(width: 6),
       IconButton.filledTonal(
         tooltip: 'Explore and search',
         onPressed: openExplore,
