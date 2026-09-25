@@ -43,6 +43,10 @@
 	<string>Choose a profile image for your Fandom Verse account.</string>
 	<key>NSCameraUsageDescription</key>
 	<string>Fandom Verse needs access to your camera to project Augmented Reality (AR) merchandise into your environment.</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>Fandom Verse uses speech recognition to identify famous quotes and match you with relevant merchandise.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Fandom Verse needs access to your microphone so you can speak quotes for the AI recognizer.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>

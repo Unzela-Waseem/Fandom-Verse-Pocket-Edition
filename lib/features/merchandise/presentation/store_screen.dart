@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 
 import '../../../core/media/remote_media.dart';
 import 'ar_preview_screen.dart';
+import 'quote_recognizer_sheet.dart';
 
 import '../../library/application/library_controller.dart';
 import '../../library/data/cloud_catalog.dart';
@@ -20,9 +21,16 @@ class StoreScreen extends ConsumerStatefulWidget {
 }
 
 class _StoreScreenState extends ConsumerState<StoreScreen> {
+  final TextEditingController _searchController = TextEditingController();
   String _query = '';
   String _category = 'All';
   bool _lowestFirst = true;
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -52,7 +60,7 @@ class _StoreScreenState extends ConsumerState<StoreScreen> {
       (sum, value) => sum + value,
     );
 
-    return SafeArea(
+    final content = SafeArea(
       child: ListView(
         padding: const EdgeInsets.fromLTRB(20, 18, 20, 24),
         children: [
@@ -88,6 +96,7 @@ class _StoreScreenState extends ConsumerState<StoreScreen> {
               style: TextStyle(color: Colors.orangeAccent),
             ),
           TextField(
+            controller: _searchController,
             onChanged: (value) => setState(() => _query = value),
             decoration: const InputDecoration(
               hintText: 'Search merchandise',
@@ -135,6 +144,37 @@ class _StoreScreenState extends ConsumerState<StoreScreen> {
           ),
         ],
       ),
+    );
+
+    return Stack(
+      children: [
+        content,
+        Positioned(
+          bottom: 16,
+          right: 16,
+          child: FloatingActionButton.extended(
+            onPressed: () {
+              showModalBottomSheet(
+                context: context,
+                backgroundColor: Colors.transparent,
+                builder: (context) => QuoteRecognizerSheet(
+                  onMatchFound: (query) {
+                    setState(() {
+                      _query = query;
+                      _searchController.text = query;
+                      _category = 'All';
+                    });
+                  },
+                ),
+              );
+            },
+            icon: const Icon(Icons.mic),
+            label: const Text('Quote Match'),
+            backgroundColor: const Color(0xFFE879F9),
+            foregroundColor: Colors.white,
+          ),
+        ),
+      ],
     );
   }
 }
