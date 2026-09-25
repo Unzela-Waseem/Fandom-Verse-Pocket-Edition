@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 
 import '../../../core/validation/input_validators.dart';
 import '../application/auth_providers.dart';
@@ -244,13 +245,21 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               defaultTargetPlatform ==
                                   TargetPlatform.android)) ...[
                         const SizedBox(height: 10),
-                        OutlinedButton.icon(
-                          onPressed: _submitting
-                              ? null
-                              : () => _signInWithProvider(google: false),
-                          icon: const Icon(Icons.apple),
-                          label: const Text('Continue with Apple'),
-                        ),
+                        kIsWeb
+                            ? OutlinedButton.icon(
+                                onPressed: _submitting
+                                    ? null
+                                    : () => _signInWithProvider(google: false),
+                                icon: const Icon(Icons.apple),
+                                label: const Text('Continue with Apple'),
+                              )
+                            : SignInWithAppleButton(
+                                onPressed: () {
+                                  if (!_submitting) {
+                                    _signInWithProvider(google: false);
+                                  }
+                                },
+                              ),
                       ],
                     ] else
                       const Padding(

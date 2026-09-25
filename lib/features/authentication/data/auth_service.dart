@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 
 class FederatedSignInException implements Exception {
   const FederatedSignInException(this.message);
@@ -72,10 +73,29 @@ class AuthService {
     List<String> fandoms = const [],
     String badge = 'New Explorer',
   }) async {
-    final provider = AppleAuthProvider();
-    final credential = kIsWeb
-        ? await _auth.signInWithPopup(provider)
-        : await _auth.signInWithProvider(provider);
+    UserCredential credential;
+    if (kIsWeb) {
+      final provider = AppleAuthProvider();
+      credential = await _auth.signInWithPopup(provider);
+    } else {
+      final appleCredential = await SignInWithApple.getAppleIDCredential(
+        scopes: [
+          AppleIDAuthorizationScopes.email,
+          AppleIDAuthorizationScopes.fullName,
+        ],
+      );
+      final oauthCredential = OAuthProvider('apple.com').credential(
+        idToken: appleCredential.identityToken,
+        accessToken: appleCredential.authorizationCode,
+      );
+      credential = await _auth.signInWithCredential(oauthCredential);
+      displayName ??= [
+        appleCredential.givenName,
+        appleCredential.familyName,
+      ].where((s) => s != null && s.isNotEmpty).join(' ');
+      if (displayName.trim().isEmpty) displayName = null;
+    }
+    
     await _ensureFanProfile(
       credential,
       displayName: displayName,
