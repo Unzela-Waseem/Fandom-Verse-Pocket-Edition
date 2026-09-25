@@ -19,7 +19,10 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen> {
     'ENABLE_GOOGLE_SIGN_IN',
     defaultValue: true,
   );
-  static const _appleEnabled = bool.fromEnvironment('ENABLE_APPLE_SIGN_IN');
+  static const _appleEnabled = bool.fromEnvironment(
+    'ENABLE_APPLE_SIGN_IN',
+    defaultValue: true,
+  );
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
