@@ -71,7 +71,13 @@ class _AiHelperScreenState extends State<AiHelperScreen> {
 
     final botAnswer = _answer(question);
     setState(() {
-      _messages.add(_Message(botAnswer, fromUser: false, time: TimeOfDay.now().format(context)));
+      _messages.add(
+        _Message(
+          botAnswer,
+          fromUser: false,
+          time: TimeOfDay.now().format(context),
+        ),
+      );
       _thinking = false;
     });
     _scrollToBottom();
@@ -81,37 +87,65 @@ class _AiHelperScreenState extends State<AiHelperScreen> {
     final query = question.toLowerCase();
 
     // 1. Anime & Manga
-    if (query.contains('anime') || query.contains('manga') || query.contains('naruto') || query.contains('dragon ball') || query.contains('one piece') || query.contains('shonen')) {
+    if (query.contains('anime') ||
+        query.contains('manga') ||
+        query.contains('naruto') ||
+        query.contains('dragon ball') ||
+        query.contains('one piece') ||
+        query.contains('shonen')) {
       return '⛩️ **Anime & Manga Universe**\nAnime represents Japanese animation while manga refers to graphic literature. Shonen focuses on friendship, training, and overcoming challenges (e.g., Naruto, Dragon Ball, One Piece).\n\n💡 *Tip: Check out our Beginner Hub to explore character profiles and glossary terms like Sakuga, OVA, and Mangaka!*';
     }
 
     // 2. Speedrunning & Gaming
-    if (query.contains('speedrun') || query.contains('game') || query.contains('esport') || query.contains('rpg') || query.contains('retro')) {
+    if (query.contains('speedrun') ||
+        query.contains('game') ||
+        query.contains('esport') ||
+        query.contains('rpg') ||
+        query.contains('retro')) {
       return '🎮 **Gaming & Community Speedrunning**\nCommunity speedrunning refers to fans working together to complete games or master mechanics as fast as possible, sharing glitches, routes, and records.\n\n💡 *Tip: Check out the Gaming tab in Explore to read news on community arena seasons!*';
     }
 
     // 3. Cosplay & Props
-    if (query.contains('cosplay') || query.contains('costume') || query.contains('prop')) {
+    if (query.contains('cosplay') ||
+        query.contains('costume') ||
+        query.contains('prop')) {
       return '🎭 **Cosplay Essentials & Etiquette**\nCosplay (costume play) is the art of crafting and wearing outfits inspired by characters. Always ask for permission before taking photos of cosplayers. Cosplay is for everyone regardless of skill level!\n\n💡 *Tip: Save local cosplay meetups to your offline agenda in the Events screen.*';
     }
 
     // 4. Events, Maps & GPS
-    if (query.contains('event') || query.contains('convention') || query.contains('map') || query.contains('gps') || query.contains('meetup') || query.contains('ticket')) {
+    if (query.contains('event') ||
+        query.contains('convention') ||
+        query.contains('map') ||
+        query.contains('gps') ||
+        query.contains('meetup') ||
+        query.contains('ticket')) {
       return '📍 **Location-Aware Events & Calendar**\nOur app uses GPS location services to calculate distances to nearby fan conventions, cosplay meetups, and anime screenings.\n\n💡 *Tip: Open the Events screen, tap "Sort events near me" or switch to "Map View" to explore venue pins visually!*';
     }
 
     // 5. Merchandise, Wishlist & Cart
-    if (query.contains('merch') || query.contains('store') || query.contains('cart') || query.contains('buy') || query.contains('price') || query.contains('checkout')) {
+    if (query.contains('merch') ||
+        query.contains('store') ||
+        query.contains('cart') ||
+        query.contains('buy') ||
+        query.contains('price') ||
+        query.contains('checkout')) {
       return '🛍️ **Official Fan Merchandise & Store**\nYou can browse hoodies, pins, and journals with category filters and price sorting. Add items to your wishlist (❤️) or cart to test simulated checkouts.\n\n💡 *Note: Payments are simulated for demo purposes as specified in the SRS scope.*';
     }
 
     // 6. Glossary, Lore & Deep Dive
-    if (query.contains('glossary') || query.contains('lore') || query.contains('trivia') || query.contains('deep dive') || query.contains('story')) {
+    if (query.contains('glossary') ||
+        query.contains('lore') ||
+        query.contains('trivia') ||
+        query.contains('deep dive') ||
+        query.contains('story')) {
       return '📚 **Fandom Lore & Glossary**\nOur app features 27+ rich glossary definitions and a Deep Dive hub with secret trivia facts, lore diagrams, and behind-the-scenes interviews.\n\n💡 *Tip: Tap "Deep Dive 🧠" from the profile or explore tab to unlock hidden lore!*';
     }
 
     // 7. Community Guidelines & Safety
-    if (query.contains('safe') || query.contains('report') || query.contains('rule') || query.contains('privacy')) {
+    if (query.contains('safe') ||
+        query.contains('report') ||
+        query.contains('rule') ||
+        query.contains('privacy')) {
       return '🛡️ **Community & Safety Guidelines**\nKeep discussions respectful, protect your personal identity, and report abusive behavior. Never share passwords or real banking information in public threads.';
     }
 
@@ -175,7 +209,11 @@ class _AiHelperScreenState extends State<AiHelperScreen> {
                   const SizedBox(width: 8),
                   const Text(
                     'Fandom AI Engine v2.0 · Online & Knowledge Base Active',
-                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.white70),
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white70,
+                    ),
                   ),
                 ],
               ),
@@ -185,10 +223,13 @@ class _AiHelperScreenState extends State<AiHelperScreen> {
             SizedBox(
               height: 46,
               child: ListView.separated(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 8,
+                ),
                 scrollDirection: Axis.horizontal,
                 itemCount: _suggestedPrompts.length,
-                separatorBuilder: (_, __) => const SizedBox(width: 8),
+                separatorBuilder: (_, _) => const SizedBox(width: 8),
                 itemBuilder: (ctx, idx) {
                   final prompt = _suggestedPrompts[idx];
                   return ActionChip(
@@ -214,7 +255,10 @@ class _AiHelperScreenState extends State<AiHelperScreen> {
                       alignment: Alignment.centerLeft,
                       child: Container(
                         margin: const EdgeInsets.only(bottom: 10),
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 12,
+                        ),
                         decoration: BoxDecoration(
                           color: const Color(0xFF24242B),
                           borderRadius: BorderRadius.circular(18),
@@ -224,10 +268,19 @@ class _AiHelperScreenState extends State<AiHelperScreen> {
                           children: [
                             SizedBox.square(
                               dimension: 14,
-                              child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFFFFD740)),
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Color(0xFFFFD740),
+                              ),
                             ),
                             SizedBox(width: 10),
-                            Text('AI is thinking...', style: TextStyle(color: Colors.white70, fontSize: 13)),
+                            Text(
+                              'AI is thinking...',
+                              style: TextStyle(
+                                color: Colors.white70,
+                                fontSize: 13,
+                              ),
+                            ),
                           ],
                         ),
                       ),
@@ -235,7 +288,9 @@ class _AiHelperScreenState extends State<AiHelperScreen> {
                   }
                   final message = _messages[index];
                   return Align(
-                    alignment: message.fromUser ? Alignment.centerRight : Alignment.centerLeft,
+                    alignment: message.fromUser
+                        ? Alignment.centerRight
+                        : Alignment.centerLeft,
                     child: Container(
                       constraints: const BoxConstraints(maxWidth: 320),
                       margin: const EdgeInsets.only(bottom: 12),
@@ -247,8 +302,12 @@ class _AiHelperScreenState extends State<AiHelperScreen> {
                         borderRadius: BorderRadius.only(
                           topLeft: const Radius.circular(18),
                           topRight: const Radius.circular(18),
-                          bottomLeft: Radius.circular(message.fromUser ? 18 : 4),
-                          bottomRight: Radius.circular(message.fromUser ? 4 : 18),
+                          bottomLeft: Radius.circular(
+                            message.fromUser ? 18 : 4,
+                          ),
+                          bottomRight: Radius.circular(
+                            message.fromUser ? 4 : 18,
+                          ),
                         ),
                         border: Border.all(
                           color: message.fromUser
@@ -257,12 +316,16 @@ class _AiHelperScreenState extends State<AiHelperScreen> {
                         ),
                       ),
                       child: Column(
-                        crossAxisAlignment: message.fromUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+                        crossAxisAlignment: message.fromUser
+                            ? CrossAxisAlignment.end
+                            : CrossAxisAlignment.start,
                         children: [
                           Text(
                             message.text,
                             style: TextStyle(
-                              color: message.fromUser ? Colors.black : Colors.white,
+                              color: message.fromUser
+                                  ? Colors.black
+                                  : Colors.white,
                               fontSize: 14,
                               height: 1.45,
                             ),
@@ -273,7 +336,9 @@ class _AiHelperScreenState extends State<AiHelperScreen> {
                               message.time!,
                               style: TextStyle(
                                 fontSize: 10,
-                                color: message.fromUser ? Colors.black54 : Colors.white38,
+                                color: message.fromUser
+                                    ? Colors.black54
+                                    : Colors.white38,
                               ),
                             ),
                           ],
@@ -299,7 +364,10 @@ class _AiHelperScreenState extends State<AiHelperScreen> {
                         hintText: 'Ask AI about anime, events, speedrunning...',
                         filled: true,
                         fillColor: const Color(0xFF1E1E28),
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 12,
+                        ),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(24),
                           borderSide: BorderSide.none,

@@ -76,8 +76,8 @@ ContentItem? contentFromDocument(
   final body = (rawBody != null && rawBody.trim().isNotEmpty)
       ? rawBody.trim()
       : (rawSummary != null && rawSummary.trim().isNotEmpty)
-          ? rawSummary.trim()
-          : 'No body content available.';
+      ? rawSummary.trim()
+      : 'No body content available.';
   final summary = (rawSummary != null && rawSummary.trim().isNotEmpty)
       ? rawSummary.trim()
       : body;
@@ -98,8 +98,8 @@ ContentItem? contentFromDocument(
     type: typeMatches.isNotEmpty
         ? typeMatches.first
         : (videoUrl != null && videoUrl.isNotEmpty)
-            ? ContentType.video
-            : ContentType.story,
+        ? ContentType.video
+        : ContentType.story,
     creator: data['creator'] as String? ?? 'Fandom Verse',
     tags: (data['tags'] as List? ?? const []).whereType<String>().toList(
       growable: false,

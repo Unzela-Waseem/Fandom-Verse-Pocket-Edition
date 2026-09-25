@@ -48,3 +48,4 @@ functions/node_modules/
 /android/app/debug
 /android/app/profile
 /android/app/release
+admin-tools/key.json

@@ -14,7 +14,8 @@ const contentCatalog = [
     creator: 'Fandom Verse Editorial',
     tags: ['beginner', 'community'],
     trending: true,
-    imageUrl: 'https://images.unsplash.com/photo-1578632767115-351597cf2477?w=800&q=80',
+    imageUrl:
+        'https://images.unsplash.com/photo-1578632767115-351597cf2477?w=800&q=80',
   ),
   ContentItem(
     id: 'profile-nova-lee',
@@ -26,7 +27,8 @@ const contentCatalog = [
     type: ContentType.profile,
     creator: 'Ari Studio',
     tags: ['creator', 'art'],
-    imageUrl: 'https://images.unsplash.com/photo-1534447677768-be436bb09401?w=800&q=80',
+    imageUrl:
+        'https://images.unsplash.com/photo-1534447677768-be436bb09401?w=800&q=80',
   ),
   ContentItem(
     id: 'story-last-starlight',
@@ -39,7 +41,8 @@ const contentCatalog = [
     type: ContentType.story,
     creator: 'Fandom Verse Community',
     tags: ['story', 'space'],
-    imageUrl: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=800&q=80',
+    imageUrl:
+        'https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=800&q=80',
   ),
   ContentItem(
     id: 'glossary-cosplay',
@@ -51,7 +54,8 @@ const contentCatalog = [
     type: ContentType.glossary,
     creator: 'Fandom Verse Editorial',
     tags: ['cosplay', 'terms'],
-    imageUrl: 'https://images.unsplash.com/photo-1535223289827-42f1e9919769?w=800&q=80',
+    imageUrl:
+        'https://images.unsplash.com/photo-1535223289827-42f1e9919769?w=800&q=80',
   ),
   ContentItem(
     id: 'news-arena-season',
@@ -65,7 +69,8 @@ const contentCatalog = [
     creator: 'Arena Desk',
     tags: ['esports', 'news'],
     trending: true,
-    imageUrl: 'https://images.unsplash.com/photo-1542751371-adc38448a05e?w=800&q=80',
+    imageUrl:
+        'https://images.unsplash.com/photo-1542751371-adc38448a05e?w=800&q=80',
   ),
   ContentItem(
     id: 'gallery-world-builders',
@@ -78,7 +83,8 @@ const contentCatalog = [
     type: ContentType.gallery,
     creator: 'Community Gallery',
     tags: ['gallery', 'art'],
-    imageUrl: 'https://images.unsplash.com/photo-1579783900882-c0d3dad7b119?w=800&q=80',
+    imageUrl:
+        'https://images.unsplash.com/photo-1579783900882-c0d3dad7b119?w=800&q=80',
   ),
   ContentItem(
     id: 'podcast-lore-room',
@@ -91,7 +97,8 @@ const contentCatalog = [
     type: ContentType.podcast,
     creator: 'Verse Audio',
     tags: ['podcast', 'lore'],
-    imageUrl: 'https://images.unsplash.com/photo-1590602847861-f357a9332bbc?w=800&q=80',
+    imageUrl:
+        'https://images.unsplash.com/photo-1590602847861-f357a9332bbc?w=800&q=80',
   ),
   ContentItem(
     id: 'deep-dive-hidden-symbols',
@@ -105,7 +112,8 @@ const contentCatalog = [
     creator: 'Lore Lab',
     tags: ['trivia', 'behind-the-scenes', 'advanced'],
     trending: true,
-    imageUrl: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=800&q=80',
+    imageUrl:
+        'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=800&q=80',
   ),
 
   // Anime Fandom - News, Story, Gallery, Video, Podcast, Profile
@@ -121,7 +129,8 @@ const contentCatalog = [
     creator: 'Fandom Verse Team',
     tags: ['anime', 'news', 'naruto', 'trending'],
     trending: true,
-    imageUrl: 'https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?w=800&q=80',
+    imageUrl:
+        'https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?w=800&q=80',
   ),
   ContentItem(
     id: 'story-anime-naruto',
@@ -135,7 +144,8 @@ const contentCatalog = [
     creator: 'Fandom Verse Editorial',
     tags: ['anime', 'story', 'naruto'],
     trending: true,
-    imageUrl: 'https://images.unsplash.com/photo-1563089145-599997674d42?w=800&q=80',
+    imageUrl:
+        'https://images.unsplash.com/photo-1563089145-599997674d42?w=800&q=80',
   ),
   ContentItem(
     id: 'gallery-anime-shinobi',
@@ -148,7 +158,8 @@ const contentCatalog = [
     type: ContentType.gallery,
     creator: 'Ari Studio',
     tags: ['anime', 'gallery', 'art', 'naruto'],
-    imageUrl: 'https://images.unsplash.com/photo-1578632767115-351597cf2477?w=800&q=80',
+    imageUrl:
+        'https://images.unsplash.com/photo-1578632767115-351597cf2477?w=800&q=80',
   ),
   ContentItem(
     id: 'video-anime-combat',
@@ -161,8 +172,10 @@ const contentCatalog = [
     type: ContentType.video,
     creator: 'Fandom Verse Editorial',
     tags: ['anime', 'video', 'action'],
-    videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
-    imageUrl: 'https://images.unsplash.com/photo-1578632767115-351597cf2477?w=800&q=80',
+    videoUrl:
+        'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
+    imageUrl:
+        'https://images.unsplash.com/photo-1578632767115-351597cf2477?w=800&q=80',
   ),
   ContentItem(
     id: 'podcast-anime-shonen',
@@ -175,7 +188,8 @@ const contentCatalog = [
     type: ContentType.podcast,
     creator: 'Verse Audio',
     tags: ['anime', 'podcast', 'naruto'],
-    imageUrl: 'https://images.unsplash.com/photo-1590602847861-f357a9332bbc?w=800&q=80',
+    imageUrl:
+        'https://images.unsplash.com/photo-1590602847861-f357a9332bbc?w=800&q=80',
   ),
   ContentItem(
     id: 'profile-anime-master',
@@ -188,7 +202,8 @@ const contentCatalog = [
     type: ContentType.profile,
     creator: 'Ari Studio',
     tags: ['anime', 'creator', 'manga'],
-    imageUrl: 'https://images.unsplash.com/photo-1534447677768-be436bb09401?w=800&q=80',
+    imageUrl:
+        'https://images.unsplash.com/photo-1534447677768-be436bb09401?w=800&q=80',
   ),
 
   // Comics Fandom (Marvel & Superhero) - News, Story, Gallery, Video, Podcast
@@ -204,7 +219,8 @@ const contentCatalog = [
     creator: 'Fandom Verse Team',
     tags: ['marvel', 'comics', 'news', 'trending'],
     trending: true,
-    imageUrl: 'https://images.unsplash.com/photo-1612036782180-6f0b6cd846fe?w=800&q=80',
+    imageUrl:
+        'https://images.unsplash.com/photo-1612036782180-6f0b6cd846fe?w=800&q=80',
   ),
   ContentItem(
     id: 'story-marvel-variants',
@@ -217,7 +233,8 @@ const contentCatalog = [
     type: ContentType.story,
     creator: 'Fandom Verse Community',
     tags: ['marvel', 'comics', 'story'],
-    imageUrl: 'https://images.unsplash.com/photo-1568832359672-e36cf5d74f54?w=800&q=80',
+    imageUrl:
+        'https://images.unsplash.com/photo-1568832359672-e36cf5d74f54?w=800&q=80',
   ),
   ContentItem(
     id: 'gallery-comics-covers',
@@ -230,7 +247,8 @@ const contentCatalog = [
     type: ContentType.gallery,
     creator: 'Ari Studio',
     tags: ['marvel', 'comics', 'gallery', 'art'],
-    imageUrl: 'https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?w=800&q=80',
+    imageUrl:
+        'https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?w=800&q=80',
   ),
   ContentItem(
     id: 'video-comics-penciling',
@@ -243,7 +261,8 @@ const contentCatalog = [
     type: ContentType.video,
     creator: 'Lore Lab',
     tags: ['comics', 'video', 'marvel'],
-    videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4',
+    videoUrl:
+        'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4',
   ),
   ContentItem(
     id: 'podcast-comics-multiverse',
@@ -294,7 +313,8 @@ const contentCatalog = [
     type: ContentType.video,
     creator: 'Arena Desk',
     tags: ['gaming', 'video', 'esports'],
-    videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
+    videoUrl:
+        'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
   ),
   ContentItem(
     id: 'podcast-gaming-level-design',
@@ -345,7 +365,8 @@ const contentCatalog = [
     type: ContentType.video,
     creator: 'Lore Lab',
     tags: ['scifi', 'video'],
-    videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4',
+    videoUrl:
+        'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4',
   ),
 ];
 

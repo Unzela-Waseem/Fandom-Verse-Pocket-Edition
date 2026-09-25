@@ -226,13 +226,13 @@ class _HomeTab extends ConsumerWidget {
     final userFandoms = profile?.selectedFandoms ?? const [];
     final personalized = userFandoms.isNotEmpty
         ? catalog
-            .where(
-              (item) => userFandoms.any(
-                (f) => f.toLowerCase() == item.category.toLowerCase(),
-              ),
-            )
-            .take(4)
-            .toList()
+              .where(
+                (item) => userFandoms.any(
+                  (f) => f.toLowerCase() == item.category.toLowerCase(),
+                ),
+              )
+              .take(4)
+              .toList()
         : <ContentItem>[];
 
     return SafeArea(
@@ -297,7 +297,7 @@ class _HomeTab extends ConsumerWidget {
                       child: ListView.separated(
                         scrollDirection: Axis.horizontal,
                         itemCount: categories.length,
-                        separatorBuilder: (_, __) => const SizedBox(width: 14),
+                        separatorBuilder: (_, _) => const SizedBox(width: 14),
                         itemBuilder: (_, index) => _CategoryAvatar(
                           category: categories[index],
                           onTap: () => Navigator.of(context).push(
@@ -328,10 +328,10 @@ class _HomeTab extends ConsumerWidget {
                         child: ListView.separated(
                           scrollDirection: Axis.horizontal,
                           itemCount: personalized.length,
-                          separatorBuilder: (_, __) => const SizedBox(width: 12),
-                          itemBuilder: (_, index) => _CuratedMiniCard(
-                            item: personalized[index],
-                          ),
+                          separatorBuilder: (_, _) =>
+                              const SizedBox(width: 12),
+                          itemBuilder: (_, index) =>
+                              _CuratedMiniCard(item: personalized[index]),
                         ),
                       ),
                     ],
@@ -404,11 +404,19 @@ class _TopBar extends StatelessWidget {
           children: [
             const Text(
               'Welcome back',
-              style: TextStyle(color: Color(0xFFC084FC), fontSize: 12, fontWeight: FontWeight.w600),
+              style: TextStyle(
+                color: Color(0xFFC084FC),
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+              ),
             ),
             Text(
               profile?.displayName ?? 'Fandom Explorer',
-              style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 17, color: Colors.white),
+              style: const TextStyle(
+                fontWeight: FontWeight.w900,
+                fontSize: 17,
+                color: Colors.white,
+              ),
             ),
           ],
         ),
@@ -417,13 +425,15 @@ class _TopBar extends StatelessWidget {
         decoration: BoxDecoration(
           color: const Color(0xFF1C0D38),
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: const Color(0xFFA855F7).withValues(alpha: 0.3)),
+          border: Border.all(
+            color: const Color(0xFFA855F7).withValues(alpha: 0.3),
+          ),
         ),
         child: IconButton(
           tooltip: 'AI Fan Helper',
-          onPressed: () => Navigator.of(context).push(
-            MaterialPageRoute<void>(builder: (_) => AiHelperScreen()),
-          ),
+          onPressed: () => Navigator.of(
+            context,
+          ).push(MaterialPageRoute<void>(builder: (_) => AiHelperScreen())),
           icon: const Icon(Icons.smart_toy_outlined, color: Color(0xFFE9D5FF)),
         ),
       ),
@@ -432,7 +442,9 @@ class _TopBar extends StatelessWidget {
         decoration: BoxDecoration(
           color: const Color(0xFF1C0D38),
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: const Color(0xFFA855F7).withValues(alpha: 0.3)),
+          border: Border.all(
+            color: const Color(0xFFA855F7).withValues(alpha: 0.3),
+          ),
         ),
         child: IconButton(
           tooltip: 'Explore and search',
@@ -445,12 +457,16 @@ class _TopBar extends StatelessWidget {
         decoration: BoxDecoration(
           color: const Color(0xFF1C0D38),
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: const Color(0xFFA855F7).withValues(alpha: 0.3)),
+          border: Border.all(
+            color: const Color(0xFFA855F7).withValues(alpha: 0.3),
+          ),
         ),
         child: IconButton(
           tooltip: 'Notifications',
           onPressed: () => Navigator.of(context).push(
-            MaterialPageRoute<void>(builder: (_) => const NotificationsScreen()),
+            MaterialPageRoute<void>(
+              builder: (_) => const NotificationsScreen(),
+            ),
           ),
           icon: const Icon(Icons.notifications_none, color: Color(0xFFE9D5FF)),
         ),
@@ -470,7 +486,10 @@ class _StatsSection extends StatelessWidget {
       decoration: BoxDecoration(
         color: const Color(0xFF140926),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFFA855F7).withValues(alpha: 0.3), width: 1.2),
+        border: Border.all(
+          color: const Color(0xFFA855F7).withValues(alpha: 0.3),
+          width: 1.2,
+        ),
         boxShadow: [
           BoxShadow(
             color: const Color(0xFFA855F7).withValues(alpha: 0.15),
@@ -560,7 +579,10 @@ class _HeroCard extends StatelessWidget {
         end: Alignment.bottomRight,
         colors: [Color(0xFF2B104E), Color(0xFF130726), Color(0xFF09040E)],
       ),
-      border: Border.all(color: const Color(0xFFA855F7).withValues(alpha: 0.4), width: 1.5),
+      border: Border.all(
+        color: const Color(0xFFA855F7).withValues(alpha: 0.4),
+        width: 1.5,
+      ),
       boxShadow: [
         BoxShadow(
           color: const Color(0xFFA855F7).withValues(alpha: 0.25),
@@ -589,9 +611,15 @@ class _HeroCard extends StatelessWidget {
             top: 16,
             child: Row(
               children: const [
-                Text('✦', style: TextStyle(color: Color(0xFFE879F9), fontSize: 16)),
+                Text(
+                  '✦',
+                  style: TextStyle(color: Color(0xFFE879F9), fontSize: 16),
+                ),
                 SizedBox(width: 8),
-                Text('✦', style: TextStyle(color: Color(0xFFA855F7), fontSize: 12)),
+                Text(
+                  '✦',
+                  style: TextStyle(color: Color(0xFFA855F7), fontSize: 12),
+                ),
               ],
             ),
           ),
@@ -639,14 +667,20 @@ class _HeroCard extends StatelessWidget {
                         child: Container(
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(16),
-                            border: Border.all(color: const Color(0xFFA855F7).withValues(alpha: 0.5)),
+                            border: Border.all(
+                              color: const Color(
+                                0xFFA855F7,
+                              ).withValues(alpha: 0.5),
+                            ),
                             image: const DecorationImage(
                               image: AssetImage(AppAssets.multiverse),
                               fit: BoxFit.cover,
                             ),
                             boxShadow: [
                               BoxShadow(
-                                color: const Color(0xFFA855F7).withValues(alpha: 0.3),
+                                color: const Color(
+                                  0xFFA855F7,
+                                ).withValues(alpha: 0.3),
                                 blurRadius: 8,
                               ),
                             ],
@@ -664,7 +698,11 @@ class _HeroCard extends StatelessWidget {
                             alignment: Alignment.bottomLeft,
                             child: const Text(
                               'Multiverse Sagas',
-                              style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ),
                         ),
@@ -680,12 +718,18 @@ class _HeroCard extends StatelessWidget {
                           ),
                           boxShadow: [
                             BoxShadow(
-                              color: const Color(0xFFA855F7).withValues(alpha: 0.5),
+                              color: const Color(
+                                0xFFA855F7,
+                              ).withValues(alpha: 0.5),
                               blurRadius: 10,
                             ),
                           ],
                         ),
-                        child: const Icon(Icons.arrow_forward, color: Colors.white, size: 22),
+                        child: const Icon(
+                          Icons.arrow_forward,
+                          color: Colors.white,
+                          size: 22,
+                        ),
                       ),
                     ],
                   ),
@@ -747,13 +791,20 @@ class _SectionTitle extends StatelessWidget {
         Expanded(
           child: Text(
             title,
-            style: const TextStyle(fontSize: 19, fontWeight: FontWeight.w900, color: Colors.white),
+            style: const TextStyle(
+              fontSize: 19,
+              fontWeight: FontWeight.w900,
+              color: Colors.white,
+            ),
           ),
         ),
         TextButton(
           onPressed: onPressed,
           style: TextButton.styleFrom(foregroundColor: const Color(0xFFC084FC)),
-          child: Text(action, style: const TextStyle(fontWeight: FontWeight.bold)),
+          child: Text(
+            action,
+            style: const TextStyle(fontWeight: FontWeight.bold),
+          ),
         ),
       ],
     );
@@ -768,19 +819,47 @@ class _CategoryAvatar extends StatelessWidget {
   Map<String, dynamic> _getCategoryStyle(String cat) {
     switch (cat.toLowerCase()) {
       case 'anime':
-        return {'icon': Icons.bolt, 'color': const Color(0xFFFFB74D), 'bg': const Color(0xFF2A1505)};
+        return {
+          'icon': Icons.bolt,
+          'color': const Color(0xFFFFB74D),
+          'bg': const Color(0xFF2A1505),
+        };
       case 'gaming':
-        return {'icon': Icons.sports_esports, 'color': const Color(0xFFE879F9), 'bg': const Color(0xFF2E0938)};
+        return {
+          'icon': Icons.sports_esports,
+          'color': const Color(0xFFE879F9),
+          'bg': const Color(0xFF2E0938),
+        };
       case 'sci-fi':
-        return {'icon': Icons.rocket_launch, 'color': const Color(0xFF38BDF8), 'bg': const Color(0xFF0C1F38)};
+        return {
+          'icon': Icons.rocket_launch,
+          'color': const Color(0xFF38BDF8),
+          'bg': const Color(0xFF0C1F38),
+        };
       case 'comics':
-        return {'icon': Icons.auto_awesome, 'color': const Color(0xFFF43F5E), 'bg': const Color(0xFF330914)};
+        return {
+          'icon': Icons.auto_awesome,
+          'color': const Color(0xFFF43F5E),
+          'bg': const Color(0xFF330914),
+        };
       case 'fantasy':
-        return {'icon': Icons.castle, 'color': const Color(0xFFFACC15), 'bg': const Color(0xFF2E2606)};
+        return {
+          'icon': Icons.castle,
+          'color': const Color(0xFFFACC15),
+          'bg': const Color(0xFF2E2606),
+        };
       case 'art':
-        return {'icon': Icons.palette, 'color': const Color(0xFF2DD4BF), 'bg': const Color(0xFF072B26)};
+        return {
+          'icon': Icons.palette,
+          'color': const Color(0xFF2DD4BF),
+          'bg': const Color(0xFF072B26),
+        };
       default:
-        return {'icon': Icons.auto_stories_outlined, 'color': const Color(0xFFA855F7), 'bg': const Color(0xFF1E0C38)};
+        return {
+          'icon': Icons.auto_stories_outlined,
+          'color': const Color(0xFFA855F7),
+          'bg': const Color(0xFF1E0C38),
+        };
     }
   }
 
@@ -814,11 +893,7 @@ class _CategoryAvatar extends StatelessWidget {
               child: CircleAvatar(
                 radius: 27,
                 backgroundColor: bg,
-                child: Icon(
-                  icon,
-                  color: color,
-                  size: 26,
-                ),
+                child: Icon(icon, color: color, size: 26),
               ),
             ),
             const SizedBox(height: 6),
@@ -826,7 +901,11 @@ class _CategoryAvatar extends StatelessWidget {
               category,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.white),
+              style: const TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
             ),
           ],
         ),
@@ -976,7 +1055,10 @@ class _StoryCard extends ConsumerWidget {
                   gradient: LinearGradient(
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
-                    colors: [Colors.black.withValues(alpha: 0.1), Colors.black.withValues(alpha: 0.88)],
+                    colors: [
+                      Colors.black.withValues(alpha: 0.1),
+                      Colors.black.withValues(alpha: 0.88),
+                    ],
                   ),
                 ),
               ),
@@ -992,11 +1074,16 @@ class _StoryCard extends ConsumerWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 7,
+                          vertical: 3,
+                        ),
                         decoration: BoxDecoration(
                           color: Colors.black.withValues(alpha: 0.7),
                           borderRadius: BorderRadius.circular(6),
-                          border: Border.all(color: accent.withValues(alpha: 0.5)),
+                          border: Border.all(
+                            color: accent.withValues(alpha: 0.5),
+                          ),
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
@@ -1015,16 +1102,23 @@ class _StoryCard extends ConsumerWidget {
                         ),
                       ),
                       IconButton.filledTonal(
-                        constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                        constraints: const BoxConstraints(
+                          minWidth: 32,
+                          minHeight: 32,
+                        ),
                         padding: EdgeInsets.zero,
-                        tooltip: bookmarked ? 'Remove bookmark' : 'Save offline',
+                        tooltip: bookmarked
+                            ? 'Remove bookmark'
+                            : 'Save offline',
                         onPressed: () => ref
                             .read(libraryProvider.notifier)
                             .toggleBookmark(item.id, item: item),
                         icon: Icon(
                           bookmarked ? Icons.bookmark : Icons.bookmark_border,
                           size: 17,
-                          color: bookmarked ? const Color(0xFFE879F9) : Colors.white70,
+                          color: bookmarked
+                              ? const Color(0xFFE879F9)
+                              : Colors.white70,
                         ),
                       ),
                     ],
@@ -1054,14 +1148,21 @@ class _StoryCard extends ConsumerWidget {
                   const SizedBox(height: 6),
                   Row(
                     children: [
-                      const Icon(Icons.account_circle, size: 12, color: Colors.white54),
+                      const Icon(
+                        Icons.account_circle,
+                        size: 12,
+                        color: Colors.white54,
+                      ),
                       const SizedBox(width: 4),
                       Expanded(
                         child: Text(
                           item.creator,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(fontSize: 10, color: Colors.white60),
+                          style: const TextStyle(
+                            fontSize: 10,
+                            color: Colors.white60,
+                          ),
                         ),
                       ),
                     ],
@@ -1148,7 +1249,11 @@ class _TrendingFandomCarouselState extends State<_TrendingFandomCarousel> {
             SizedBox(width: 6),
             Text(
               'Trending Fandoms Carousel',
-              style: TextStyle(fontSize: 19, fontWeight: FontWeight.w900, color: Colors.white),
+              style: TextStyle(
+                fontSize: 19,
+                fontWeight: FontWeight.w900,
+                color: Colors.white,
+              ),
             ),
           ],
         ),
@@ -1184,10 +1289,15 @@ class _TrendingFandomCarouselState extends State<_TrendingFandomCarousel> {
                         end: Alignment.bottomRight,
                         colors: gradient,
                       ),
-                      border: Border.all(color: const Color(0xFFA855F7).withValues(alpha: 0.35), width: 1.2),
+                      border: Border.all(
+                        color: const Color(0xFFA855F7).withValues(alpha: 0.35),
+                        width: 1.2,
+                      ),
                       boxShadow: [
                         BoxShadow(
-                          color: const Color(0xFFA855F7).withValues(alpha: 0.15),
+                          color: const Color(
+                            0xFFA855F7,
+                          ).withValues(alpha: 0.15),
                           blurRadius: 10,
                         ),
                       ],
@@ -1205,7 +1315,11 @@ class _TrendingFandomCarouselState extends State<_TrendingFandomCarousel> {
                               decoration: BoxDecoration(
                                 color: Colors.black.withValues(alpha: 0.6),
                                 borderRadius: BorderRadius.circular(99),
-                                border: Border.all(color: const Color(0xFFD946EF).withValues(alpha: 0.4)),
+                                border: Border.all(
+                                  color: const Color(
+                                    0xFFD946EF,
+                                  ).withValues(alpha: 0.4),
+                                ),
                               ),
                               child: Text(
                                 card['tag'] as String,
@@ -1217,7 +1331,11 @@ class _TrendingFandomCarouselState extends State<_TrendingFandomCarousel> {
                               ),
                             ),
                             const Spacer(),
-                            Icon(icon, color: const Color(0xFFC084FC), size: 20),
+                            Icon(
+                              icon,
+                              color: const Color(0xFFC084FC),
+                              size: 20,
+                            ),
                           ],
                         ),
                         const Spacer(),
@@ -1323,7 +1441,11 @@ class _HubQuickCards extends StatelessWidget {
                   SizedBox(height: 12),
                   Text(
                     'Beginner Hub 🌱',
-                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.w900, color: Colors.white),
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w900,
+                      color: Colors.white,
+                    ),
                   ),
                   SizedBox(height: 4),
                   Text(
@@ -1340,9 +1462,7 @@ class _HubQuickCards extends StatelessWidget {
           child: InkWell(
             borderRadius: BorderRadius.circular(20),
             onTap: () => Navigator.of(context).push(
-              MaterialPageRoute<void>(
-                builder: (_) => const DeepDiveScreen(),
-              ),
+              MaterialPageRoute<void>(builder: (_) => const DeepDiveScreen()),
             ),
             child: Container(
               padding: const EdgeInsets.all(16),
@@ -1373,7 +1493,11 @@ class _HubQuickCards extends StatelessWidget {
                   SizedBox(height: 12),
                   Text(
                     'Deep Dive 🧠',
-                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.w900, color: Colors.white),
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w900,
+                      color: Colors.white,
+                    ),
                   ),
                   SizedBox(height: 4),
                   Text(
@@ -1464,11 +1588,7 @@ class _CuratedMiniCard extends StatelessWidget {
                   ),
                 ),
                 const Spacer(),
-                Icon(
-                  Icons.arrow_forward_ios,
-                  size: 10,
-                  color: catColor,
-                ),
+                Icon(Icons.arrow_forward_ios, size: 10, color: catColor),
               ],
             ),
             const Spacer(),
@@ -1476,7 +1596,12 @@ class _CuratedMiniCard extends StatelessWidget {
               item.title,
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13, height: 1.2, color: Colors.white),
+              style: const TextStyle(
+                fontWeight: FontWeight.w800,
+                fontSize: 13,
+                height: 1.2,
+                color: Colors.white,
+              ),
             ),
             const SizedBox(height: 4),
             Text(

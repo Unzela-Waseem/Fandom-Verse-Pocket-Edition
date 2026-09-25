@@ -1,13 +1,15 @@
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-final connectivityProvider = StateNotifierProvider<ConnectivityNotifier, bool>((ref) {
+final connectivityProvider = NotifierProvider<ConnectivityNotifier, bool>(() {
   return ConnectivityNotifier();
 });
 
-class ConnectivityNotifier extends StateNotifier<bool> {
-  ConnectivityNotifier() : super(true) {
+class ConnectivityNotifier extends Notifier<bool> {
+  @override
+  bool build() {
     _init();
+    return true;
   }
 
   void _init() {

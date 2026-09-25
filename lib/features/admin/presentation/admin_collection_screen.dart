@@ -70,13 +70,27 @@ class AdminCollectionConfig {
     primaryField: 'title',
     fields: [
       AdminField('title', 'Title'),
-      AdminField('body', 'Body (or description)', type: AdminFieldType.multiline, required: false),
-      AdminField('summary', 'Summary', type: AdminFieldType.multiline, required: false),
+      AdminField(
+        'body',
+        'Body (or description)',
+        type: AdminFieldType.multiline,
+        required: false,
+      ),
+      AdminField(
+        'summary',
+        'Summary',
+        type: AdminFieldType.multiline,
+        required: false,
+      ),
       AdminField('creator', 'Creator'),
       AdminField('categoryId', 'Category', type: AdminFieldType.categoryPicker),
       AdminField('contentType', 'Content type (e.g. video, story, news)'),
       AdminField('tags', 'Tags (comma separated)', required: false),
-      AdminField('imageUrl', 'HTTPS image URL (optional if video)', required: false),
+      AdminField(
+        'imageUrl',
+        'HTTPS image URL (optional if video)',
+        required: false,
+      ),
       AdminField('videoUrl', 'HTTPS video URL', required: false),
       AdminField(
         'published',
@@ -270,7 +284,9 @@ class _AdminCollectionScreenState extends State<AdminCollectionScreen> {
                         final data = record.data();
                         final imageUrl = data['imageUrl'] as String?;
                         final videoUrl = data['videoUrl'] as String?;
-                        final hasMedia = isHttpsMediaUrl(imageUrl) || isHttpsMediaUrl(videoUrl);
+                        final hasMedia =
+                            isHttpsMediaUrl(imageUrl) ||
+                            isHttpsMediaUrl(videoUrl);
 
                         return Card(
                           margin: const EdgeInsets.only(bottom: 8),
@@ -305,20 +321,21 @@ class _AdminCollectionScreenState extends State<AdminCollectionScreen> {
                                     ),
                                   )
                                 : CircleAvatar(
-                                    backgroundColor: Theme.of(context)
-                                        .colorScheme
-                                        .primaryContainer,
+                                    backgroundColor: Theme.of(
+                                      context,
+                                    ).colorScheme.primaryContainer,
                                     child: Icon(
                                       widget.config.collection == 'content'
                                           ? Icons.article_outlined
                                           : widget.config.collection == 'events'
                                           ? Icons.event_outlined
-                                          : widget.config.collection == 'merchandise'
+                                          : widget.config.collection ==
+                                                'merchandise'
                                           ? Icons.shopping_bag_outlined
                                           : Icons.category_outlined,
-                                      color: Theme.of(context)
-                                          .colorScheme
-                                          .primary,
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.primary,
                                       size: 20,
                                     ),
                                   ),
@@ -836,9 +853,9 @@ class _AdminRecordEditorState extends State<_AdminRecordEditor> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Media upload failed: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Media upload failed: $e')));
       }
     } finally {
       if (mounted) setState(() => _uploadingField = null);
@@ -971,7 +988,10 @@ class _AdminRecordEditorState extends State<_AdminRecordEditor> {
                           padding: EdgeInsets.only(top: 4, left: 4),
                           child: Text(
                             'Tip: Paste a Cloudinary video URL (or click Upload below).',
-                            style: TextStyle(fontSize: 11, color: Colors.white54),
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: Colors.white54,
+                            ),
                           ),
                         ),
                       if (field.key == 'imageUrl')
@@ -979,7 +999,10 @@ class _AdminRecordEditorState extends State<_AdminRecordEditor> {
                           padding: EdgeInsets.only(top: 4, left: 4),
                           child: Text(
                             'Tip: Paste a Cloudinary image URL (or click Upload below).',
-                            style: TextStyle(fontSize: 11, color: Colors.white54),
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: Colors.white54,
+                            ),
                           ),
                         ),
                       if (purpose != null &&

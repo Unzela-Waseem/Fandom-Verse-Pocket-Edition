@@ -54,8 +54,16 @@ class ProfileScreen extends ConsumerWidget {
               child: CircleAvatar(
                 radius: 42,
                 backgroundColor: const Color(0xFF160B28),
-                backgroundImage: validAvatarUrl ? NetworkImage(avatarUrl) : null,
-                child: !validAvatarUrl ? const Icon(Icons.person, size: 42, color: Color(0xFFE9D5FF)) : null,
+                backgroundImage: validAvatarUrl
+                    ? NetworkImage(avatarUrl)
+                    : null,
+                child: !validAvatarUrl
+                    ? const Icon(
+                        Icons.person,
+                        size: 42,
+                        color: Color(0xFFE9D5FF),
+                      )
+                    : null,
               ),
             ),
           ),

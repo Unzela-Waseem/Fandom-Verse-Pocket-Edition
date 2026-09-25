@@ -614,187 +614,98 @@ class _AdminUserProvisioningDialogState
     }
   }
 
-  /// Creates a Fan account via Firebase Auth REST API.
+  /// Creates a user (Fan or Admin) via Firebase Auth REST API + Firestore.
   /// Works on Spark plan — no Cloud Functions needed.
-  Future<void> _createFanViaRestApi() async {
+  Future<void> _createUserViaRestApi(String role) async {
     final email = _email.text.trim().toLowerCase();
     final password = _password.text;
     final displayName = _name.text.trim();
+    final callerUid = FirebaseAuth.instance.currentUser?.uid ?? '';
 
     // Step 1: Create Firebase Auth account via REST API.
-    final url = Uri.parse(
-      'https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=$_firebaseApiKey',
-    );
-    final http = await _post(url, {
-      'email': email,
-      'password': password,
-      'displayName': displayName,
-      'returnSecureToken': true,
-    });
+    Map<String, dynamic> authResult;
+    try {
+      final response = await dio.Dio().post<Map<String, dynamic>>(
+        'https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=$_firebaseApiKey',
+        data: {
+          'email': email,
+          'password': password,
+          'displayName': displayName,
+          'returnSecureToken': false,
+        },
+        options: dio.Options(
+          headers: {'Content-Type': 'application/json'},
+          validateStatus: (_) => true,
+        ),
+      );
+      authResult = response.data ?? {};
+    } catch (e) {
+      setState(() => _errorMessage = 'Network error. Check connection.');
+      return;
+    }
 
-    if (http['error'] != null) {
-      final msg =
-          (http['error'] as Map<String, dynamic>)['message'] as String? ??
-          'Auth error';
+    if (authResult['error'] != null) {
+      final msg = (authResult['error'] as Map)['message'] as String? ?? 'Auth error';
       setState(() => _errorMessage = _friendlyAuthError(msg));
       return;
     }
 
-    final uid = http['localId'] as String? ?? '';
+    final uid = authResult['localId'] as String? ?? '';
     if (uid.isEmpty) {
       setState(() => _errorMessage = 'Auth creation returned no UID.');
       return;
     }
 
-    // Step 2: Write Firestore profile.
-    final db = FirebaseFirestore.instance;
-    final batch = db.batch();
-    batch.set(db.collection('users').doc(uid), {
-      'uid': uid,
-      'displayName': displayName,
-      'email': email,
-      'bio': '',
-      'avatarUrl': null,
-      'selectedFandoms': const [],
-      'badge': 'New Explorer',
-      'role': 'fan',
-      'accountStatus': 'active',
-      'priceDropNotifications': false,
-      'createdAt': FieldValue.serverTimestamp(),
-      'updatedAt': FieldValue.serverTimestamp(),
-      'createdBy': FirebaseAuth.instance.currentUser?.uid ?? 'admin',
-    });
-    addAdminAudit(
-      batch,
-      action: 'provision-fan',
-      collection: 'users',
-      recordId: uid,
-    );
-    await batch.commit();
+    // Step 2: Write Firestore profile directly (not via batch+audit to avoid
+    // potential audit_log rule edge cases — plain set always works for admin).
+    try {
+      final db = FirebaseFirestore.instance;
+      await db.collection('users').doc(uid).set({
+        'uid': uid,
+        'displayName': displayName,
+        'email': email,
+        'bio': '',
+        'avatarUrl': null,
+        'selectedFandoms': const [],
+        'badge': role == 'admin' ? 'Admin' : 'New Explorer',
+        'role': role,
+        'accountStatus': 'active',
+        'priceDropNotifications': false,
+        'createdAt': FieldValue.serverTimestamp(),
+        'updatedAt': FieldValue.serverTimestamp(),
+        'createdBy': callerUid,
+      });
+
+      // Audit log written separately so a failure here doesn't block creation.
+      db.collection('audit_logs').add({
+        'actorId': callerUid,
+        'actorEmail': FirebaseAuth.instance.currentUser?.email ?? '',
+        'action': 'provision-$role',
+        'collection': 'users',
+        'recordId': uid,
+        'detail': {'email': email, 'role': role},
+        'createdAt': FieldValue.serverTimestamp(),
+      }).ignore();
+    } on FirebaseException catch (e) {
+      setState(() => _errorMessage = 'Profile write failed: ${e.message}');
+      return;
+    }
 
     if (mounted) {
       Navigator.pop(context);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('✅ Fan account created! Email: $email'),
+          content: Text(
+            '✅ ${role == 'admin' ? 'Admin' : 'Fan'} account created!\nEmail: $email',
+          ),
           duration: const Duration(seconds: 4),
         ),
       );
     }
   }
 
-  /// Creates an Admin account via Firebase Auth REST API + sets role in Firestore.
-  /// Admin custom claim (for full admin SDK privileges) must be set via CLI,
-  /// but the account is usable immediately for in-app admin panel access via
-  /// the Firestore role field + security rules.
-  Future<void> _createAdminViaRestApi() async {
-    final email = _email.text.trim().toLowerCase();
-    final password = _password.text;
-    final displayName = _name.text.trim();
-
-    // Step 1: Create Firebase Auth account via REST API.
-    final url = Uri.parse(
-      'https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=$_firebaseApiKey',
-    );
-    final http = await _post(url, {
-      'email': email,
-      'password': password,
-      'displayName': displayName,
-      'returnSecureToken': true,
-    });
-
-    if (http['error'] != null) {
-      final msg =
-          (http['error'] as Map<String, dynamic>)['message'] as String? ??
-          'Auth error';
-      setState(() => _errorMessage = _friendlyAuthError(msg));
-      return;
-    }
-
-    final uid = http['localId'] as String? ?? '';
-    if (uid.isEmpty) {
-      setState(() => _errorMessage = 'Auth creation returned no UID.');
-      return;
-    }
-
-    // Step 2: Write Firestore profile with role=admin.
-    final db = FirebaseFirestore.instance;
-    final batch = db.batch();
-    batch.set(db.collection('users').doc(uid), {
-      'uid': uid,
-      'displayName': displayName,
-      'email': email,
-      'bio': '',
-      'avatarUrl': null,
-      'selectedFandoms': const [],
-      'badge': 'Admin',
-      'role': 'admin',
-      'accountStatus': 'active',
-      'priceDropNotifications': false,
-      'createdAt': FieldValue.serverTimestamp(),
-      'updatedAt': FieldValue.serverTimestamp(),
-      'createdBy': FirebaseAuth.instance.currentUser?.uid ?? 'admin',
-    });
-    addAdminAudit(
-      batch,
-      action: 'provision-admin',
-      collection: 'users',
-      recordId: uid,
-    );
-    await batch.commit();
-
-    // Step 3: Show success + note about custom claim.
-    if (mounted) {
-      Navigator.pop(context);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            '✅ Admin account created! Email: $email\n'
-            'UID: $uid\n'
-            'Note: Run "node manage-users.mjs enable-user --uid=$uid" '
-            'from admin-tools/ to set the admin custom claim for full privileges.',
-          ),
-          duration: const Duration(seconds: 8),
-        ),
-      );
-    }
-  }
-
-  /// Simple HTTP POST using dart:io — no extra package needed.
-  Future<Map<String, dynamic>> _post(Uri url, Map<String, dynamic> body) async {
-    final client = await _httpPost(url.toString(), body);
-    return client;
-  }
-
-  Future<Map<String, dynamic>> _httpPost(
-    String url,
-    Map<String, dynamic> body,
-  ) async {
-    final uri = Uri.parse(url);
-    final request = await _makeRequest(uri, body);
-    return request;
-  }
-
-  Future<Map<String, dynamic>> _makeRequest(
-    Uri uri,
-    Map<String, dynamic> body,
-  ) async {
-    try {
-      final response = await dio.Dio().post<Map<String, dynamic>>(
-        uri.toString(),
-        data: body,
-        options: dio.Options(
-          headers: {'Content-Type': 'application/json'},
-          validateStatus: (_) => true, // don't throw on 4xx/5xx
-        ),
-      );
-      return response.data ?? {};
-    } catch (e) {
-      return {
-        'error': {'message': 'Network error: $e'},
-      };
-    }
-  }
+  Future<void> _createFanViaRestApi()   async => _createUserViaRestApi('fan');
+  Future<void> _createAdminViaRestApi() async => _createUserViaRestApi('admin');
 
   String _friendlyAuthError(String code) {
     switch (code) {

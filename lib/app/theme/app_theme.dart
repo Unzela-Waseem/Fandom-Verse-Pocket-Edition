@@ -13,13 +13,19 @@ abstract final class AppTheme {
       brightness: brightness,
       primary: const Color(0xFFA855F7),
       onPrimary: Colors.white,
-      primaryContainer: isDark ? const Color(0xFF2E1052) : const Color(0xFFE9D5FF),
+      primaryContainer: isDark
+          ? const Color(0xFF2E1052)
+          : const Color(0xFFE9D5FF),
       secondary: const Color(0xFFD946EF),
       onSecondary: Colors.white,
-      secondaryContainer: isDark ? const Color(0xFF3C1245) : const Color(0xFFFCE7F3),
+      secondaryContainer: isDark
+          ? const Color(0xFF3C1245)
+          : const Color(0xFFFCE7F3),
       surface: isDark ? const Color(0xFF130924) : const Color(0xFFF4F0FF),
       onSurface: isDark ? Colors.white : Colors.black87,
-      surfaceContainerHigh: isDark ? const Color(0xFF1E0F38) : const Color(0xFFEBE3FF),
+      surfaceContainerHigh: isDark
+          ? const Color(0xFF1E0F38)
+          : const Color(0xFFEBE3FF),
     );
 
     const scaffoldBg = Color(0xFF09040E);
@@ -46,8 +52,14 @@ abstract final class AppTheme {
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: isDark ? const Color(0xFF180C30) : const Color(0xFFF0E6FF),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
-        hintStyle: TextStyle(color: isDark ? Colors.white38 : Colors.black38, fontSize: 14),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 18,
+          vertical: 14,
+        ),
+        hintStyle: TextStyle(
+          color: isDark ? Colors.white38 : Colors.black38,
+          fontSize: 14,
+        ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
           borderSide: BorderSide.none,
@@ -55,7 +67,9 @@ abstract final class AppTheme {
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
           borderSide: BorderSide(
-            color: isDark ? borderViolet.withValues(alpha: 0.25) : Colors.black12,
+            color: isDark
+                ? borderViolet.withValues(alpha: 0.25)
+                : Colors.black12,
           ),
         ),
         focusedBorder: OutlineInputBorder(
@@ -66,17 +80,23 @@ abstract final class AppTheme {
       cardTheme: CardThemeData(
         elevation: 6,
         color: isDark ? cardBg : Colors.white,
-        shadowColor: isDark ? const Color(0xFFA855F7).withValues(alpha: 0.25) : Colors.black12,
+        shadowColor: isDark
+            ? const Color(0xFFA855F7).withValues(alpha: 0.25)
+            : Colors.black12,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),
           side: BorderSide(
-            color: isDark ? borderViolet.withValues(alpha: 0.3) : borderViolet.withValues(alpha: 0.12),
+            color: isDark
+                ? borderViolet.withValues(alpha: 0.3)
+                : borderViolet.withValues(alpha: 0.12),
             width: 1.2,
           ),
         ),
       ),
       chipTheme: ChipThemeData(
-        backgroundColor: isDark ? const Color(0xFF1B0E35) : const Color(0xFFEDE5FF),
+        backgroundColor: isDark
+            ? const Color(0xFF1B0E35)
+            : const Color(0xFFEDE5FF),
         selectedColor: const Color(0xFFA855F7),
         labelStyle: TextStyle(
           color: isDark ? Colors.white : Colors.black,
@@ -100,7 +120,8 @@ abstract final class AppTheme {
       segmentedButtonTheme: SegmentedButtonThemeData(
         style: ButtonStyle(
           backgroundColor: WidgetStateProperty.resolveWith((states) {
-            if (states.contains(WidgetState.selected)) return const Color(0xFFA855F7);
+            if (states.contains(WidgetState.selected))
+              return const Color(0xFFA855F7);
             return isDark ? const Color(0xFF1A0C30) : const Color(0xFFEBE0FF);
           }),
           foregroundColor: WidgetStateProperty.resolveWith((states) {
@@ -125,14 +146,23 @@ abstract final class AppTheme {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
           ),
-          textStyle: const TextStyle(fontWeight: FontWeight.w900, fontSize: 14, letterSpacing: 0.5),
+          textStyle: const TextStyle(
+            fontWeight: FontWeight.w900,
+            fontSize: 14,
+            letterSpacing: 0.5,
+          ),
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
           minimumSize: const Size.fromHeight(50),
-          side: BorderSide(color: borderViolet.withValues(alpha: 0.8), width: 1.5),
-          foregroundColor: isDark ? const Color(0xFFD8B4FE) : const Color(0xFF7E22CE),
+          side: BorderSide(
+            color: borderViolet.withValues(alpha: 0.8),
+            width: 1.5,
+          ),
+          foregroundColor: isDark
+              ? const Color(0xFFD8B4FE)
+              : const Color(0xFF7E22CE),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
           ),
@@ -145,24 +175,44 @@ abstract final class AppTheme {
         elevation: 8,
         labelTextStyle: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) {
-            return const TextStyle(color: Color(0xFFE9D5FF), fontSize: 12, fontWeight: FontWeight.bold);
+            return const TextStyle(
+              color: Color(0xFFE9D5FF),
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+            );
           }
-          return TextStyle(color: isDark ? Colors.white54 : Colors.black54, fontSize: 11);
+          return TextStyle(
+            color: isDark ? Colors.white54 : Colors.black54,
+            fontSize: 11,
+          );
         }),
         iconTheme: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) {
             return const IconThemeData(color: Colors.white, size: 24);
           }
-          return IconThemeData(color: isDark ? Colors.white54 : Colors.black54, size: 22);
+          return IconThemeData(
+            color: isDark ? Colors.white54 : Colors.black54,
+            size: 22,
+          );
         }),
       ),
       navigationRailTheme: NavigationRailThemeData(
         backgroundColor: isDark ? const Color(0xFF0C0616) : Colors.white,
         indicatorColor: const Color(0xFFA855F7),
         selectedIconTheme: const IconThemeData(color: Colors.white, size: 24),
-        unselectedIconTheme: IconThemeData(color: isDark ? Colors.white54 : Colors.black54, size: 22),
-        selectedLabelTextStyle: const TextStyle(color: Color(0xFFE9D5FF), fontSize: 12, fontWeight: FontWeight.bold),
-        unselectedLabelTextStyle: TextStyle(color: isDark ? Colors.white54 : Colors.black54, fontSize: 11),
+        unselectedIconTheme: IconThemeData(
+          color: isDark ? Colors.white54 : Colors.black54,
+          size: 22,
+        ),
+        selectedLabelTextStyle: const TextStyle(
+          color: Color(0xFFE9D5FF),
+          fontSize: 12,
+          fontWeight: FontWeight.bold,
+        ),
+        unselectedLabelTextStyle: TextStyle(
+          color: isDark ? Colors.white54 : Colors.black54,
+          fontSize: 11,
+        ),
       ),
     );
   }

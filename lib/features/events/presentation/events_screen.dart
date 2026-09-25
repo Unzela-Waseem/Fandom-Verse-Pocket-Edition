@@ -155,7 +155,11 @@ class _EventsScreenState extends ConsumerState<EventsScreen> {
                     child: CircularProgressIndicator(strokeWidth: 2),
                   )
                 : const Icon(Icons.near_me_outlined),
-            label: Text(_position == null ? 'Sort events near me (GPS)' : 'GPS Active: Refresh Nearby'),
+            label: Text(
+              _position == null
+                  ? 'Sort events near me (GPS)'
+                  : 'GPS Active: Refresh Nearby',
+            ),
           ),
           if (_locationMessage != null)
             Padding(
@@ -193,7 +197,9 @@ class _EventsScreenState extends ConsumerState<EventsScreen> {
           ],
 
           Text(
-            _showMapView ? 'Upcoming Venues on Map (${events.length})' : 'All Upcoming Events (${events.length})',
+            _showMapView
+                ? 'Upcoming Venues on Map (${events.length})'
+                : 'All Upcoming Events (${events.length})',
             style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 10),
@@ -257,7 +263,10 @@ class _EventsScreenState extends ConsumerState<EventsScreen> {
                 ),
                 onTap: () => Navigator.of(context).push(
                   MaterialPageRoute<void>(
-                    builder: (_) => EventDetailScreen(event: event, userPosition: _position),
+                    builder: (_) => EventDetailScreen(
+                      event: event,
+                      userPosition: _position,
+                    ),
                   ),
                 ),
               ),
@@ -287,7 +296,10 @@ class _EventsScreenState extends ConsumerState<EventsScreen> {
                 Expanded(
                   child: Text(
                     event.title,
-                    style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ],
@@ -308,7 +320,10 @@ class _EventsScreenState extends ConsumerState<EventsScreen> {
                       Navigator.of(ctx).pop();
                       Navigator.of(context).push(
                         MaterialPageRoute<void>(
-                          builder: (_) => EventDetailScreen(event: event, userPosition: _position),
+                          builder: (_) => EventDetailScreen(
+                            event: event,
+                            userPosition: _position,
+                          ),
                         ),
                       );
                     },
@@ -357,7 +372,9 @@ class _InteractiveEventMapContainer extends StatelessWidget {
       decoration: BoxDecoration(
         color: const Color(0xFF130924),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFFA855F7).withValues(alpha: 0.4)),
+        border: Border.all(
+          color: const Color(0xFFA855F7).withValues(alpha: 0.4),
+        ),
         boxShadow: const [
           BoxShadow(
             color: Colors.black45,
@@ -370,11 +387,7 @@ class _InteractiveEventMapContainer extends StatelessWidget {
       child: Stack(
         children: [
           // Map Background Grid Graphic
-          Positioned.fill(
-            child: CustomPaint(
-              painter: _FandomMapGridPainter(),
-            ),
-          ),
+          Positioned.fill(child: CustomPaint(painter: _FandomMapGridPainter())),
 
           // Map Title Header
           Positioned(
@@ -385,18 +398,28 @@ class _InteractiveEventMapContainer extends StatelessWidget {
               decoration: BoxDecoration(
                 color: Colors.black.withValues(alpha: 0.7),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: const Color(0xFFA855F7).withValues(alpha: 0.4)),
+                border: Border.all(
+                  color: const Color(0xFFA855F7).withValues(alpha: 0.4),
+                ),
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(Icons.map_sharp, color: Color(0xFFE879F9), size: 14),
+                  const Icon(
+                    Icons.map_sharp,
+                    color: Color(0xFFE879F9),
+                    size: 14,
+                  ),
                   const SizedBox(width: 6),
                   Text(
                     userPosition != null
                         ? 'GPS Radar Active · ${events.length} Venues Pinned'
                         : 'Interactive Fandom Venue Map (${events.length})',
-                    style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.white),
+                    style: const TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
                   ),
                 ],
               ),
@@ -409,7 +432,10 @@ class _InteractiveEventMapContainer extends StatelessWidget {
               builder: (ctx, constraints) {
                 if (events.isEmpty) {
                   return const Center(
-                    child: Text('No event venues in this city', style: TextStyle(color: Colors.white54)),
+                    child: Text(
+                      'No event venues in this city',
+                      style: TextStyle(color: Colors.white54),
+                    ),
                   );
                 }
                 return Stack(
@@ -418,8 +444,11 @@ class _InteractiveEventMapContainer extends StatelessWidget {
                     final event = entry.value;
 
                     // Compute relative X/Y coordinate positions on screen based on index/location
-                    final posX = (constraints.maxWidth * 0.18) + ((idx % 3) * (constraints.maxWidth * 0.30));
-                    final posY = (constraints.maxHeight * 0.28) + ((idx ~/ 3) * 60.0);
+                    final posX =
+                        (constraints.maxWidth * 0.18) +
+                        ((idx % 3) * (constraints.maxWidth * 0.30));
+                    final posY =
+                        (constraints.maxHeight * 0.28) + ((idx ~/ 3) * 60.0);
                     final isSelected = selectedEvent?.id == event.id;
 
                     return Positioned(
@@ -434,11 +463,17 @@ class _InteractiveEventMapContainer extends StatelessWidget {
                               duration: const Duration(milliseconds: 250),
                               padding: const EdgeInsets.all(8),
                               decoration: BoxDecoration(
-                                color: isSelected ? const Color(0xFFD946EF) : const Color(0xFFA855F7),
+                                color: isSelected
+                                    ? const Color(0xFFD946EF)
+                                    : const Color(0xFFA855F7),
                                 shape: BoxShape.circle,
                                 boxShadow: [
                                   BoxShadow(
-                                    color: (isSelected ? const Color(0xFFD946EF) : const Color(0xFFA855F7)).withValues(alpha: 0.6),
+                                    color:
+                                        (isSelected
+                                                ? const Color(0xFFD946EF)
+                                                : const Color(0xFFA855F7))
+                                            .withValues(alpha: 0.6),
                                     blurRadius: isSelected ? 14 : 6,
                                     spreadRadius: isSelected ? 3 : 1,
                                   ),
@@ -452,18 +487,27 @@ class _InteractiveEventMapContainer extends StatelessWidget {
                             ),
                             const SizedBox(height: 2),
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 6,
+                                vertical: 2,
+                              ),
                               decoration: BoxDecoration(
                                 color: Colors.black.withValues(alpha: 0.85),
                                 borderRadius: BorderRadius.circular(6),
-                                border: Border.all(color: isSelected ? const Color(0xFFFFD740) : Colors.white24),
+                                border: Border.all(
+                                  color: isSelected
+                                      ? const Color(0xFFFFD740)
+                                      : Colors.white24,
+                                ),
                               ),
                               child: Text(
                                 event.city,
                                 style: TextStyle(
                                   fontSize: 10,
                                   fontWeight: FontWeight.bold,
-                                  color: isSelected ? const Color(0xFFFFD740) : Colors.white,
+                                  color: isSelected
+                                      ? const Color(0xFFFFD740)
+                                      : Colors.white,
                                 ),
                               ),
                             ),
@@ -535,7 +579,9 @@ class EventDetailScreen extends ConsumerWidget {
     if (!await launchUrl(uri, mode: LaunchMode.externalApplication) &&
         context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('OpenStreetMap link could not be launched.')),
+        const SnackBar(
+          content: Text('OpenStreetMap link could not be launched.'),
+        ),
       );
     }
   }
@@ -570,12 +616,14 @@ class EventDetailScreen extends ConsumerWidget {
     final saved = ref.watch(libraryProvider).savedEvents.contains(event.id);
     double? distKm;
     if (userPosition != null) {
-      distKm = Geolocator.distanceBetween(
-        userPosition!.latitude,
-        userPosition!.longitude,
-        event.latitude,
-        event.longitude,
-      ) / 1000;
+      distKm =
+          Geolocator.distanceBetween(
+            userPosition!.latitude,
+            userPosition!.longitude,
+            event.latitude,
+            event.longitude,
+          ) /
+          1000;
     }
 
     return Scaffold(
@@ -623,7 +671,9 @@ class EventDetailScreen extends ConsumerWidget {
           // Interactive Venue Location & Map Card
           Card(
             color: const Color(0xFF1E1E28),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: Column(
@@ -635,20 +685,34 @@ class EventDetailScreen extends ConsumerWidget {
                       const SizedBox(width: 8),
                       const Text(
                         'Venue Location & Coordinates',
-                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                       if (distKm != null) ...[
                         const Spacer(),
                         Chip(
                           backgroundColor: const Color(0xFF6C5CE7),
-                          labelStyle: const TextStyle(fontSize: 11, color: Colors.white),
-                          label: Text('📍 ${distKm.toStringAsFixed(0)} km away'),
+                          labelStyle: const TextStyle(
+                            fontSize: 11,
+                            color: Colors.white,
+                          ),
+                          label: Text(
+                            '📍 ${distKm.toStringAsFixed(0)} km away',
+                          ),
                         ),
                       ],
                     ],
                   ),
                   const SizedBox(height: 8),
-                  Text('${event.venue} — ${event.city}', style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
+                  Text(
+                    '${event.venue} — ${event.city}',
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
                   const SizedBox(height: 4),
                   Text(
                     'GPS: ${event.latitude.toStringAsFixed(4)}° N, ${event.longitude.toStringAsFixed(4)}° E',
@@ -660,9 +724,17 @@ class EventDetailScreen extends ConsumerWidget {
                       Expanded(
                         child: OutlinedButton.icon(
                           onPressed: () {
-                            Clipboard.setData(ClipboardData(text: '${event.latitude},${event.longitude}'));
+                            Clipboard.setData(
+                              ClipboardData(
+                                text: '${event.latitude},${event.longitude}',
+                              ),
+                            );
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Coordinates copied to clipboard!')),
+                              const SnackBar(
+                                content: Text(
+                                  'Coordinates copied to clipboard!',
+                                ),
+                              ),
                             );
                           },
                           icon: const Icon(Icons.copy, size: 16),

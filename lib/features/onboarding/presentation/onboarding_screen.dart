@@ -16,22 +16,28 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   static const List<Map<String, String>> _slides = [
     {
       'title': 'Anime & Manga Multiverse',
-      'subtitle': 'Discover legendary Shinobi sagas, character profiles, sakuga animations, and glossary terms.',
-      'image': 'https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?w=1000&q=80',
+      'subtitle':
+          'Discover legendary Shinobi sagas, character profiles, sakuga animations, and glossary terms.',
+      'image':
+          'https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?w=1000&q=80',
       'tag': '🐉 ANIME & MANGA HUB',
       'badgeColor': '0xFFFF9800',
     },
     {
       'title': 'Gaming & Esports Arenas',
-      'subtitle': 'Explore community speedrunning routes, competitive brackets, DLC guides, and retro gaming lore.',
-      'image': 'https://images.unsplash.com/photo-1542751371-adc38448a05e?w=1000&q=80',
+      'subtitle':
+          'Explore community speedrunning routes, competitive brackets, DLC guides, and retro gaming lore.',
+      'image':
+          'https://images.unsplash.com/photo-1542751371-adc38448a05e?w=1000&q=80',
       'tag': '🎮 ESPORTS & GAMING',
       'badgeColor': '0xFFAB47BC',
     },
     {
       'title': 'GPS Maps & AI Fan Helper',
-      'subtitle': 'Locate nearby fan meetups, navigate venue coordinates on Google Maps, and chat with our AI Fan Helper.',
-      'image': 'https://images.unsplash.com/photo-1612036782180-6f0b6cd846fe?w=1000&q=80',
+      'subtitle':
+          'Locate nearby fan meetups, navigate venue coordinates on Google Maps, and chat with our AI Fan Helper.',
+      'image':
+          'https://images.unsplash.com/photo-1612036782180-6f0b6cd846fe?w=1000&q=80',
       'tag': '📍 EVENTS & AI ASSISTANT',
       'badgeColor': '0xFF29B6F6',
     },
@@ -86,7 +92,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   // Slide Content
                   SafeArea(
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 24,
+                        vertical: 20,
+                      ),
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.end,
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -95,9 +104,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                           const Spacer(),
                           // Category Tag Chip
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 6,
+                            ),
                             decoration: BoxDecoration(
-                              color: Color(int.parse(slide['badgeColor']!)).withValues(alpha: 0.25),
+                              color: Color(
+                                int.parse(slide['badgeColor']!),
+                              ).withValues(alpha: 0.25),
                               borderRadius: BorderRadius.circular(99),
                               border: Border.all(
                                 color: Color(int.parse(slide['badgeColor']!)),
@@ -133,7 +147,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                               height: 1.45,
                             ),
                           ),
-                          const SizedBox(height: 120), // Leave space for bottom bar
+                          const SizedBox(
+                            height: 120,
+                          ), // Leave space for bottom bar
                         ],
                       ),
                     ),
@@ -151,9 +167,18 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               onPressed: _onFinish,
               style: TextButton.styleFrom(
                 backgroundColor: const Color(0xFF1E1438),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20),
+                ),
               ),
-              child: const Text('SKIP TOUR', style: TextStyle(color: Color(0xFFC77DFF), fontSize: 12, fontWeight: FontWeight.bold)),
+              child: const Text(
+                'SKIP TOUR',
+                style: TextStyle(
+                  color: Color(0xFFC77DFF),
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             ),
           ),
 
@@ -199,16 +224,27 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFFA855F7),
                     foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 14,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(24),
+                    ),
                     elevation: 6,
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
-                        _currentPage == _slides.length - 1 ? 'GET STARTED' : 'NEXT',
-                        style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 13, letterSpacing: 0.5),
+                        _currentPage == _slides.length - 1
+                            ? 'GET STARTED'
+                            : 'NEXT',
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w900,
+                          fontSize: 13,
+                          letterSpacing: 0.5,
+                        ),
                       ),
                       const SizedBox(width: 6),
                       const Icon(Icons.arrow_forward, size: 16),

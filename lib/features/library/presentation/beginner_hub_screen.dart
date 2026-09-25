@@ -198,8 +198,10 @@ class _BeginnerHubScreenState extends ConsumerState<BeginnerHubScreen>
 
     // Filter glossary terms
     final glossaryTerms = beginnerGlossaryTerms.where((term) {
-      final matchesFandom = term.fandom.toLowerCase() == _selectedFandom.toLowerCase();
-      final matchesSearch = query.isEmpty ||
+      final matchesFandom =
+          term.fandom.toLowerCase() == _selectedFandom.toLowerCase();
+      final matchesSearch =
+          query.isEmpty ||
           term.term.toLowerCase().contains(query) ||
           term.definition.toLowerCase().contains(query);
       return matchesFandom && matchesSearch;
@@ -207,9 +209,11 @@ class _BeginnerHubScreenState extends ConsumerState<BeginnerHubScreen>
 
     // Filter profiles for this fandom
     final profiles = catalog.where((item) {
-      final matchesFandom = item.category.toLowerCase() == _selectedFandom.toLowerCase();
+      final matchesFandom =
+          item.category.toLowerCase() == _selectedFandom.toLowerCase();
       final isProfile = item.type == ContentType.profile;
-      final matchesSearch = query.isEmpty ||
+      final matchesSearch =
+          query.isEmpty ||
           item.title.toLowerCase().contains(query) ||
           item.summary.toLowerCase().contains(query);
       return matchesFandom && isProfile && matchesSearch;
@@ -217,10 +221,14 @@ class _BeginnerHubScreenState extends ConsumerState<BeginnerHubScreen>
 
     // Filter stories for this fandom
     final stories = catalog.where((item) {
-      final matchesFandom = item.category.toLowerCase() == _selectedFandom.toLowerCase() ||
+      final matchesFandom =
+          item.category.toLowerCase() == _selectedFandom.toLowerCase() ||
           (item.category == 'Beginner Hub' && _selectedFandom == 'Anime');
-      final isStory = item.type == ContentType.story || item.type == ContentType.beginnerGuide;
-      final matchesSearch = query.isEmpty ||
+      final isStory =
+          item.type == ContentType.story ||
+          item.type == ContentType.beginnerGuide;
+      final matchesSearch =
+          query.isEmpty ||
           item.title.toLowerCase().contains(query) ||
           item.summary.toLowerCase().contains(query);
       return matchesFandom && isStory && matchesSearch;
@@ -270,14 +278,15 @@ class _BeginnerHubScreenState extends ConsumerState<BeginnerHubScreen>
                     child: ListView.separated(
                       scrollDirection: Axis.horizontal,
                       itemCount: _fandoms.length,
-                      separatorBuilder: (_, __) => const SizedBox(width: 8),
+                      separatorBuilder: (_, _) => const SizedBox(width: 8),
                       itemBuilder: (_, index) {
                         final fandom = _fandoms[index];
                         final selected = fandom == _selectedFandom;
                         return ChoiceChip(
                           label: Text(fandom),
                           selected: selected,
-                          onSelected: (_) => setState(() => _selectedFandom = fandom),
+                          onSelected: (_) =>
+                              setState(() => _selectedFandom = fandom),
                         );
                       },
                     ),
@@ -292,7 +301,8 @@ class _BeginnerHubScreenState extends ConsumerState<BeginnerHubScreen>
                       suffixIcon: _searchQuery.isNotEmpty
                           ? IconButton(
                               icon: const Icon(Icons.clear, size: 18),
-                              onPressed: () => setState(() => _searchQuery = ''),
+                              onPressed: () =>
+                                  setState(() => _searchQuery = ''),
                             )
                           : null,
                     ),
@@ -313,7 +323,8 @@ class _BeginnerHubScreenState extends ConsumerState<BeginnerHubScreen>
                       : ListView.separated(
                           padding: const EdgeInsets.all(16),
                           itemCount: glossaryTerms.length,
-                          separatorBuilder: (_, __) => const SizedBox(height: 10),
+                          separatorBuilder: (_, _) =>
+                              const SizedBox(height: 10),
                           itemBuilder: (context, index) {
                             final term = glossaryTerms[index];
                             return Card(
@@ -323,12 +334,16 @@ class _BeginnerHubScreenState extends ConsumerState<BeginnerHubScreen>
                                   foregroundColor: Colors.black,
                                   child: Text(
                                     term.term.substring(0, 1),
-                                    style: const TextStyle(fontWeight: FontWeight.bold),
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                    ),
                                   ),
                                 ),
                                 title: Text(
                                   term.term,
-                                  style: const TextStyle(fontWeight: FontWeight.w800),
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.w800,
+                                  ),
                                 ),
                                 subtitle: Text(
                                   term.definition,
@@ -346,29 +361,40 @@ class _BeginnerHubScreenState extends ConsumerState<BeginnerHubScreen>
                   profiles.isEmpty
                       ? _EmptyState(
                           title: 'No beginner profiles found',
-                          subtitle: 'Explore all profiles from the main explore screen.',
+                          subtitle:
+                              'Explore all profiles from the main explore screen.',
                         )
                       : ListView.separated(
                           padding: const EdgeInsets.all(16),
                           itemCount: profiles.length,
-                          separatorBuilder: (_, __) => const SizedBox(height: 12),
+                          separatorBuilder: (_, _) =>
+                              const SizedBox(height: 12),
                           itemBuilder: (context, index) {
                             final item = profiles[index];
                             return Card(
                               child: ListTile(
                                 leading: const CircleAvatar(
                                   backgroundColor: Color(0xFF332C4D),
-                                  child: Icon(Icons.person, color: Colors.white70),
+                                  child: Icon(
+                                    Icons.person,
+                                    color: Colors.white70,
+                                  ),
                                 ),
                                 title: Text(
                                   item.title,
-                                  style: const TextStyle(fontWeight: FontWeight.w800),
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.w800,
+                                  ),
                                 ),
                                 subtitle: Text(item.summary),
-                                trailing: const Icon(Icons.arrow_forward_ios, size: 14),
+                                trailing: const Icon(
+                                  Icons.arrow_forward_ios,
+                                  size: 14,
+                                ),
                                 onTap: () => Navigator.of(context).push(
                                   MaterialPageRoute<void>(
-                                    builder: (_) => ContentDetailScreen(item: item),
+                                    builder: (_) =>
+                                        ContentDetailScreen(item: item),
                                   ),
                                 ),
                               ),
@@ -380,12 +406,14 @@ class _BeginnerHubScreenState extends ConsumerState<BeginnerHubScreen>
                   stories.isEmpty
                       ? _EmptyState(
                           title: 'No beginner stories found',
-                          subtitle: 'Stories will be curated for this universe soon.',
+                          subtitle:
+                              'Stories will be curated for this universe soon.',
                         )
                       : ListView.separated(
                           padding: const EdgeInsets.all(16),
                           itemCount: stories.length,
-                          separatorBuilder: (_, __) => const SizedBox(height: 12),
+                          separatorBuilder: (_, _) =>
+                              const SizedBox(height: 12),
                           itemBuilder: (context, index) {
                             final item = stories[index];
                             return Card(
@@ -399,17 +427,23 @@ class _BeginnerHubScreenState extends ConsumerState<BeginnerHubScreen>
                                 ),
                                 title: Text(
                                   item.title,
-                                  style: const TextStyle(fontWeight: FontWeight.w800),
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.w800,
+                                  ),
                                 ),
                                 subtitle: Text(
                                   item.summary,
                                   maxLines: 2,
                                   overflow: TextOverflow.ellipsis,
                                 ),
-                                trailing: const Icon(Icons.arrow_forward_ios, size: 14),
+                                trailing: const Icon(
+                                  Icons.arrow_forward_ios,
+                                  size: 14,
+                                ),
                                 onTap: () => Navigator.of(context).push(
                                   MaterialPageRoute<void>(
-                                    builder: (_) => ContentDetailScreen(item: item),
+                                    builder: (_) =>
+                                        ContentDetailScreen(item: item),
                                   ),
                                 ),
                               ),
@@ -434,27 +468,26 @@ class _EmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Center(
-        child: Padding(
-          padding: const EdgeInsets.all(32),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(Icons.search_off, size: 48, color: Colors.white38),
-              const SizedBox(height: 12),
-              Text(
-                title,
-                textAlign: TextAlign.center,
-                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                subtitle,
-                textAlign: TextAlign.center,
-                style: const TextStyle(color: Colors.white54, fontSize: 13),
-              ),
-            ],
+    child: Padding(
+      padding: const EdgeInsets.all(32),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.search_off, size: 48, color: Colors.white38),
+          const SizedBox(height: 12),
+          Text(
+            title,
+            textAlign: TextAlign.center,
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
           ),
-        ),
-      );
+          const SizedBox(height: 4),
+          Text(
+            subtitle,
+            textAlign: TextAlign.center,
+            style: const TextStyle(color: Colors.white54, fontSize: 13),
+          ),
+        ],
+      ),
+    ),
+  );
 }
-

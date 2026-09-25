@@ -89,34 +89,39 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
       ...{for (final item in catalog) item.creator},
     ];
 
-    final results = catalog.where((item) {
-      final query = _query.toLowerCase().trim();
-      final matchesQuery = query.isEmpty ||
-          item.title.toLowerCase().contains(query) ||
-          item.summary.toLowerCase().contains(query) ||
-          item.body.toLowerCase().contains(query) ||
-          item.creator.toLowerCase().contains(query) ||
-          item.tags.any((tag) => tag.toLowerCase().contains(query));
+    final results = catalog
+        .where((item) {
+          final query = _query.toLowerCase().trim();
+          final matchesQuery =
+              query.isEmpty ||
+              item.title.toLowerCase().contains(query) ||
+              item.summary.toLowerCase().contains(query) ||
+              item.body.toLowerCase().contains(query) ||
+              item.creator.toLowerCase().contains(query) ||
+              item.tags.any((tag) => tag.toLowerCase().contains(query));
 
-      final matchesCategory = _category == 'All' || item.category == _category;
+          final matchesCategory =
+              _category == 'All' || item.category == _category;
 
-      final expectedType = _mapResourceNameToType(_resourceType);
-      final matchesType = expectedType == null || item.type == expectedType;
+          final expectedType = _mapResourceNameToType(_resourceType);
+          final matchesType = expectedType == null || item.type == expectedType;
 
-      final matchesCreator =
-          _selectedCreator == 'All' || item.creator == _selectedCreator;
+          final matchesCreator =
+              _selectedCreator == 'All' || item.creator == _selectedCreator;
 
-      final matchesTag = _selectedTag == null ||
-          item.tags.any(
-            (tag) => tag.toLowerCase() == _selectedTag!.toLowerCase(),
-          );
+          final matchesTag =
+              _selectedTag == null ||
+              item.tags.any(
+                (tag) => tag.toLowerCase() == _selectedTag!.toLowerCase(),
+              );
 
-      return matchesQuery &&
-          matchesCategory &&
-          matchesType &&
-          matchesCreator &&
-          matchesTag;
-    }).toList(growable: false);
+          return matchesQuery &&
+              matchesCategory &&
+              matchesType &&
+              matchesCreator &&
+              matchesTag;
+        })
+        .toList(growable: false);
 
     final library = ref.watch(libraryProvider);
 
@@ -307,7 +312,7 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
                 child: ListView.separated(
                   scrollDirection: Axis.horizontal,
                   itemCount: categories.length,
-                  separatorBuilder: (_, __) => const SizedBox(width: 8),
+                  separatorBuilder: (_, _) => const SizedBox(width: 8),
                   itemBuilder: (_, index) {
                     final category = categories[index];
                     return ChoiceChip(
@@ -347,7 +352,7 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
               child: ListView.separated(
                 scrollDirection: Axis.horizontal,
                 itemCount: _resourceTypeChoices.length,
-                separatorBuilder: (_, __) => const SizedBox(width: 8),
+                separatorBuilder: (_, _) => const SizedBox(width: 8),
                 itemBuilder: (_, index) {
                   final type = _resourceTypeChoices[index];
                   final isSelected = type == _resourceType;
@@ -401,12 +406,15 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
                 child: ListView.separated(
                   scrollDirection: Axis.horizontal,
                   itemCount: _trendingTags.length,
-                  separatorBuilder: (_, __) => const SizedBox(width: 6),
+                  separatorBuilder: (_, _) => const SizedBox(width: 6),
                   itemBuilder: (_, index) {
                     final tag = _trendingTags[index];
                     final isSelected = _selectedTag == tag;
                     return FilterChip(
-                      label: Text('#$tag', style: const TextStyle(fontSize: 12)),
+                      label: Text(
+                        '#$tag',
+                        style: const TextStyle(fontSize: 12),
+                      ),
                       selected: isSelected,
                       onSelected: (selected) {
                         setState(() {
@@ -685,7 +693,11 @@ class ContentDetailScreen extends ConsumerWidget {
 
   final ContentItem item;
 
-  void _openFullScreenViewer(BuildContext context, String imageUrl, String title) {
+  void _openFullScreenViewer(
+    BuildContext context,
+    String imageUrl,
+    String title,
+  ) {
     showDialog<void>(
       context: context,
       barrierColor: Colors.black.withAlpha(240),
@@ -698,10 +710,7 @@ class ContentDetailScreen extends ConsumerWidget {
               child: InteractiveViewer(
                 minScale: 0.8,
                 maxScale: 4.0,
-                child: RemoteMediaImage(
-                  url: imageUrl,
-                  fit: BoxFit.contain,
-                ),
+                child: RemoteMediaImage(url: imageUrl, fit: BoxFit.contain),
               ),
             ),
             Positioned(
@@ -718,7 +727,10 @@ class ContentDetailScreen extends ConsumerWidget {
               left: 20,
               right: 20,
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 10,
+                ),
                 decoration: BoxDecoration(
                   color: Colors.black.withAlpha(180),
                   borderRadius: BorderRadius.circular(12),
@@ -771,10 +783,10 @@ class ContentDetailScreen extends ConsumerWidget {
           GestureDetector(
             onTap: item.type == ContentType.gallery
                 ? () => _openFullScreenViewer(
-                      context,
-                      item.imageUrl ?? '',
-                      item.title,
-                    )
+                    context,
+                    item.imageUrl ?? '',
+                    item.title,
+                  )
                 : null,
             child: ClipRRect(
               borderRadius: BorderRadius.circular(24),
@@ -800,7 +812,11 @@ class ContentDetailScreen extends ConsumerWidget {
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: const [
-                              Icon(Icons.fullscreen, size: 16, color: Colors.white),
+                              Icon(
+                                Icons.fullscreen,
+                                size: 16,
+                                color: Colors.white,
+                              ),
                               SizedBox(width: 4),
                               Text(
                                 'Tap for Fullscreen',
@@ -842,10 +858,7 @@ class ContentDetailScreen extends ConsumerWidget {
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 8,
-                  vertical: 4,
-                ),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
                   color: const Color(0xFFFFD740),
                   borderRadius: BorderRadius.circular(6),
@@ -950,7 +963,9 @@ class ContentDetailScreen extends ConsumerWidget {
               decoration: BoxDecoration(
                 color: const Color(0xFF1B2E24),
                 borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: const Color(0xFF4CAF50).withAlpha(90)),
+                border: Border.all(
+                  color: const Color(0xFF4CAF50).withAlpha(90),
+                ),
               ),
               child: Row(
                 children: const [
@@ -1037,7 +1052,9 @@ class _InteractivePodcastPlayerState extends State<_InteractivePodcastPlayer> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      _isPlaying ? 'Now Playing Podcast' : 'Tap to Play Podcast',
+                      _isPlaying
+                          ? 'Now Playing Podcast'
+                          : 'Tap to Play Podcast',
                       style: const TextStyle(
                         fontSize: 11,
                         color: Color(0xFFFFD740),
@@ -1057,9 +1074,13 @@ class _InteractivePodcastPlayerState extends State<_InteractivePodcastPlayer> {
                 initialValue: _speed,
                 tooltip: 'Playback Speed',
                 onSelected: (val) => setState(() => _speed = val),
-                itemBuilder: (_) => ['0.75x', '1.0x', '1.25x', '1.5x', '2.0x']
-                    .map((s) => PopupMenuItem(value: s, child: Text(s)))
-                    .toList(),
+                itemBuilder: (_) => [
+                  '0.75x',
+                  '1.0x',
+                  '1.25x',
+                  '1.5x',
+                  '2.0x',
+                ].map((s) => PopupMenuItem(value: s, child: Text(s))).toList(),
                 child: Chip(
                   label: Text(_speed, style: const TextStyle(fontSize: 11)),
                   padding: EdgeInsets.zero,

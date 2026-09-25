@@ -194,13 +194,10 @@ class _StatCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final future = useCollectionGroup
         ? FirebaseFirestore.instance
-            .collectionGroup(collectionPath)
-            .count()
-            .get()
-        : FirebaseFirestore.instance
-            .collection(collectionPath)
-            .count()
-            .get();
+              .collectionGroup(collectionPath)
+              .count()
+              .get()
+        : FirebaseFirestore.instance.collection(collectionPath).count().get();
     return FutureBuilder<AggregateQuerySnapshot>(
       future: future,
       builder: (context, snapshot) {
@@ -220,9 +217,9 @@ class _StatCard extends StatelessWidget {
                   const SizedBox(height: 6),
                   Text(
                     '$count',
-                    style: Theme.of(
-                      context,
-                    ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.w800,
+                    ),
                   ),
                   Text(
                     label,

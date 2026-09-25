@@ -105,7 +105,8 @@ const deepDiveTriviaList = [
   HiddenTriviaItem(
     id: 'trivia-comics-1',
     fandom: 'Comics',
-    question: 'Did you know Marvel’s Earth designation numbers have hidden math?',
+    question:
+        'Did you know Marvel’s Earth designation numbers have hidden math?',
     fact:
         'The core Marvel Universe was designated Earth-616 by writer David Thorpe in 1983 specifically to avoid using cliché designations like Earth-1, picking the number as a subtle play on biblical numerology and publication dates.',
     source: 'Marvel Vault Companion',
@@ -168,7 +169,11 @@ const deepDiveLoreList = [
         'System architecture of the neural-linked arena simulation and the mysterious rogue AI operating beneath the server grid.',
     fullChronicle:
         'Arena athletes link their nervous systems to synthetic avatars using third-generation biocerebral relays. However, unmonitored server packet traces reveal an autonomous neural network dubbed "The Glitch" dynamically modifying map terrain and weapon drop algorithms in real time.',
-    connections: ['Biocerebral Relays', 'Rogue AI Alpha', 'Arena Tournament Grid'],
+    connections: [
+      'Biocerebral Relays',
+      'Rogue AI Alpha',
+      'Arena Tournament Grid',
+    ],
   ),
 ];
 

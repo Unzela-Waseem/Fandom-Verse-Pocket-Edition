@@ -93,14 +93,15 @@ class _DeepDiveScreenState extends ConsumerState<DeepDiveScreen>
                     child: ListView.separated(
                       scrollDirection: Axis.horizontal,
                       itemCount: _fandoms.length,
-                      separatorBuilder: (_, __) => const SizedBox(width: 8),
+                      separatorBuilder: (_, _) => const SizedBox(width: 8),
                       itemBuilder: (_, index) {
                         final fandom = _fandoms[index];
                         final selected = fandom == _selectedFandom;
                         return ChoiceChip(
                           label: Text(fandom),
                           selected: selected,
-                          onSelected: (_) => setState(() => _selectedFandom = fandom),
+                          onSelected: (_) =>
+                              setState(() => _selectedFandom = fandom),
                         );
                       },
                     ),
@@ -121,10 +122,13 @@ class _DeepDiveScreenState extends ConsumerState<DeepDiveScreen>
                       : ListView.separated(
                           padding: const EdgeInsets.all(16),
                           itemCount: trivia.length,
-                          separatorBuilder: (_, __) => const SizedBox(height: 14),
+                          separatorBuilder: (_, _) =>
+                              const SizedBox(height: 14),
                           itemBuilder: (context, index) {
                             final item = trivia[index];
-                            final isRevealed = _revealedTrivia.contains(item.id);
+                            final isRevealed = _revealedTrivia.contains(
+                              item.id,
+                            );
                             return Card(
                               clipBehavior: Clip.antiAlias,
                               child: Padding(
@@ -141,7 +145,9 @@ class _DeepDiveScreenState extends ConsumerState<DeepDiveScreen>
                                           ),
                                           decoration: BoxDecoration(
                                             color: const Color(0xFFFFD740),
-                                            borderRadius: BorderRadius.circular(6),
+                                            borderRadius: BorderRadius.circular(
+                                              6,
+                                            ),
                                           ),
                                           child: Text(
                                             item.fandom.toUpperCase(),
@@ -183,13 +189,18 @@ class _DeepDiveScreenState extends ConsumerState<DeepDiveScreen>
                                         padding: const EdgeInsets.all(14),
                                         decoration: BoxDecoration(
                                           color: Colors.white.withAlpha(12),
-                                          borderRadius: BorderRadius.circular(12),
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
                                           border: Border.all(
-                                            color: const Color(0xFFFFD740).withAlpha(80),
+                                            color: const Color(
+                                              0xFFFFD740,
+                                            ).withAlpha(80),
                                           ),
                                         ),
                                         child: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
                                           children: [
                                             Row(
                                               children: const [
@@ -240,7 +251,9 @@ class _DeepDiveScreenState extends ConsumerState<DeepDiveScreen>
                                             });
                                           },
                                           icon: const Icon(Icons.visibility),
-                                          label: const Text('Tap to Reveal Trivia Fact'),
+                                          label: const Text(
+                                            'Tap to Reveal Trivia Fact',
+                                          ),
                                         ),
                                       ),
                                     ],
@@ -260,28 +273,43 @@ class _DeepDiveScreenState extends ConsumerState<DeepDiveScreen>
                       : ListView.separated(
                           padding: const EdgeInsets.all(16),
                           itemCount: lore.length,
-                          separatorBuilder: (_, __) => const SizedBox(height: 14),
+                          separatorBuilder: (_, _) =>
+                              const SizedBox(height: 14),
                           itemBuilder: (context, index) {
                             final item = lore[index];
                             return Card(
                               child: ExpansionTile(
                                 leading: const CircleAvatar(
                                   backgroundColor: Color(0xFF24232B),
-                                  child: Icon(Icons.history_edu, color: Color(0xFFFFD740)),
+                                  child: Icon(
+                                    Icons.history_edu,
+                                    color: Color(0xFFFFD740),
+                                  ),
                                 ),
                                 title: Text(
                                   item.title,
-                                  style: const TextStyle(fontWeight: FontWeight.w800),
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.w800,
+                                  ),
                                 ),
                                 subtitle: Text(
                                   '${item.fandom} · ${item.timelineEra}',
-                                  style: const TextStyle(fontSize: 12, color: Colors.white54),
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.white54,
+                                  ),
                                 ),
                                 children: [
                                   Padding(
-                                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                                    padding: const EdgeInsets.fromLTRB(
+                                      16,
+                                      0,
+                                      16,
+                                      16,
+                                    ),
                                     child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
                                         const Divider(),
                                         Text(
@@ -315,9 +343,16 @@ class _DeepDiveScreenState extends ConsumerState<DeepDiveScreen>
                                           children: item.connections
                                               .map(
                                                 (conn) => Chip(
-                                                  label: Text(conn, style: const TextStyle(fontSize: 11)),
+                                                  label: Text(
+                                                    conn,
+                                                    style: const TextStyle(
+                                                      fontSize: 11,
+                                                    ),
+                                                  ),
                                                   padding: EdgeInsets.zero,
-                                                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                                  materialTapTargetSize:
+                                                      MaterialTapTargetSize
+                                                          .shrinkWrap,
                                                 ),
                                               )
                                               .toList(),
@@ -340,7 +375,8 @@ class _DeepDiveScreenState extends ConsumerState<DeepDiveScreen>
                       : ListView.separated(
                           padding: const EdgeInsets.all(16),
                           itemCount: bts.length,
-                          separatorBuilder: (_, __) => const SizedBox(height: 14),
+                          separatorBuilder: (_, _) =>
+                              const SizedBox(height: 14),
                           itemBuilder: (context, index) {
                             final item = bts[index];
                             return Card(
@@ -358,7 +394,9 @@ class _DeepDiveScreenState extends ConsumerState<DeepDiveScreen>
                                           ),
                                           decoration: BoxDecoration(
                                             color: const Color(0xFFFFD740),
-                                            borderRadius: BorderRadius.circular(6),
+                                            borderRadius: BorderRadius.circular(
+                                              6,
+                                            ),
                                           ),
                                           child: Text(
                                             item.fandom.toUpperCase(),
@@ -396,7 +434,9 @@ class _DeepDiveScreenState extends ConsumerState<DeepDiveScreen>
                                     const SizedBox(height: 10),
                                     Text(
                                       item.summary,
-                                      style: const TextStyle(color: Colors.white70),
+                                      style: const TextStyle(
+                                        color: Colors.white70,
+                                      ),
                                     ),
                                     const SizedBox(height: 12),
                                     Container(
@@ -405,7 +445,9 @@ class _DeepDiveScreenState extends ConsumerState<DeepDiveScreen>
                                       decoration: BoxDecoration(
                                         color: Colors.white.withAlpha(12),
                                         borderRadius: BorderRadius.circular(12),
-                                        border: Border.all(color: Colors.white12),
+                                        border: Border.all(
+                                          color: Colors.white12,
+                                        ),
                                       ),
                                       child: Text(
                                         item.insights,
@@ -440,27 +482,26 @@ class _EmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Center(
-        child: Padding(
-          padding: const EdgeInsets.all(32),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(Icons.psychology_alt, size: 48, color: Colors.white38),
-              const SizedBox(height: 12),
-              Text(
-                title,
-                textAlign: TextAlign.center,
-                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                subtitle,
-                textAlign: TextAlign.center,
-                style: const TextStyle(color: Colors.white54, fontSize: 13),
-              ),
-            ],
+    child: Padding(
+      padding: const EdgeInsets.all(32),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.psychology_alt, size: 48, color: Colors.white38),
+          const SizedBox(height: 12),
+          Text(
+            title,
+            textAlign: TextAlign.center,
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
           ),
-        ),
-      );
+          const SizedBox(height: 4),
+          Text(
+            subtitle,
+            textAlign: TextAlign.center,
+            style: const TextStyle(color: Colors.white54, fontSize: 13),
+          ),
+        ],
+      ),
+    ),
+  );
 }
-
