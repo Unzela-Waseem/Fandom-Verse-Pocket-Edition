@@ -9,6 +9,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../data/demo_catalog.dart';
 import '../domain/library_models.dart';
+import '../../../core/media/offline_media_service.dart';
 
 class LibraryState {
   const LibraryState({
@@ -405,12 +406,26 @@ class LibraryController extends Notifier<LibraryState> {
   void toggleBookmark(String id, {ContentItem? item}) {
     final next = {...state.bookmarkedContent};
     final details = {...state.savedContent};
-    next.contains(id) ? next.remove(id) : next.add(id);
-    if (next.contains(id) && item != null) {
-      details[id] = item;
-    } else if (!next.contains(id)) {
+    final isAdding = !next.contains(id);
+    
+    if (isAdding) {
+      next.add(id);
+      if (item != null) details[id] = item;
+      
+      // Download media for offline use
+      final offlineMedia = ref.read(offlineMediaServiceProvider);
+      if (item?.videoUrl != null) unawaited(offlineMedia.downloadMedia(item!.videoUrl));
+      if (item?.imageUrl != null) unawaited(offlineMedia.downloadMedia(item!.imageUrl));
+    } else {
+      next.remove(id);
       details.remove(id);
+      
+      // Remove cached media to free storage
+      final offlineMedia = ref.read(offlineMediaServiceProvider);
+      if (item?.videoUrl != null) unawaited(offlineMedia.removeMedia(item!.videoUrl));
+      if (item?.imageUrl != null) unawaited(offlineMedia.removeMedia(item!.imageUrl));
     }
+    
     state = state.copyWith(bookmarkedContent: next, savedContent: details);
     unawaited(_persist());
     _writeCloud(

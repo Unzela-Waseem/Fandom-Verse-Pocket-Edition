@@ -1,8 +1,11 @@
+import 'dart:io';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:video_player/video_player.dart';
 
+import 'offline_media_service.dart';
 import '../constants/app_assets.dart';
 
 bool isHttpsMediaUrl(String? value) {
@@ -29,7 +32,7 @@ String? getPosterUrlFromVideo(String? videoUrl) {
   return null;
 }
 
-class RemoteMediaImage extends StatelessWidget {
+class RemoteMediaImage extends StatefulWidget {
   const RemoteMediaImage({
     super.key,
     this.url,
@@ -42,23 +45,78 @@ class RemoteMediaImage extends StatelessWidget {
   final BoxFit fit;
 
   @override
+  State<RemoteMediaImage> createState() => _RemoteMediaImageState();
+}
+
+class _RemoteMediaImageState extends State<RemoteMediaImage> {
+  String? _localPath;
+  late Future<void> _checkLocalFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkLocalFuture = _checkLocal();
+  }
+
+  @override
+  void didUpdateWidget(covariant RemoteMediaImage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.url != widget.url || oldWidget.videoUrlForPoster != widget.videoUrlForPoster) {
+      _checkLocalFuture = _checkLocal();
+    }
+  }
+
+  Future<void> _checkLocal() async {
+    final effectiveUrl = isHttpsMediaUrl(widget.url)
+        ? widget.url!.trim()
+        : getPosterUrlFromVideo(widget.videoUrlForPoster);
+    
+    if (effectiveUrl != null) {
+      final path = await OfflineMediaService().getLocalPath(effectiveUrl);
+      if (mounted) setState(() => _localPath = path);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final effectiveUrl = isHttpsMediaUrl(url)
-        ? url!.trim()
-        : getPosterUrlFromVideo(videoUrlForPoster);
+    final effectiveUrl = isHttpsMediaUrl(widget.url)
+        ? widget.url!.trim()
+        : getPosterUrlFromVideo(widget.videoUrlForPoster);
 
     final isTest = WidgetsBinding.instance.runtimeType.toString().contains('Test');
+    
     if (isTest || effectiveUrl == null || !isHttpsMediaUrl(effectiveUrl)) {
-      return Image.asset(AppAssets.multiverse, fit: fit);
+      return Image.asset(AppAssets.multiverse, fit: widget.fit);
     }
-    return CachedNetworkImage(
-      imageUrl: effectiveUrl,
-      fit: fit,
-      placeholder: (_, _) => Container(
-        color: const Color(0xFF1B1B22),
-        child: const Center(child: CircularProgressIndicator(strokeWidth: 2)),
-      ),
-      errorWidget: (_, _, _) => Image.asset(AppAssets.multiverse, fit: fit),
+    
+    return FutureBuilder<void>(
+      future: _checkLocalFuture,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting && _localPath == null) {
+          return Container(
+            color: const Color(0xFF1B1B22),
+            child: const Center(child: CircularProgressIndicator(strokeWidth: 2)),
+          );
+        }
+        
+        if (_localPath != null) {
+          return Image.file(
+            File(_localPath!),
+            fit: widget.fit,
+            errorBuilder: (_, __, ___) => Image.asset(AppAssets.multiverse, fit: widget.fit),
+          );
+        }
+        
+        return CachedNetworkImage(
+          imageUrl: effectiveUrl,
+          fit: widget.fit,
+          placeholder: (_, _) => Container(
+            color: const Color(0xFF1B1B22),
+            child: const Center(child: CircularProgressIndicator(strokeWidth: 2)),
+          ),
+          errorWidget: (_, _, _) => Image.asset(AppAssets.multiverse, fit: widget.fit),
+        );
+      },
     );
   }
 }
@@ -95,8 +153,24 @@ class _RemoteMediaVideoState extends State<RemoteMediaVideo> {
   }
 
   void _initialize() {
-    _controller = VideoPlayerController.networkUrl(Uri.parse(widget.url.trim()));
-    _initialization = _controller.initialize().catchError((_) {});
+    _initialization = _setupController();
+  }
+
+  Future<void> _setupController() async {
+    final localPath = await OfflineMediaService().getLocalPath(widget.url);
+    if (!mounted) return;
+    
+    if (localPath != null) {
+      _controller = VideoPlayerController.file(File(localPath));
+    } else {
+      _controller = VideoPlayerController.networkUrl(
+        Uri.parse(widget.url.trim()),
+      );
+    }
+    try {
+      await _controller.initialize();
+    } catch (_) {}
+    if (mounted) setState(() {});
   }
 
   @override
@@ -142,7 +216,10 @@ class _RemoteMediaVideoState extends State<RemoteMediaVideo> {
                     const SizedBox(height: 10),
                     const Text(
                       'Video Stream Available',
-                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
                     ),
                     const SizedBox(height: 6),
                     Text(
@@ -178,7 +255,10 @@ class _RemoteMediaVideoState extends State<RemoteMediaVideo> {
                           SizedBox(height: 10),
                           Text(
                             'Loading video...',
-                            style: TextStyle(color: Colors.white70, fontSize: 12),
+                            style: TextStyle(
+                              color: Colors.white70,
+                              fontSize: 12,
+                            ),
                           ),
                         ],
                       ),
@@ -215,7 +295,9 @@ class _RemoteMediaVideoState extends State<RemoteMediaVideo> {
                               iconSize: 32,
                               color: Colors.white,
                               icon: Icon(
-                                value.isPlaying ? Icons.pause : Icons.play_arrow,
+                                value.isPlaying
+                                    ? Icons.pause
+                                    : Icons.play_arrow,
                               ),
                               onPressed: () {
                                 value.isPlaying

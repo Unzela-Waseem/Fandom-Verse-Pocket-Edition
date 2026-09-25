@@ -60,7 +60,9 @@ class CloudinaryMediaService {
     required void Function(double progress) onProgress,
   }) async {
     if (!isSupportedPlatform) {
-      throw const MediaUploadException('Platform not supported for media picker.');
+      throw const MediaUploadException(
+        'Platform not supported for media picker.',
+      );
     }
     final user = _auth.currentUser;
     if (user == null) {
@@ -96,15 +98,15 @@ class CloudinaryMediaService {
     final lowerName = picked.name.toLowerCase();
     final isAllowed = isVideo
         ? (lowerName.endsWith('.mp4') ||
-            lowerName.endsWith('.mov') ||
-            lowerName.endsWith('.webm') ||
-            lowerName.endsWith('.mkv') ||
-            lowerName.endsWith('.avi'))
+              lowerName.endsWith('.mov') ||
+              lowerName.endsWith('.webm') ||
+              lowerName.endsWith('.mkv') ||
+              lowerName.endsWith('.avi'))
         : (lowerName.endsWith('.jpg') ||
-            lowerName.endsWith('.jpeg') ||
-            lowerName.endsWith('.png') ||
-            lowerName.endsWith('.webp') ||
-            lowerName.endsWith('.gif'));
+              lowerName.endsWith('.jpeg') ||
+              lowerName.endsWith('.png') ||
+              lowerName.endsWith('.webp') ||
+              lowerName.endsWith('.gif'));
 
     if (!isAllowed) {
       throw MediaUploadException(
@@ -140,7 +142,9 @@ class CloudinaryMediaService {
             'The upload service returned an invalid ticket.',
           );
         }
-        final parameters = Map<String, dynamic>.from(ticket['parameters'] as Map);
+        final parameters = Map<String, dynamic>.from(
+          ticket['parameters'] as Map,
+        );
         if (parameters['timestamp'] is! int ||
             parameters['folder'] is! String ||
             parameters['public_id'] is! String ||
@@ -149,10 +153,10 @@ class CloudinaryMediaService {
         }
         final mimeType = isVideo
             ? picked.name.toLowerCase().endsWith('.webm')
-                ? 'video/webm'
-                : picked.name.toLowerCase().endsWith('.mov')
-                ? 'video/quicktime'
-                : 'video/mp4'
+                  ? 'video/webm'
+                  : picked.name.toLowerCase().endsWith('.mov')
+                  ? 'video/quicktime'
+                  : 'video/mp4'
             : (supportedImageMime(bytes) ?? 'image/jpeg');
         final form = FormData.fromMap({
           ...parameters,
@@ -203,7 +207,9 @@ class CloudinaryMediaService {
             uri.scheme != 'https' ||
             uri.host != 'res.cloudinary.com' ||
             !uri.path.startsWith('/$cloudName/')) {
-          throw const MediaUploadException('The uploaded asset URL is invalid.');
+          throw const MediaUploadException(
+            'The uploaded asset URL is invalid.',
+          );
         }
         onProgress(1);
         return url as String;
@@ -211,10 +217,10 @@ class CloudinaryMediaService {
         // Direct upload to Cloudinary using Unsigned Preset
         final mimeType = isVideo
             ? picked.name.toLowerCase().endsWith('.webm')
-                ? 'video/webm'
-                : picked.name.toLowerCase().endsWith('.mov')
-                ? 'video/quicktime'
-                : 'video/mp4'
+                  ? 'video/webm'
+                  : picked.name.toLowerCase().endsWith('.mov')
+                  ? 'video/quicktime'
+                  : 'video/mp4'
             : (supportedImageMime(bytes) ?? 'image/jpeg');
         final folder = isVideo
             ? 'fandom-verse/content/videos'
@@ -243,14 +249,17 @@ class CloudinaryMediaService {
           onProgress(1);
           return url;
         }
-        throw const MediaUploadException('Cloudinary did not return a secure URL.');
+        throw const MediaUploadException(
+          'Cloudinary did not return a secure URL.',
+        );
       }
     } on DioException catch (error) {
       if (CancelToken.isCancel(error)) {
         throw const MediaUploadException('Upload canceled.');
       }
       final data = error.response?.data;
-      var message = 'Upload failed. Check your connection or paste Cloudinary URL.';
+      var message =
+          'Upload failed. Check your connection or paste Cloudinary URL.';
       if (data is Map) {
         if (data['error'] is Map && data['error']['message'] is String) {
           message = data['error']['message'] as String;
