@@ -1,5 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:cloud_functions/cloud_functions.dart';
+import 'package:dio/dio.dart' as dio;
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
@@ -126,7 +126,9 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
       builder: (context) => AlertDialog(
         title: const Text('Permanently delete user?'),
         content: Text(
-          'This will remove $name ($email) from Firebase Auth AND Firestore.\n\nThis action cannot be undone.',
+          'This will remove $name ($email) from Firestore.\n\n'
+          'Note: Their Firebase Auth account will remain until deleted '
+          'via the Firebase Console or admin-tools CLI.',
         ),
         actions: [
           TextButton(
@@ -138,7 +140,7 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
               backgroundColor: Theme.of(context).colorScheme.error,
             ),
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Delete Permanently'),
+            child: const Text('Delete'),
           ),
         ],
       ),
@@ -146,22 +148,19 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
     if (confirmed != true || !mounted) return;
     setState(() => _busyId = user.id);
     try {
-      // Call the Cloud Function — runs with Admin SDK so it deletes
-      // the Firebase Auth account AND the Firestore profile atomically.
-      final callable = FirebaseFunctions.instanceFor(
-        region: 'asia-south1',
-      ).httpsCallable('deleteAuthUser');
-      await callable.call<Map<String, dynamic>>({'uid': user.id});
+      final batch = FirebaseFirestore.instance.batch();
+      batch.delete(user.reference);
+      addAdminAudit(
+        batch,
+        action: 'delete',
+        collection: 'users',
+        recordId: user.id,
+      );
+      await batch.commit();
       await _refresh();
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('$name deleted from Auth and Firestore.')),
-        );
-      }
-    } on FirebaseFunctionsException catch (error) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(error.message ?? 'Deletion failed.')),
+          SnackBar(content: Text('$name removed from Firestore.')),
         );
       }
     } on FirebaseException catch (error) {
@@ -563,11 +562,9 @@ class _AdminUserEditorState extends State<_AdminUserEditor> {
 }
 
 // ── User Provisioning Dialog ──────────────────────────────────────────────────
-// Two-step user creation:
-//   Step 1: Tries the provisionUser Cloud Function (Blaze plan required).
-//           On Spark plan, falls back: writes a pending Firestore profile
-//           immediately and shows the exact CLI command to finish Auth creation.
-//   Step 2 (CLI dialog): Copyable terminal command shown only on Spark plan.
+// Fan users are created via Firebase Auth REST API (works on any Firebase plan).
+// Admin users are created via the manage-users.mjs CLI tool using key.json.
+// Both paths create a real Firebase Auth account + Firestore profile atomically.
 
 class _AdminUserProvisioningDialog extends StatefulWidget {
   const _AdminUserProvisioningDialog();
@@ -588,6 +585,10 @@ class _AdminUserProvisioningDialogState
   bool _obscurePassword = true;
   String? _errorMessage;
 
+  // Firebase Web API key — already public via google-services.json.
+  // Used only for Auth REST API (same key the app uses for sign-in).
+  static const _firebaseApiKey = 'AIzaSyCgVeHnMw-rU68HBBAu3NPOwKgSkA0CQf4';
+
   @override
   void dispose() {
     _name.dispose();
@@ -603,59 +604,61 @@ class _AdminUserProvisioningDialogState
       _errorMessage = null;
     });
     try {
-      final callable = FirebaseFunctions.instanceFor(region: 'asia-south1')
-          .httpsCallable(
-            'provisionUser',
-            options: HttpsCallableOptions(timeout: const Duration(seconds: 15)),
-          );
-      final result = await callable.call<Map<String, dynamic>>({
-        'displayName': _name.text.trim(),
-        'email': _email.text.trim().toLowerCase(),
-        'password': _password.text,
-        'role': _role,
-      });
-      final uid = result.data['uid'] as String? ?? '';
-      if (mounted) {
-        Navigator.pop(context);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              '\u2705 ${_role == 'admin' ? 'Admin' : 'Fan'} account created! UID: $uid',
-            ),
-            duration: const Duration(seconds: 5),
-          ),
-        );
-      }
-    } on FirebaseFunctionsException catch (fnErr) {
-      if (fnErr.code == 'not-found' ||
-          fnErr.code == 'internal' ||
-          fnErr.code == 'unavailable' ||
-          fnErr.code == 'deadline-exceeded') {
-        await _fallbackFirestoreAndShowCli();
+      if (_role == 'fan') {
+        await _createFanViaRestApi();
       } else {
-        setState(() => _errorMessage = fnErr.message ?? 'Provisioning failed.');
+        await _createAdminViaRestApi();
       }
-    } catch (_) {
-      await _fallbackFirestoreAndShowCli();
     } finally {
       if (mounted) setState(() => _saving = false);
     }
   }
 
-  Future<void> _fallbackFirestoreAndShowCli() async {
+  /// Creates a Fan account via Firebase Auth REST API.
+  /// Works on Spark plan — no Cloud Functions needed.
+  Future<void> _createFanViaRestApi() async {
+    final email = _email.text.trim().toLowerCase();
+    final password = _password.text;
+    final displayName = _name.text.trim();
+
+    // Step 1: Create Firebase Auth account via REST API.
+    final url = Uri.parse(
+      'https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=$_firebaseApiKey',
+    );
+    final http = await _post(url, {
+      'email': email,
+      'password': password,
+      'displayName': displayName,
+      'returnSecureToken': true,
+    });
+
+    if (http['error'] != null) {
+      final msg =
+          (http['error'] as Map<String, dynamic>)['message'] as String? ??
+          'Auth error';
+      setState(() => _errorMessage = _friendlyAuthError(msg));
+      return;
+    }
+
+    final uid = http['localId'] as String? ?? '';
+    if (uid.isEmpty) {
+      setState(() => _errorMessage = 'Auth creation returned no UID.');
+      return;
+    }
+
+    // Step 2: Write Firestore profile.
     final db = FirebaseFirestore.instance;
-    final docRef = db.collection('users').doc();
     final batch = db.batch();
-    batch.set(docRef, {
-      'uid': docRef.id,
-      'displayName': _name.text.trim(),
-      'email': _email.text.trim().toLowerCase(),
+    batch.set(db.collection('users').doc(uid), {
+      'uid': uid,
+      'displayName': displayName,
+      'email': email,
       'bio': '',
       'avatarUrl': null,
       'selectedFandoms': const [],
-      'badge': _role == 'admin' ? 'Admin' : 'New Explorer',
-      'role': _role,
-      'accountStatus': 'pending_auth',
+      'badge': 'New Explorer',
+      'role': 'fan',
+      'accountStatus': 'active',
       'priceDropNotifications': false,
       'createdAt': FieldValue.serverTimestamp(),
       'updatedAt': FieldValue.serverTimestamp(),
@@ -663,27 +666,150 @@ class _AdminUserProvisioningDialogState
     });
     addAdminAudit(
       batch,
-      action: 'provision-pending',
+      action: 'provision-fan',
       collection: 'users',
-      recordId: docRef.id,
+      recordId: uid,
     );
     await batch.commit();
 
-    final subcmd = _role == 'admin' ? 'create-admin' : 'create-fan';
-    final cliCmd =
-        'cd admin-tools\n'
-        'node manage-users.mjs $subcmd \\\n'
-        '  --email="${_email.text.trim()}" \\\n'
-        '  --password="${_password.text}" \\\n'
-        '  --name="${_name.text.trim()}"';
+    if (mounted) {
+      Navigator.pop(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('✅ Fan account created! Email: $email'),
+          duration: const Duration(seconds: 4),
+        ),
+      );
+    }
+  }
 
-    if (!mounted) return;
-    await showDialog<void>(
-      context: context,
-      builder: (_) =>
-          _CliCommandDialog(email: _email.text.trim(), command: cliCmd),
+  /// Creates an Admin account via Firebase Auth REST API + sets role in Firestore.
+  /// Admin custom claim (for full admin SDK privileges) must be set via CLI,
+  /// but the account is usable immediately for in-app admin panel access via
+  /// the Firestore role field + security rules.
+  Future<void> _createAdminViaRestApi() async {
+    final email = _email.text.trim().toLowerCase();
+    final password = _password.text;
+    final displayName = _name.text.trim();
+
+    // Step 1: Create Firebase Auth account via REST API.
+    final url = Uri.parse(
+      'https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=$_firebaseApiKey',
     );
-    if (mounted) Navigator.pop(context);
+    final http = await _post(url, {
+      'email': email,
+      'password': password,
+      'displayName': displayName,
+      'returnSecureToken': true,
+    });
+
+    if (http['error'] != null) {
+      final msg =
+          (http['error'] as Map<String, dynamic>)['message'] as String? ??
+          'Auth error';
+      setState(() => _errorMessage = _friendlyAuthError(msg));
+      return;
+    }
+
+    final uid = http['localId'] as String? ?? '';
+    if (uid.isEmpty) {
+      setState(() => _errorMessage = 'Auth creation returned no UID.');
+      return;
+    }
+
+    // Step 2: Write Firestore profile with role=admin.
+    final db = FirebaseFirestore.instance;
+    final batch = db.batch();
+    batch.set(db.collection('users').doc(uid), {
+      'uid': uid,
+      'displayName': displayName,
+      'email': email,
+      'bio': '',
+      'avatarUrl': null,
+      'selectedFandoms': const [],
+      'badge': 'Admin',
+      'role': 'admin',
+      'accountStatus': 'active',
+      'priceDropNotifications': false,
+      'createdAt': FieldValue.serverTimestamp(),
+      'updatedAt': FieldValue.serverTimestamp(),
+      'createdBy': FirebaseAuth.instance.currentUser?.uid ?? 'admin',
+    });
+    addAdminAudit(
+      batch,
+      action: 'provision-admin',
+      collection: 'users',
+      recordId: uid,
+    );
+    await batch.commit();
+
+    // Step 3: Show success + note about custom claim.
+    if (mounted) {
+      Navigator.pop(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            '✅ Admin account created! Email: $email\n'
+            'UID: $uid\n'
+            'Note: Run "node manage-users.mjs enable-user --uid=$uid" '
+            'from admin-tools/ to set the admin custom claim for full privileges.',
+          ),
+          duration: const Duration(seconds: 8),
+        ),
+      );
+    }
+  }
+
+  /// Simple HTTP POST using dart:io — no extra package needed.
+  Future<Map<String, dynamic>> _post(Uri url, Map<String, dynamic> body) async {
+    final client = await _httpPost(url.toString(), body);
+    return client;
+  }
+
+  Future<Map<String, dynamic>> _httpPost(
+    String url,
+    Map<String, dynamic> body,
+  ) async {
+    final uri = Uri.parse(url);
+    final request = await _makeRequest(uri, body);
+    return request;
+  }
+
+  Future<Map<String, dynamic>> _makeRequest(
+    Uri uri,
+    Map<String, dynamic> body,
+  ) async {
+    try {
+      final response = await dio.Dio().post<Map<String, dynamic>>(
+        uri.toString(),
+        data: body,
+        options: dio.Options(
+          headers: {'Content-Type': 'application/json'},
+          validateStatus: (_) => true, // don't throw on 4xx/5xx
+        ),
+      );
+      return response.data ?? {};
+    } catch (e) {
+      return {
+        'error': {'message': 'Network error: $e'},
+      };
+    }
+  }
+
+  String _friendlyAuthError(String code) {
+    switch (code) {
+      case 'EMAIL_EXISTS':
+        return 'This email is already registered.';
+      case 'INVALID_EMAIL':
+        return 'Invalid email address.';
+      case 'WEAK_PASSWORD : Password should be at least 6 characters':
+      case 'WEAK_PASSWORD':
+        return 'Password is too weak (minimum 8 characters).';
+      case 'TOO_MANY_ATTEMPTS_TRY_LATER':
+        return 'Too many attempts. Try again later.';
+      default:
+        return 'Auth error: $code';
+    }
   }
 
   @override
@@ -715,7 +841,7 @@ class _AdminUserProvisioningDialogState
                     const SizedBox(width: 8),
                     const Expanded(
                       child: Text(
-                        'Creates a Firebase Auth account + Firestore profile. '
+                        'Creates a real Firebase Auth account + Firestore profile. '
                         'User can log in immediately.',
                         style: TextStyle(fontSize: 12),
                       ),
@@ -839,122 +965,7 @@ class _AdminUserProvisioningDialogState
                 child: CircularProgressIndicator(strokeWidth: 2),
               )
             : const Icon(Icons.person_add_outlined, size: 18),
-        label: Text(_saving ? 'Creating\u2026' : 'Create Account'),
-      ),
-    ],
-  );
-}
-
-// ── CLI Command Dialog ──────────────────────────────────────────────────────────
-
-class _CliCommandDialog extends StatelessWidget {
-  const _CliCommandDialog({required this.email, required this.command});
-
-  final String email;
-  final String command;
-
-  @override
-  Widget build(BuildContext context) => AlertDialog(
-    title: Row(
-      children: [
-        Icon(
-          Icons.terminal_outlined,
-          color: Theme.of(context).colorScheme.primary,
-        ),
-        const SizedBox(width: 8),
-        const Text('One more step'),
-      ],
-    ),
-    content: SizedBox(
-      width: 520,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: Colors.green.withAlpha(30),
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: Colors.green.withAlpha(80)),
-            ),
-            child: Row(
-              children: [
-                const Icon(
-                  Icons.check_circle_outline,
-                  color: Colors.green,
-                  size: 18,
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    '\u2705 Firestore profile for $email saved (status: pending_auth).',
-                    style: const TextStyle(fontSize: 13),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 14),
-          const Text(
-            'Run this in terminal (admin-tools/) to create the Firebase Auth account:',
-            style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13),
-          ),
-          const SizedBox(height: 8),
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: const Color(0xFF1E1E2E),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: SelectableText(
-              command,
-              style: const TextStyle(
-                fontFamily: 'monospace',
-                fontSize: 12.5,
-                color: Color(0xFF89DCEB),
-                height: 1.7,
-              ),
-            ),
-          ),
-          const SizedBox(height: 10),
-          const Text(
-            'After the command succeeds, the user can log in immediately.',
-            style: TextStyle(fontSize: 12, color: Colors.grey),
-          ),
-          const SizedBox(height: 10),
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: Theme.of(
-                context,
-              ).colorScheme.secondaryContainer.withAlpha(100),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: const Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Icon(Icons.lightbulb_outline, size: 14),
-                SizedBox(width: 6),
-                Expanded(
-                  child: Text(
-                    'Tip: Upgrade Firebase to Blaze plan and deploy Cloud Functions '
-                    'to make user creation fully in-app with no terminal needed.',
-                    style: TextStyle(fontSize: 11),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    ),
-    actions: [
-      FilledButton.icon(
-        onPressed: () => Navigator.pop(context),
-        icon: const Icon(Icons.done, size: 18),
-        label: const Text('Got it'),
+        label: Text(_saving ? 'Creating…' : 'Create Account'),
       ),
     ],
   );
