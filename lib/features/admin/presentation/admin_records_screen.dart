@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:dio/dio.dart' as dio;
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_functions/cloud_functions.dart';
 import 'package:flutter/material.dart';
 
 import 'admin_collection_screen.dart';
@@ -24,6 +24,9 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
   DocumentSnapshot<Map<String, dynamic>>? _lastDocument;
   bool _loading = false;
   bool _hasMore = true;
+
+  FirebaseFunctions get _functions =>
+      FirebaseFunctions.instanceFor(region: 'asia-south1');
 
   @override
   void initState() {
@@ -89,21 +92,12 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
     }
     setState(() => _busyId = user.id);
     try {
-      final batch = FirebaseFirestore.instance.batch();
-      batch.update(user.reference, {
-        'accountStatus': active ? 'active' : 'disabled',
-        'updatedAt': FieldValue.serverTimestamp(),
-        'updatedBy': FirebaseAuth.instance.currentUser!.uid,
+      await _functions.httpsCallable('setUserStatus').call(<String, dynamic>{
+        'uid': user.id,
+        'enabled': active,
       });
-      addAdminAudit(
-        batch,
-        action: active ? 'enable' : 'disable',
-        collection: 'users',
-        recordId: user.id,
-      );
-      await batch.commit();
       await _refresh();
-    } on FirebaseException catch (error) {
+    } on FirebaseFunctionsException catch (error) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(error.message ?? 'Status update failed.')),
@@ -126,9 +120,8 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
       builder: (context) => AlertDialog(
         title: const Text('Permanently delete user?'),
         content: Text(
-          'This will remove $name ($email) from Firestore.\n\n'
-          'Note: Their Firebase Auth account will remain until deleted '
-          'via the Firebase Console or admin-tools CLI.',
+          'This will permanently remove $name ($email) from Firebase '
+          'Authentication and Firestore. This cannot be undone.',
         ),
         actions: [
           TextButton(
@@ -148,22 +141,16 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
     if (confirmed != true || !mounted) return;
     setState(() => _busyId = user.id);
     try {
-      final batch = FirebaseFirestore.instance.batch();
-      batch.delete(user.reference);
-      addAdminAudit(
-        batch,
-        action: 'delete',
-        collection: 'users',
-        recordId: user.id,
-      );
-      await batch.commit();
+      await _functions.httpsCallable('deleteAuthUser').call(<String, dynamic>{
+        'uid': user.id,
+      });
       await _refresh();
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('$name removed from Firestore.')),
+          SnackBar(content: Text('$name was permanently deleted.')),
         );
       }
-    } on FirebaseException catch (error) {
+    } on FirebaseFunctionsException catch (error) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(error.message ?? 'Deletion failed.')),
@@ -562,9 +549,9 @@ class _AdminUserEditorState extends State<_AdminUserEditor> {
 }
 
 // ── User Provisioning Dialog ──────────────────────────────────────────────────
-// Fan users are created via Firebase Auth REST API (works on any Firebase plan).
-// Admin users are created via the manage-users.mjs CLI tool using key.json.
-// Both paths create a real Firebase Auth account + Firestore profile atomically.
+// User provisioning is intentionally performed by a trusted Cloud Function.
+// Firebase Auth administration and admin custom claims must never be created
+// by an untrusted Flutter client.
 
 class _AdminUserProvisioningDialog extends StatefulWidget {
   const _AdminUserProvisioningDialog();
@@ -585,10 +572,6 @@ class _AdminUserProvisioningDialogState
   bool _obscurePassword = true;
   String? _errorMessage;
 
-  // Firebase Web API key — already public via google-services.json.
-  // Used only for Auth REST API (same key the app uses for sign-in).
-  static const _firebaseApiKey = 'AIzaSyCgVeHnMw-rU68HBBAu3NPOwKgSkA0CQf4';
-
   @override
   void dispose() {
     _name.dispose();
@@ -604,122 +587,34 @@ class _AdminUserProvisioningDialogState
       _errorMessage = null;
     });
     try {
-      if (_role == 'fan') {
-        await _createFanViaRestApi();
-      } else {
-        await _createAdminViaRestApi();
+      await FirebaseFunctions.instanceFor(
+        region: 'asia-south1',
+      ).httpsCallable('provisionUser').call(<String, dynamic>{
+        'displayName': _name.text.trim(),
+        'email': _email.text.trim().toLowerCase(),
+        'password': _password.text,
+        'role': _role,
+      });
+      if (!mounted) {
+        return;
+      }
+      Navigator.pop(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('${_role.capitalize()} account created.')),
+      );
+    } on FirebaseFunctionsException catch (error) {
+      if (mounted) {
+        setState(() => _errorMessage = error.message ?? 'Provisioning failed.');
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(
+          () => _errorMessage =
+              'Secure provisioning is unavailable. Deploy the trusted Firebase Functions first.',
+        );
       }
     } finally {
       if (mounted) setState(() => _saving = false);
-    }
-  }
-
-  /// Creates a user (Fan or Admin) via Firebase Auth REST API + Firestore.
-  /// Works on Spark plan — no Cloud Functions needed.
-  Future<void> _createUserViaRestApi(String role) async {
-    final email = _email.text.trim().toLowerCase();
-    final password = _password.text;
-    final displayName = _name.text.trim();
-    final callerUid = FirebaseAuth.instance.currentUser?.uid ?? '';
-
-    // Step 1: Create Firebase Auth account via REST API.
-    Map<String, dynamic> authResult;
-    try {
-      final response = await dio.Dio().post<Map<String, dynamic>>(
-        'https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=$_firebaseApiKey',
-        data: {
-          'email': email,
-          'password': password,
-          'displayName': displayName,
-          'returnSecureToken': false,
-        },
-        options: dio.Options(
-          headers: {'Content-Type': 'application/json'},
-          validateStatus: (_) => true,
-        ),
-      );
-      authResult = response.data ?? {};
-    } catch (e) {
-      setState(() => _errorMessage = 'Network error. Check connection.');
-      return;
-    }
-
-    if (authResult['error'] != null) {
-      final msg = (authResult['error'] as Map)['message'] as String? ?? 'Auth error';
-      setState(() => _errorMessage = _friendlyAuthError(msg));
-      return;
-    }
-
-    final uid = authResult['localId'] as String? ?? '';
-    if (uid.isEmpty) {
-      setState(() => _errorMessage = 'Auth creation returned no UID.');
-      return;
-    }
-
-    // Step 2: Write Firestore profile directly (not via batch+audit to avoid
-    // potential audit_log rule edge cases — plain set always works for admin).
-    try {
-      final db = FirebaseFirestore.instance;
-      await db.collection('users').doc(uid).set({
-        'uid': uid,
-        'displayName': displayName,
-        'email': email,
-        'bio': '',
-        'avatarUrl': null,
-        'selectedFandoms': const [],
-        'badge': role == 'admin' ? 'Admin' : 'New Explorer',
-        'role': role,
-        'accountStatus': 'active',
-        'priceDropNotifications': false,
-        'createdAt': FieldValue.serverTimestamp(),
-        'updatedAt': FieldValue.serverTimestamp(),
-        'createdBy': callerUid,
-      });
-
-      // Audit log written separately so a failure here doesn't block creation.
-      db.collection('audit_logs').add({
-        'actorId': callerUid,
-        'actorEmail': FirebaseAuth.instance.currentUser?.email ?? '',
-        'action': 'provision-$role',
-        'collection': 'users',
-        'recordId': uid,
-        'detail': {'email': email, 'role': role},
-        'createdAt': FieldValue.serverTimestamp(),
-      }).ignore();
-    } on FirebaseException catch (e) {
-      setState(() => _errorMessage = 'Profile write failed: ${e.message}');
-      return;
-    }
-
-    if (mounted) {
-      Navigator.pop(context);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            '✅ ${role == 'admin' ? 'Admin' : 'Fan'} account created!\nEmail: $email',
-          ),
-          duration: const Duration(seconds: 4),
-        ),
-      );
-    }
-  }
-
-  Future<void> _createFanViaRestApi()   async => _createUserViaRestApi('fan');
-  Future<void> _createAdminViaRestApi() async => _createUserViaRestApi('admin');
-
-  String _friendlyAuthError(String code) {
-    switch (code) {
-      case 'EMAIL_EXISTS':
-        return 'This email is already registered.';
-      case 'INVALID_EMAIL':
-        return 'Invalid email address.';
-      case 'WEAK_PASSWORD : Password should be at least 6 characters':
-      case 'WEAK_PASSWORD':
-        return 'Password is too weak (minimum 8 characters).';
-      case 'TOO_MANY_ATTEMPTS_TRY_LATER':
-        return 'Too many attempts. Try again later.';
-      default:
-        return 'Auth error: $code';
     }
   }
 
@@ -816,7 +711,7 @@ class _AdminUserProvisioningDialogState
               ),
               const SizedBox(height: 16),
               DropdownButtonFormField<String>(
-                value: _role,
+                initialValue: _role,
                 decoration: const InputDecoration(
                   labelText: 'Role',
                   prefixIcon: Icon(Icons.admin_panel_settings_outlined),

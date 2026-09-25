@@ -3,18 +3,13 @@ import 'package:model_viewer_plus/model_viewer_plus.dart';
 
 class ARPreviewScreen extends StatelessWidget {
   final String productName;
-  
-  const ARPreviewScreen({
-    super.key,
-    required this.productName,
-  });
+
+  const ARPreviewScreen({super.key, required this.productName});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('AR Preview: $productName'),
-      ),
+      appBar: AppBar(title: Text('AR Preview: $productName')),
       body: Stack(
         children: [
           const ModelViewer(
@@ -36,7 +31,7 @@ class ARPreviewScreen extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.black.withOpacity(0.7),
+                color: Colors.black.withValues(alpha: 0.7),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: const Text(

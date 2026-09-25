@@ -105,7 +105,9 @@ class _ContactScreenState extends State<ContactScreen> {
             ),
             const SizedBox(height: 10),
             InkWell(
-              onTap: () => launchUrl(Uri.parse('https://maps.google.com/?q=North+Karachi,+Pakistan')),
+              onTap: () => launchUrl(
+                Uri.parse('https://maps.google.com/?q=North+Karachi,+Pakistan'),
+              ),
               borderRadius: BorderRadius.circular(16),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(16),
@@ -117,7 +119,7 @@ class _ContactScreenState extends State<ContactScreen> {
                       image: AssetImage(AppAssets.multiverse),
                       fit: BoxFit.cover,
                       colorFilter: ColorFilter.mode(
-                        Colors.black.withOpacity(0.5),
+                        Colors.black.withValues(alpha: 0.5),
                         BlendMode.darken,
                       ),
                     ),

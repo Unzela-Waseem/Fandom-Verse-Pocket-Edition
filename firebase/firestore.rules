@@ -7,13 +7,18 @@ service cloud.firestore {
     function userPath() {
       return /databases/$(database)/documents/users/$(request.auth.uid);
     }
-    function isAdmin() {
-      return authenticated() 
-        && exists(userPath()) 
-        && get(userPath()).data.role == 'admin';
+    function signedIn() {
+      return authenticated()
+        && exists(userPath())
+        && get(userPath()).data.get('accountStatus', 'active') == 'active';
     }
-    function isOwner(uid) { 
-      return authenticated() && request.auth.uid == uid; 
+    function isAdmin() {
+      return signedIn()
+        && get(userPath()).data.role == 'admin'
+        && request.auth.token.admin == true;
+    }
+    function isOwner(uid) {
+      return signedIn() && request.auth.uid == uid;
     }
     function hasOnlyProfileFields() {
       return request.resource.data.diff(resource.data).affectedKeys().hasOnly([
@@ -24,8 +29,10 @@ service cloud.firestore {
 
     match /users/{uid} {
       allow read: if isOwner(uid) || isAdmin();
-      // Allow create if admin, or if user is creating their own fan profile
-      allow create: if isAdmin() || (isOwner(uid) && request.resource.data.role == 'fan');
+      // A newly authenticated user can create only their own Fan profile.
+      allow create: if authenticated() && request.auth.uid == uid
+        && request.resource.data.role == 'fan'
+        && request.resource.data.get('accountStatus', 'active') == 'active';
       allow update: if isAdmin() || (isOwner(uid) && hasOnlyProfileFields());
       allow delete: if isAdmin();
     }

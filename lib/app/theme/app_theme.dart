@@ -120,8 +120,9 @@ abstract final class AppTheme {
       segmentedButtonTheme: SegmentedButtonThemeData(
         style: ButtonStyle(
           backgroundColor: WidgetStateProperty.resolveWith((states) {
-            if (states.contains(WidgetState.selected))
+            if (states.contains(WidgetState.selected)) {
               return const Color(0xFFA855F7);
+            }
             return isDark ? const Color(0xFF1A0C30) : const Color(0xFFEBE0FF);
           }),
           foregroundColor: WidgetStateProperty.resolveWith((states) {

@@ -61,7 +61,8 @@ class _RemoteMediaImageState extends State<RemoteMediaImage> {
   @override
   void didUpdateWidget(covariant RemoteMediaImage oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.url != widget.url || oldWidget.videoUrlForPoster != widget.videoUrlForPoster) {
+    if (oldWidget.url != widget.url ||
+        oldWidget.videoUrlForPoster != widget.videoUrlForPoster) {
       _checkLocalFuture = _checkLocal();
     }
   }
@@ -70,7 +71,7 @@ class _RemoteMediaImageState extends State<RemoteMediaImage> {
     final effectiveUrl = isHttpsMediaUrl(widget.url)
         ? widget.url!.trim()
         : getPosterUrlFromVideo(widget.videoUrlForPoster);
-    
+
     if (effectiveUrl != null) {
       final path = await OfflineMediaService().getLocalPath(effectiveUrl);
       if (mounted) setState(() => _localPath = path);
@@ -83,38 +84,47 @@ class _RemoteMediaImageState extends State<RemoteMediaImage> {
         ? widget.url!.trim()
         : getPosterUrlFromVideo(widget.videoUrlForPoster);
 
-    final isTest = WidgetsBinding.instance.runtimeType.toString().contains('Test');
-    
+    final isTest = WidgetsBinding.instance.runtimeType.toString().contains(
+      'Test',
+    );
+
     if (isTest || effectiveUrl == null || !isHttpsMediaUrl(effectiveUrl)) {
       return Image.asset(AppAssets.multiverse, fit: widget.fit);
     }
-    
+
     return FutureBuilder<void>(
       future: _checkLocalFuture,
       builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting && _localPath == null) {
+        if (snapshot.connectionState == ConnectionState.waiting &&
+            _localPath == null) {
           return Container(
             color: const Color(0xFF1B1B22),
-            child: const Center(child: CircularProgressIndicator(strokeWidth: 2)),
+            child: const Center(
+              child: CircularProgressIndicator(strokeWidth: 2),
+            ),
           );
         }
-        
+
         if (_localPath != null) {
           return Image.file(
             File(_localPath!),
             fit: widget.fit,
-            errorBuilder: (_, __, ___) => Image.asset(AppAssets.multiverse, fit: widget.fit),
+            errorBuilder: (context, error, stackTrace) =>
+                Image.asset(AppAssets.multiverse, fit: widget.fit),
           );
         }
-        
+
         return CachedNetworkImage(
           imageUrl: effectiveUrl,
           fit: widget.fit,
           placeholder: (_, _) => Container(
             color: const Color(0xFF1B1B22),
-            child: const Center(child: CircularProgressIndicator(strokeWidth: 2)),
+            child: const Center(
+              child: CircularProgressIndicator(strokeWidth: 2),
+            ),
           ),
-          errorWidget: (_, _, _) => Image.asset(AppAssets.multiverse, fit: widget.fit),
+          errorWidget: (_, _, _) =>
+              Image.asset(AppAssets.multiverse, fit: widget.fit),
         );
       },
     );
@@ -159,7 +169,7 @@ class _RemoteMediaVideoState extends State<RemoteMediaVideo> {
   Future<void> _setupController() async {
     final localPath = await OfflineMediaService().getLocalPath(widget.url);
     if (!mounted) return;
-    
+
     if (localPath != null) {
       _controller = VideoPlayerController.file(File(localPath));
     } else {
