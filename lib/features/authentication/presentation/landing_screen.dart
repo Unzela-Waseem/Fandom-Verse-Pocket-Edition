@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../core/constants/app_assets.dart';
 import '../../dashboard/presentation/fan_shell.dart';
+import '../../onboarding/presentation/onboarding_screen.dart';
 import 'login_screen.dart';
 
 class LandingScreen extends StatelessWidget {
@@ -17,6 +18,7 @@ class LandingScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
     return Scaffold(
+      backgroundColor: const Color(0xFF09040E),
       body: Stack(
         fit: StackFit.expand,
         children: [
@@ -26,8 +28,8 @@ class LandingScreen extends StatelessWidget {
               gradient: LinearGradient(
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
-                colors: [Color(0x33000000), Color(0xFF101014)],
-                stops: [0.25, 0.78],
+                colors: [Color(0x3309040E), Color(0xFF09040E)],
+                stops: [0.20, 0.75],
               ),
             ),
           ),
@@ -43,13 +45,21 @@ class LandingScreen extends StatelessWidget {
                       Row(
                         children: [
                           Container(
-                            width: 42,
-                            height: 42,
+                            width: 44,
+                            height: 44,
                             decoration: BoxDecoration(
-                              color: colors.primary,
+                              gradient: const LinearGradient(
+                                colors: [Color(0xFFA855F7), Color(0xFFD946EF)],
+                              ),
                               borderRadius: BorderRadius.circular(14),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: const Color(0xFFA855F7).withValues(alpha: 0.4),
+                                  blurRadius: 10,
+                                ),
+                              ],
                             ),
-                            child: const Icon(Icons.bolt, color: Colors.black),
+                            child: const Icon(Icons.bolt, color: Colors.white, size: 26),
                           ),
                           const SizedBox(width: 12),
                           const Text(
@@ -57,19 +67,34 @@ class LandingScreen extends StatelessWidget {
                             style: TextStyle(
                               fontWeight: FontWeight.w900,
                               letterSpacing: 1.2,
+                              color: Colors.white,
+                              fontSize: 18,
                             ),
                           ),
                         ],
                       ),
                       const Spacer(),
-                      Text(
-                        'Your worlds.\nOne universe.',
-                        style: Theme.of(context).textTheme.displaySmall
-                            ?.copyWith(
-                              fontWeight: FontWeight.w900,
-                              height: .98,
-                              letterSpacing: -1.4,
+                      RichText(
+                        text: TextSpan(
+                          style: Theme.of(context).textTheme.displaySmall?.copyWith(
+                                fontWeight: FontWeight.w900,
+                                height: .98,
+                                letterSpacing: -1.4,
+                                color: Colors.white,
+                              ),
+                          children: const [
+                            TextSpan(text: 'Your worlds.\n'),
+                            TextSpan(
+                              text: 'One universe.',
+                              style: TextStyle(
+                                color: Color(0xFFD946EF),
+                                shadows: [
+                                  Shadow(color: Color(0xFFA855F7), blurRadius: 12),
+                                ],
+                              ),
                             ),
+                          ],
+                        ),
                       ),
                       const SizedBox(height: 14),
                       Text(
@@ -96,10 +121,21 @@ class LandingScreen extends StatelessWidget {
                         ),
                         child: const Text('EXPLORE PREVIEW'),
                       ),
+                      const SizedBox(height: 6),
+                      TextButton.icon(
+                        onPressed: () => Navigator.of(context).push(
+                          MaterialPageRoute<void>(builder: (_) => const OnboardingScreen()),
+                        ),
+                        icon: const Icon(Icons.rocket_launch, size: 16, color: Color(0xFFE879F9)),
+                        label: const Text(
+                          'Start Onboarding Tour 🚀',
+                          style: TextStyle(color: Color(0xFFE879F9), fontWeight: FontWeight.bold),
+                        ),
+                      ),
                       TextButton.icon(
                         onPressed: () => _openLogin(context, admin: true),
-                        icon: const Icon(Icons.shield_outlined, size: 18),
-                        label: const Text('Admin sign in'),
+                        icon: const Icon(Icons.shield_outlined, size: 18, color: Colors.white70),
+                        label: const Text('Admin sign in', style: TextStyle(color: Colors.white70)),
                       ),
                     ],
                   ),

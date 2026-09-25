@@ -36,10 +36,28 @@ class ProfileScreen extends ConsumerWidget {
       child: ListView(
         padding: const EdgeInsets.fromLTRB(20, 20, 20, 28),
         children: [
-          CircleAvatar(
-            radius: 42,
-            backgroundImage: validAvatarUrl ? NetworkImage(avatarUrl) : null,
-            child: !validAvatarUrl ? const Icon(Icons.person, size: 42) : null,
+          Center(
+            child: Container(
+              padding: const EdgeInsets.all(3),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: const LinearGradient(
+                  colors: [Color(0xFFA855F7), Color(0xFFD946EF)],
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFFA855F7).withValues(alpha: 0.4),
+                    blurRadius: 14,
+                  ),
+                ],
+              ),
+              child: CircleAvatar(
+                radius: 42,
+                backgroundColor: const Color(0xFF160B28),
+                backgroundImage: validAvatarUrl ? NetworkImage(avatarUrl) : null,
+                child: !validAvatarUrl ? const Icon(Icons.person, size: 42, color: Color(0xFFE9D5FF)) : null,
+              ),
+            ),
           ),
           const SizedBox(height: 14),
           Text(
@@ -47,11 +65,76 @@ class ProfileScreen extends ConsumerWidget {
             textAlign: TextAlign.center,
             style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w900),
           ),
+          const SizedBox(height: 4),
           Text(
             profile == null ? 'Preview mode' : profile!.badge,
             textAlign: TextAlign.center,
-            style: const TextStyle(color: Color(0xFFFFD740)),
+            style: const TextStyle(
+              color: Color(0xFFE879F9),
+              fontWeight: FontWeight.bold,
+            ),
           ),
+          if (profile?.bio.isNotEmpty == true) ...[
+            const SizedBox(height: 10),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Text(
+                profile!.bio,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  color: Colors.white70,
+                  fontSize: 14,
+                  height: 1.4,
+                ),
+              ),
+            ),
+          ],
+          if (profile?.selectedFandoms.isNotEmpty == true) ...[
+            const SizedBox(height: 14),
+            Center(
+              child: Wrap(
+                spacing: 6,
+                runSpacing: 6,
+                alignment: WrapAlignment.center,
+                children: profile!.selectedFandoms
+                    .map(
+                      (fandom) => Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF1B0E35),
+                          borderRadius: BorderRadius.circular(99),
+                          border: Border.all(
+                            color: const Color(0xFFA855F7).withAlpha(140),
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(
+                              Icons.favorite,
+                              size: 12,
+                              color: Color(0xFFD946EF),
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              fandom,
+                              style: const TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    )
+                    .toList(),
+              ),
+            ),
+          ],
           const SizedBox(height: 22),
           Row(
             children: [

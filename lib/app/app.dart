@@ -18,7 +18,7 @@ class FandomVerseApp extends StatelessWidget {
         if (!kIsWeb) return child!;
         return LayoutBuilder(
           builder: (context, constraints) => ColoredBox(
-            color: const Color(0xFF101014),
+            color: const Color(0xFF09040E),
             child: Center(
               child: SizedBox(
                 width: constraints.maxWidth > 1100
