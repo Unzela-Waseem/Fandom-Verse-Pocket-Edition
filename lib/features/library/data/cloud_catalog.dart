@@ -68,26 +68,45 @@ ContentItem? contentFromDocument(
 ) {
   final data = document.data();
   final title = data['title'] as String?;
-  final body = data['body'] as String?;
-  if (title == null || title.isEmpty || body == null || body.isEmpty) {
+  if (title == null || title.trim().isEmpty) {
     return null;
   }
+  final rawBody = data['body'] as String?;
+  final rawSummary = data['summary'] as String?;
+  final body = (rawBody != null && rawBody.trim().isNotEmpty)
+      ? rawBody.trim()
+      : (rawSummary != null && rawSummary.trim().isNotEmpty)
+          ? rawSummary.trim()
+          : 'No body content available.';
+  final summary = (rawSummary != null && rawSummary.trim().isNotEmpty)
+      ? rawSummary.trim()
+      : body;
+
   final contentType = data['contentType'] as String?;
-  final type = ContentType.values.where((item) => item.name == contentType);
+  final typeMatches = ContentType.values.where(
+    (item) => item.name == contentType,
+  );
+  final videoUrl = (data['videoUrl'] as String?)?.trim();
+  final imageUrl = (data['imageUrl'] as String?)?.trim();
+
   return ContentItem(
     id: document.id,
-    title: title,
-    summary: data['summary'] as String? ?? body,
+    title: title.trim(),
+    summary: summary,
     body: body,
     category: data['categoryId'] as String? ?? 'General',
-    type: type.isEmpty ? ContentType.story : type.first,
+    type: typeMatches.isNotEmpty
+        ? typeMatches.first
+        : (videoUrl != null && videoUrl.isNotEmpty)
+            ? ContentType.video
+            : ContentType.story,
     creator: data['creator'] as String? ?? 'Fandom Verse',
     tags: (data['tags'] as List? ?? const []).whereType<String>().toList(
       growable: false,
     ),
     trending: data['trending'] == true,
-    imageUrl: data['imageUrl'] as String?,
-    videoUrl: data['videoUrl'] as String?,
+    imageUrl: (imageUrl != null && imageUrl.isNotEmpty) ? imageUrl : null,
+    videoUrl: (videoUrl != null && videoUrl.isNotEmpty) ? videoUrl : null,
   );
 }
 

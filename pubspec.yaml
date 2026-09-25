@@ -19,7 +19,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 version: 1.0.0+1
 
 environment:
-  sdk: ^3.12.2
+  sdk: ^3.11.5
 
 # Dependencies specify other packages that your package needs in order to work.
 # To automatically upgrade your package dependencies to the latest versions
@@ -47,7 +47,7 @@ dependencies:
   connectivity_plus: ^7.0.0
   geolocator: ^14.0.2
   cached_network_image: ^3.4.1
-  video_player: ^2.14.0
+  video_player: ^2.11.1
   intl: ^0.20.2
   url_launcher: ^6.3.2
 

@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/constants/app_assets.dart';
+import '../../../core/media/remote_media.dart';
 import '../../authentication/domain/app_user.dart';
 import '../../events/presentation/events_screen.dart';
 import '../../library/application/library_controller.dart';
@@ -482,6 +483,8 @@ class _StoryCard extends ConsumerWidget {
         .watch(libraryProvider)
         .bookmarkedContent
         .contains(item.id);
+    final hasVideo = item.videoUrl != null && isHttpsMediaUrl(item.videoUrl);
+
     return InkWell(
       borderRadius: BorderRadius.circular(22),
       onTap: () => Navigator.of(context).push(
@@ -489,68 +492,112 @@ class _StoryCard extends ConsumerWidget {
           builder: (_) => ContentDetailScreen(item: item),
         ),
       ),
-      child: Ink(
-        decoration: const BoxDecoration(
-          borderRadius: BorderRadius.all(Radius.circular(22)),
-          image: DecorationImage(
-            image: AssetImage(AppAssets.multiverse),
-            fit: BoxFit.cover,
-          ),
-        ),
-        child: Container(
-          padding: const EdgeInsets.all(14),
-          decoration: const BoxDecoration(
-            borderRadius: BorderRadius.all(Radius.circular(22)),
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [Colors.transparent, Color(0xF20A0A0E)],
+      child: ClipRRect(
+        borderRadius: const BorderRadius.all(Radius.circular(22)),
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            RemoteMediaImage(
+              url: item.imageUrl,
+              videoUrlForPoster: item.videoUrl,
             ),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Align(
-                alignment: Alignment.topRight,
-                child: IconButton.filledTonal(
-                  tooltip: bookmarked ? 'Remove bookmark' : 'Save offline',
-                  onPressed: () => ref
-                      .read(libraryProvider.notifier)
-                      .toggleBookmark(item.id, item: item),
-                  icon: Icon(
-                    bookmarked ? Icons.bookmark : Icons.bookmark_border,
-                    size: 19,
+            Container(
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [Colors.transparent, Color(0xF20A0A0E)],
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(14),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      if (hasVideo || item.type == ContentType.video)
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.redAccent.withAlpha(220),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: const Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.play_arrow,
+                                size: 12,
+                                color: Colors.white,
+                              ),
+                              SizedBox(width: 4),
+                              Text(
+                                'VIDEO',
+                                style: TextStyle(
+                                  fontSize: 9,
+                                  fontWeight: FontWeight.w900,
+                                  color: Colors.white,
+                                  letterSpacing: 0.5,
+                                ),
+                              ),
+                            ],
+                          ),
+                        )
+                      else
+                        const SizedBox.shrink(),
+                      IconButton.filledTonal(
+                        tooltip: bookmarked
+                            ? 'Remove bookmark'
+                            : 'Save offline',
+                        onPressed: () => ref
+                            .read(libraryProvider.notifier)
+                            .toggleBookmark(item.id, item: item),
+                        icon: Icon(
+                          bookmarked ? Icons.bookmark : Icons.bookmark_border,
+                          size: 19,
+                        ),
+                      ),
+                    ],
                   ),
-                ),
+                  const Spacer(),
+                  Text(
+                    item.category.toUpperCase(),
+                    style: const TextStyle(
+                      color: Color(0xFFFFD740),
+                      fontSize: 10,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                  const SizedBox(height: 5),
+                  Text(
+                    item.title,
+                    maxLines: 3,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w900,
+                      fontSize: 17,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    'By ${item.creator}',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontSize: 10,
+                      color: Colors.white60,
+                    ),
+                  ),
+                ],
               ),
-              const Spacer(),
-              Text(
-                item.category.toUpperCase(),
-                style: const TextStyle(
-                  color: Color(0xFFFFD740),
-                  fontSize: 10,
-                  fontWeight: FontWeight.w900,
-                ),
-              ),
-              const SizedBox(height: 5),
-              Text(
-                item.title,
-                maxLines: 3,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  fontWeight: FontWeight.w900,
-                  fontSize: 17,
-                ),
-              ),
-              const SizedBox(height: 6),
-              Text(
-                'By ${item.creator}',
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(fontSize: 10, color: Colors.white60),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

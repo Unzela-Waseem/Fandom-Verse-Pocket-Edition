@@ -69,15 +69,20 @@ class AdminCollectionConfig {
     primaryField: 'title',
     fields: [
       AdminField('title', 'Title'),
-      AdminField('body', 'Body', type: AdminFieldType.multiline),
-      AdminField('summary', 'Summary', type: AdminFieldType.multiline),
+      AdminField('body', 'Body (or description)', type: AdminFieldType.multiline, required: false),
+      AdminField('summary', 'Summary', type: AdminFieldType.multiline, required: false),
       AdminField('creator', 'Creator'),
       AdminField('categoryId', 'Category', type: AdminFieldType.categoryPicker),
-      AdminField('contentType', 'Content type'),
+      AdminField('contentType', 'Content type (e.g. video, story, news)'),
       AdminField('tags', 'Tags (comma separated)', required: false),
-      AdminField('imageUrl', 'HTTPS image URL', required: false),
+      AdminField('imageUrl', 'HTTPS image URL (optional if video)', required: false),
       AdminField('videoUrl', 'HTTPS video URL', required: false),
-      AdminField('published', 'Published', type: AdminFieldType.toggle),
+      AdminField(
+        'published',
+        'Published (visible to fans)',
+        type: AdminFieldType.toggle,
+        defaultBool: true,
+      ),
       AdminField('trending', 'Featured on home', type: AdminFieldType.toggle),
     ],
   );
@@ -777,10 +782,10 @@ class _AdminRecordEditorState extends State<_AdminRecordEditor> {
           context,
         ).showSnackBar(SnackBar(content: Text(error.message)));
       }
-    } catch (_) {
+    } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Media upload failed. Try again.')),
+          SnackBar(content: Text('Media upload failed: $e')),
         );
       }
     } finally {
@@ -903,15 +908,31 @@ class _AdminRecordEditorState extends State<_AdminRecordEditor> {
                             if (uri == null ||
                                 uri.scheme != 'https' ||
                                 uri.host.isEmpty) {
-                              return 'Use a valid HTTPS URL.';
+                              return 'Enter a valid HTTPS link (e.g. https://res.cloudinary.com/...)';
                             }
                           }
                           return null;
                         },
                       ),
+                      if (field.key == 'videoUrl')
+                        const Padding(
+                          padding: EdgeInsets.only(top: 4, left: 4),
+                          child: Text(
+                            'Tip: Paste a Cloudinary video URL (or click Upload below).',
+                            style: TextStyle(fontSize: 11, color: Colors.white54),
+                          ),
+                        ),
+                      if (field.key == 'imageUrl')
+                        const Padding(
+                          padding: EdgeInsets.only(top: 4, left: 4),
+                          child: Text(
+                            'Tip: Paste a Cloudinary image URL (or click Upload below).',
+                            style: TextStyle(fontSize: 11, color: Colors.white54),
+                          ),
+                        ),
                       if (purpose != null &&
-                          CloudinaryMediaService.isConfigured &&
                           CloudinaryMediaService.isSupportedPlatform) ...[
+                        const SizedBox(height: 6),
                         TextButton.icon(
                           onPressed: _uploadingField == null && !_saving
                               ? () => _uploadMedia(field.key, purpose)
@@ -922,14 +943,18 @@ class _AdminRecordEditorState extends State<_AdminRecordEditor> {
                                 : Icons.add_photo_alternate_outlined,
                           ),
                           label: Text(
-                            'Upload ${field.key == 'videoUrl' ? 'video' : 'image'}',
+                            'Upload ${field.key == 'videoUrl' ? 'video' : 'image'} to Cloudinary',
                           ),
                         ),
                         if (_uploadingField == field.key) ...[
+                          const SizedBox(height: 4),
                           LinearProgressIndicator(value: _uploadProgress),
-                          TextButton(
-                            onPressed: _mediaService.cancel,
-                            child: const Text('Cancel upload'),
+                          Align(
+                            alignment: Alignment.centerRight,
+                            child: TextButton(
+                              onPressed: _mediaService.cancel,
+                              child: const Text('Cancel upload'),
+                            ),
                           ),
                         ],
                       ],

@@ -113,6 +113,55 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
     }
   }
 
+  Future<void> _deleteUser(
+    QueryDocumentSnapshot<Map<String, dynamic>> user,
+  ) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete this user?'),
+        content: const Text(
+          'This will delete their profile from Firestore. Note: For full removal, their Firebase Auth credential must also be deleted via the Firebase Console.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(
+              backgroundColor: Theme.of(context).colorScheme.error,
+            ),
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+    setState(() => _busyId = user.id);
+    try {
+      final batch = FirebaseFirestore.instance.batch();
+      batch.delete(user.reference);
+      addAdminAudit(
+        batch,
+        action: 'delete',
+        collection: 'users',
+        recordId: user.id,
+      );
+      await batch.commit();
+      await _refresh();
+    } on FirebaseException catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(error.message ?? 'Deletion failed.')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _busyId = null);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final queryLower = _query.toLowerCase().trim();
@@ -129,6 +178,17 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
 
     return Scaffold(
       appBar: AppBar(title: const Text('Users')),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () async {
+          await showDialog<void>(
+            context: context,
+            builder: (_) => const _AdminUserProvisioningDialog(),
+          );
+          await _refresh();
+        },
+        icon: const Icon(Icons.person_add_outlined),
+        label: const Text('Add User'),
+      ),
       body: RefreshIndicator(
         onRefresh: _refresh,
         child: Column(
@@ -307,6 +367,14 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
                                               dense: true,
                                             ),
                                           ),
+                                        IconButton(
+                                          tooltip: 'Delete user',
+                                          icon: const Icon(Icons.delete_outline),
+                                          color: Theme.of(context).colorScheme.error,
+                                          onPressed: _busyId != null
+                                              ? null
+                                              : () => _deleteUser(user),
+                                        ),
                                       ],
                                     ),
                                   ],
@@ -476,6 +544,147 @@ class _AdminUserEditorState extends State<_AdminUserEditor> {
     ],
   );
 }
+
+// ── User Provisioning Dialog ──────────────────────────────────────────────────
+
+class _AdminUserProvisioningDialog extends StatefulWidget {
+  const _AdminUserProvisioningDialog();
+
+  @override
+  State<_AdminUserProvisioningDialog> createState() =>
+      _AdminUserProvisioningDialogState();
+}
+
+class _AdminUserProvisioningDialogState
+    extends State<_AdminUserProvisioningDialog> {
+  final _formKey = GlobalKey<FormState>();
+  final _name = TextEditingController();
+  final _email = TextEditingController();
+  String _role = 'fan';
+  bool _saving = false;
+
+  @override
+  void dispose() {
+    _name.dispose();
+    _email.dispose();
+    super.dispose();
+  }
+
+  Future<void> _save() async {
+    if (_saving || !_formKey.currentState!.validate()) return;
+    setState(() => _saving = true);
+    try {
+      final docRef = FirebaseFirestore.instance.collection('users').doc();
+      final batch = FirebaseFirestore.instance.batch();
+      
+      batch.set(docRef, {
+        'displayName': _name.text.trim(),
+        'email': _email.text.trim().toLowerCase(),
+        'role': _role,
+        'accountStatus': 'active',
+        'createdAt': FieldValue.serverTimestamp(),
+        'updatedAt': FieldValue.serverTimestamp(),
+        'createdBy': FirebaseAuth.instance.currentUser!.uid,
+      });
+
+      addAdminAudit(
+        batch,
+        action: 'provision',
+        collection: 'users',
+        recordId: docRef.id,
+      );
+
+      await batch.commit();
+
+      if (mounted) {
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Profile created! Note: User must still register their email in Auth to sign in.',
+            ),
+          ),
+        );
+      }
+    } on FirebaseException catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(error.message ?? 'Provisioning failed.')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) => AlertDialog(
+    title: const Text('Provision New User'),
+    content: SizedBox(
+      width: 480,
+      child: Form(
+        key: _formKey,
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextFormField(
+                controller: _name,
+                maxLength: 60,
+                decoration: const InputDecoration(labelText: 'Display name'),
+                validator: (value) => (value?.trim().isEmpty ?? true)
+                    ? 'Display name is required.'
+                    : null,
+              ),
+              const SizedBox(height: 8),
+              TextFormField(
+                controller: _email,
+                keyboardType: TextInputType.emailAddress,
+                decoration: const InputDecoration(labelText: 'Email Address'),
+                validator: (value) {
+                  if (value?.trim().isEmpty ?? true) return 'Email is required.';
+                  if (!value!.contains('@')) return 'Invalid email format.';
+                  return null;
+                },
+              ),
+              const SizedBox(height: 16),
+              DropdownButtonFormField<String>(
+                value: _role,
+                decoration: const InputDecoration(labelText: 'Role'),
+                items: const [
+                  DropdownMenuItem(value: 'fan', child: Text('Fan')),
+                  DropdownMenuItem(value: 'admin', child: Text('Admin')),
+                ],
+                onChanged: (val) => setState(() => _role = val ?? 'fan'),
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'Note: Creating a profile here sets up their database record. The user still needs to Sign Up with this exact email to link their Auth credentials, OR an Owner must run the CLI provisioner for full Admin setup.',
+                style: TextStyle(fontSize: 12, color: Colors.grey),
+              )
+            ],
+          ),
+        ),
+      ),
+    ),
+    actions: [
+      TextButton(
+        onPressed: _saving ? null : () => Navigator.pop(context),
+        child: const Text('Cancel'),
+      ),
+      FilledButton(
+        onPressed: _saving ? null : _save,
+        child: _saving
+            ? const SizedBox.square(
+                dimension: 20,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              )
+            : const Text('Create'),
+      ),
+    ],
+  );
+}
+
 
 // ── Discussion Moderation ─────────────────────────────────────────────────────
 

@@ -112,9 +112,10 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
             if (results.isEmpty)
               const _EmptyResults()
             else
-              ...results.map(
-                (item) => Card(
-                  margin: const EdgeInsets.only(bottom: 12),
+              ...results.map((item) {
+                final hasVideo = isHttpsMediaUrl(item.videoUrl);
+                return Card(
+                  margin: const EdgeInsets.only(bottom: 14),
                   clipBehavior: Clip.antiAlias,
                   child: InkWell(
                     onTap: () => Navigator.of(context).push(
@@ -126,9 +127,77 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         SizedBox(
-                          height: 120,
+                          height: 130,
                           width: double.infinity,
-                          child: RemoteMediaImage(url: item.imageUrl),
+                          child: Stack(
+                            fit: StackFit.expand,
+                            children: [
+                              RemoteMediaImage(
+                                url: item.imageUrl,
+                                videoUrlForPoster: item.videoUrl,
+                              ),
+                              if (hasVideo || item.type == ContentType.video) ...[
+                                Container(
+                                  decoration: const BoxDecoration(
+                                    gradient: LinearGradient(
+                                      begin: Alignment.topCenter,
+                                      end: Alignment.bottomCenter,
+                                      colors: [
+                                        Colors.black45,
+                                        Colors.transparent,
+                                        Colors.black54,
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                                Positioned(
+                                  top: 8,
+                                  left: 8,
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 8,
+                                      vertical: 3,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: Colors.redAccent.withAlpha(220),
+                                      borderRadius: BorderRadius.circular(6),
+                                    ),
+                                    child: const Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Icon(
+                                          Icons.play_arrow,
+                                          size: 12,
+                                          color: Colors.white,
+                                        ),
+                                        SizedBox(width: 4),
+                                        Text(
+                                          'VIDEO',
+                                          style: TextStyle(
+                                            fontSize: 9,
+                                            fontWeight: FontWeight.w900,
+                                            color: Colors.white,
+                                            letterSpacing: 0.5,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                                const Center(
+                                  child: CircleAvatar(
+                                    radius: 20,
+                                    backgroundColor: Colors.black54,
+                                    child: Icon(
+                                      Icons.play_arrow,
+                                      color: Colors.white,
+                                      size: 24,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
                         ),
                         Padding(
                           padding: const EdgeInsets.fromLTRB(16, 14, 8, 14),
@@ -187,8 +256,8 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
                       ],
                     ),
                   ),
-                ),
-              ),
+                );
+              }),
           ],
         ),
       ),
@@ -207,6 +276,9 @@ class ContentDetailScreen extends ConsumerWidget {
         .watch(libraryProvider)
         .bookmarkedContent
         .contains(item.id);
+    final hasVideo = isHttpsMediaUrl(item.videoUrl);
+    final hasImage = isHttpsMediaUrl(item.imageUrl);
+
     return Scaffold(
       appBar: AppBar(
         title: Text(item.category),
@@ -225,13 +297,30 @@ class ContentDetailScreen extends ConsumerWidget {
       body: ListView(
         padding: const EdgeInsets.all(20),
         children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(24),
-            child: AspectRatio(
-              aspectRatio: 16 / 9,
-              child: RemoteMediaImage(url: item.imageUrl),
+          if (hasVideo) ...[
+            RemoteMediaVideo(
+              url: item.videoUrl!,
+              posterUrl: item.imageUrl,
             ),
-          ),
+            if (hasImage) ...[
+              const SizedBox(height: 16),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(16),
+                child: AspectRatio(
+                  aspectRatio: 16 / 9,
+                  child: RemoteMediaImage(url: item.imageUrl),
+                ),
+              ),
+            ],
+          ] else ...[
+            ClipRRect(
+              borderRadius: BorderRadius.circular(24),
+              child: AspectRatio(
+                aspectRatio: 16 / 9,
+                child: RemoteMediaImage(url: item.imageUrl),
+              ),
+            ),
+          ],
           const SizedBox(height: 20),
           Text(
             item.title,
@@ -242,9 +331,37 @@ class ContentDetailScreen extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: 10),
-          Text(
-            'By ${item.creator}',
-            style: const TextStyle(color: Color(0xFFFFD740)),
+          Row(
+            children: [
+              Text(
+                'By ${item.creator}',
+                style: const TextStyle(
+                  color: Color(0xFFFFD740),
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              if (hasVideo) ...[
+                const SizedBox(width: 10),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 2,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.redAccent.withAlpha(200),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: const Text(
+                    'VIDEO',
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ],
+            ],
           ),
           const SizedBox(height: 18),
           Text(
@@ -255,10 +372,6 @@ class ContentDetailScreen extends ConsumerWidget {
               color: Colors.white70,
             ),
           ),
-          if (isHttpsMediaUrl(item.videoUrl)) ...[
-            const SizedBox(height: 20),
-            RemoteMediaVideo(url: item.videoUrl!),
-          ],
           const SizedBox(height: 22),
           Wrap(
             spacing: 8,

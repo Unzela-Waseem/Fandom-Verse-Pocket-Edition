@@ -25,6 +25,10 @@ class CloudinaryMediaService {
 
   static const cloudName = 'dc1w5stzg';
   static const signerUrl = String.fromEnvironment('CLOUDINARY_SIGNER_URL');
+  static const uploadPreset = String.fromEnvironment(
+    'CLOUDINARY_UPLOAD_PRESET',
+    defaultValue: 'fandom_verse_unsigned',
+  );
 
   static bool get isConfigured {
     final uri = Uri.tryParse(signerUrl);
@@ -38,8 +42,11 @@ class CloudinaryMediaService {
 
   static bool get isSupportedPlatform =>
       kIsWeb ||
-      (defaultTargetPlatform == TargetPlatform.android ||
-          defaultTargetPlatform == TargetPlatform.iOS);
+      defaultTargetPlatform == TargetPlatform.android ||
+      defaultTargetPlatform == TargetPlatform.iOS ||
+      defaultTargetPlatform == TargetPlatform.windows ||
+      defaultTargetPlatform == TargetPlatform.macOS ||
+      defaultTargetPlatform == TargetPlatform.linux;
 
   final FirebaseAuth _auth;
   final Dio _dio;
@@ -52,8 +59,8 @@ class CloudinaryMediaService {
     required CloudinaryPurpose purpose,
     required void Function(double progress) onProgress,
   }) async {
-    if (!isConfigured || !isSupportedPlatform) {
-      throw const MediaUploadException('Cloudinary upload is not configured.');
+    if (!isSupportedPlatform) {
+      throw const MediaUploadException('Platform not supported for media picker.');
     }
     final user = _auth.currentUser;
     if (user == null) {
@@ -99,107 +106,159 @@ class CloudinaryMediaService {
     final cancelToken = CancelToken();
     _cancelToken = cancelToken;
     try {
-      final token = await user.getIdToken();
-      if (token == null || _auth.currentUser?.uid != user.uid) {
-        throw const MediaUploadException('Your session changed. Try again.');
-      }
-      final backend = signerUrl.replaceFirst(RegExp(r'/$'), '');
-      final headers = {'Authorization': 'Bearer $token'};
-      final signed = await _dio.post<Map<String, dynamic>>(
-        '$backend/media/sign',
-        data: {'purpose': purpose.name},
-        options: Options(headers: headers),
-        cancelToken: cancelToken,
-      );
-      final ticket = signed.data;
-      if (ticket == null ||
-          ticket['cloudName'] != cloudName ||
-          ticket['resourceType'] != (isVideo ? 'video' : 'image') ||
-          ticket['apiKey'] is! String ||
-          ticket['signature'] is! String ||
-          ticket['parameters'] is! Map) {
-        throw const MediaUploadException(
-          'The upload service returned an invalid ticket.',
+      if (isConfigured) {
+        final token = await user.getIdToken();
+        if (token == null || _auth.currentUser?.uid != user.uid) {
+          throw const MediaUploadException('Your session changed. Try again.');
+        }
+        final backend = signerUrl.replaceFirst(RegExp(r'/$'), '');
+        final headers = {'Authorization': 'Bearer $token'};
+        final signed = await _dio.post<Map<String, dynamic>>(
+          '$backend/media/sign',
+          data: {'purpose': purpose.name},
+          options: Options(headers: headers),
+          cancelToken: cancelToken,
         );
-      }
-      final parameters = Map<String, dynamic>.from(ticket['parameters'] as Map);
-      if (parameters['timestamp'] is! int ||
-          parameters['folder'] is! String ||
-          parameters['public_id'] is! String ||
-          parameters['upload_preset'] is! String) {
-        throw const MediaUploadException('The upload ticket is incomplete.');
-      }
-      final mimeType = isVideo
-          ? picked.name.toLowerCase().endsWith('.webm')
+        final ticket = signed.data;
+        if (ticket == null ||
+            ticket['cloudName'] != cloudName ||
+            ticket['resourceType'] != (isVideo ? 'video' : 'image') ||
+            ticket['apiKey'] is! String ||
+            ticket['signature'] is! String ||
+            ticket['parameters'] is! Map) {
+          throw const MediaUploadException(
+            'The upload service returned an invalid ticket.',
+          );
+        }
+        final parameters = Map<String, dynamic>.from(ticket['parameters'] as Map);
+        if (parameters['timestamp'] is! int ||
+            parameters['folder'] is! String ||
+            parameters['public_id'] is! String ||
+            parameters['upload_preset'] is! String) {
+          throw const MediaUploadException('The upload ticket is incomplete.');
+        }
+        final mimeType = isVideo
+            ? picked.name.toLowerCase().endsWith('.webm')
                 ? 'video/webm'
                 : picked.name.toLowerCase().endsWith('.mov')
                 ? 'video/quicktime'
                 : 'video/mp4'
-          : supportedImageMime(Uint8List.fromList(signatureBytes))!;
-      final form = FormData.fromMap({
-        ...parameters,
-        'api_key': ticket['apiKey'],
-        'signature': ticket['signature'],
-        'file': MultipartFile.fromStream(
-          () => picked.openRead(),
-          size,
-          filename: picked.name,
-          contentType: DioMediaType.parse(mimeType),
-        ),
-      });
-      final uploaded = await _dio.post<Map<String, dynamic>>(
-        'https://api.cloudinary.com/v1_1/$cloudName/${ticket['resourceType']}/upload',
-        data: form,
-        options: Options(sendTimeout: const Duration(minutes: 10)),
-        cancelToken: cancelToken,
-        onSendProgress: (sent, total) {
-          if (total > 0) onProgress(0.9 * sent / total);
-        },
-      );
-      final result = uploaded.data;
-      if (result == null ||
-          result['public_id'] is! String ||
-          result['version'] is! int ||
-          result['signature'] is! String) {
-        throw const MediaUploadException(
-          'Cloudinary did not confirm the upload.',
+            : supportedImageMime(Uint8List.fromList(signatureBytes))!;
+        final form = FormData.fromMap({
+          ...parameters,
+          'api_key': ticket['apiKey'],
+          'signature': ticket['signature'],
+          'file': MultipartFile.fromStream(
+            () => picked.openRead(),
+            size,
+            filename: picked.name,
+            contentType: DioMediaType.parse(mimeType),
+          ),
+        });
+        final uploaded = await _dio.post<Map<String, dynamic>>(
+          'https://api.cloudinary.com/v1_1/$cloudName/${ticket['resourceType']}/upload',
+          data: form,
+          options: Options(sendTimeout: const Duration(minutes: 10)),
+          cancelToken: cancelToken,
+          onSendProgress: (sent, total) {
+            if (total > 0) onProgress(0.9 * sent / total);
+          },
         );
+        final result = uploaded.data;
+        if (result == null ||
+            result['public_id'] is! String ||
+            result['version'] is! int ||
+            result['signature'] is! String) {
+          throw const MediaUploadException(
+            'Cloudinary did not confirm the upload.',
+          );
+        }
+        if (_auth.currentUser?.uid != user.uid) {
+          throw const MediaUploadException('Your account changed. Try again.');
+        }
+        onProgress(0.95);
+        final completed = await _dio.post<Map<String, dynamic>>(
+          '$backend/media/complete',
+          data: {
+            'purpose': purpose.name,
+            'publicId': result['public_id'],
+            'version': result['version'],
+            'signature': result['signature'],
+          },
+          options: Options(headers: headers),
+          cancelToken: cancelToken,
+        );
+        final url = completed.data?['secureUrl'];
+        final uri = url is String ? Uri.tryParse(url) : null;
+        if (uri == null ||
+            uri.scheme != 'https' ||
+            uri.host != 'res.cloudinary.com' ||
+            !uri.path.startsWith('/$cloudName/')) {
+          throw const MediaUploadException('The uploaded asset URL is invalid.');
+        }
+        onProgress(1);
+        return url as String;
+      } else {
+        // Direct upload to Cloudinary using Unsigned Preset
+        final mimeType = isVideo
+            ? picked.name.toLowerCase().endsWith('.webm')
+                ? 'video/webm'
+                : picked.name.toLowerCase().endsWith('.mov')
+                ? 'video/quicktime'
+                : 'video/mp4'
+            : supportedImageMime(Uint8List.fromList(signatureBytes))!;
+        final folder = isVideo
+            ? 'fandom-verse/content/videos'
+            : 'fandom-verse/content/images';
+        final bytes = await picked.readAsBytes();
+        final form = FormData.fromMap({
+          'upload_preset': uploadPreset,
+          'folder': folder,
+          'file': MultipartFile.fromBytes(
+            bytes,
+            filename: picked.name,
+            contentType: DioMediaType.parse(mimeType),
+          ),
+        });
+        final uploaded = await _dio.post<Map<String, dynamic>>(
+          'https://api.cloudinary.com/v1_1/$cloudName/${isVideo ? 'video' : 'image'}/upload',
+          data: form,
+          options: Options(sendTimeout: const Duration(minutes: 10)),
+          cancelToken: cancelToken,
+          onSendProgress: (sent, total) {
+            if (total > 0) onProgress(sent / total);
+          },
+        );
+        final result = uploaded.data;
+        final url = result?['secure_url'] as String?;
+        if (url != null && url.startsWith('https://')) {
+          onProgress(1);
+          return url;
+        }
+        throw const MediaUploadException('Cloudinary did not return a secure URL.');
       }
-      if (_auth.currentUser?.uid != user.uid) {
-        throw const MediaUploadException('Your account changed. Try again.');
-      }
-      onProgress(0.95);
-      final completed = await _dio.post<Map<String, dynamic>>(
-        '$backend/media/complete',
-        data: {
-          'purpose': purpose.name,
-          'publicId': result['public_id'],
-          'version': result['version'],
-          'signature': result['signature'],
-        },
-        options: Options(headers: headers),
-        cancelToken: cancelToken,
-      );
-      final url = completed.data?['secureUrl'];
-      final uri = url is String ? Uri.tryParse(url) : null;
-      if (uri == null ||
-          uri.scheme != 'https' ||
-          uri.host != 'res.cloudinary.com' ||
-          !uri.path.startsWith('/$cloudName/')) {
-        throw const MediaUploadException('The uploaded asset URL is invalid.');
-      }
-      onProgress(1);
-      return url as String;
     } on DioException catch (error) {
       if (CancelToken.isCancel(error)) {
         throw const MediaUploadException('Upload canceled.');
       }
       final data = error.response?.data;
-      final message = data is Map && data['error'] is String
-          ? data['error'] as String
-          : error.response?.statusCode == 413
-          ? 'The file is too large for Cloudinary.'
-          : 'Upload failed. Check your connection and Cloudinary setup.';
+      var message = 'Upload failed. Check your connection or paste Cloudinary URL.';
+      if (data is Map) {
+        if (data['error'] is Map && data['error']['message'] is String) {
+          message = data['error']['message'] as String;
+        } else if (data['error'] is String) {
+          message = data['error'] as String;
+        }
+      } else if (error.response?.statusCode == 413) {
+        message = 'The file is too large for Cloudinary.';
+      }
+
+      if (message.toLowerCase().contains('preset') ||
+          message.toLowerCase().contains('unsigned')) {
+        message =
+            'Cloudinary preset error: Create an unsigned preset named "$uploadPreset" in Cloudinary Console ($cloudName), or upload file directly in console and paste the URL here.';
+      }
+
       throw MediaUploadException(message);
     } finally {
       if (identical(_cancelToken, cancelToken)) _cancelToken = null;
