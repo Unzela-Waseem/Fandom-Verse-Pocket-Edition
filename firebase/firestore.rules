@@ -1,0 +1,106 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function authenticated() { return request.auth != null; }
+    function userPath() {
+      return /databases/$(database)/documents/users/$(request.auth.uid);
+    }
+    function signedIn() {
+      return authenticated() && exists(userPath())
+        && get(userPath()).data.get('accountStatus', 'active') == 'active';
+    }
+    function owns(uid) { return signedIn() && request.auth.uid == uid; }
+    function role() {
+      return get(userPath()).data.role;
+    }
+    function isAdmin() {
+      return signedIn() && role() == 'admin'
+        && request.auth.token.admin == true;
+    }
+    function hasOnlyProfileFields() {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+        'displayName', 'bio', 'selectedFandoms', 'badge',
+        'priceDropNotifications', 'updatedAt'
+      ]);
+    }
+
+    match /users/{uid} {
+      allow create: if authenticated() && request.auth.uid == uid
+        && request.resource.data.role == 'fan'
+        && request.resource.data.get('accountStatus', 'active') == 'active';
+      allow read: if (authenticated() && request.auth.uid == uid) || isAdmin();
+      allow update: if (owns(uid) && hasOnlyProfileFields()) ||
+        (isAdmin() && request.resource.data.role == resource.data.role);
+      allow delete: if false;
+    }
+    match /categories/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    match /content/{id} {
+      allow read: if resource.data.published == true || isAdmin();
+      allow write: if isAdmin();
+    }
+    match /events/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    match /merchandise/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    match /announcements/{id} {
+      allow read: if (signedIn() && resource.data.published == true) || isAdmin();
+      allow write: if isAdmin();
+    }
+    match /audit_logs/{id} {
+      allow read: if isAdmin();
+      allow create: if isAdmin()
+        && request.resource.data.actorId == request.auth.uid;
+      allow update, delete: if false;
+    }
+    match /users/{uid}/{collection}/{id} {
+      allow read, write: if owns(uid) && collection in [
+        'bookmarks', 'saved_events', 'wishlist', 'cart', 'orders', 'notifications', 'devices'
+      ];
+    }
+    match /users/{uid}/inquiries/{id} {
+      allow read: if owns(uid) || isAdmin();
+      allow create: if owns(uid)
+        && request.resource.data.userId == uid
+        && request.resource.data.status == 'open';
+      allow update, delete: if isAdmin();
+    }
+    match /{path=**}/inquiries/{id} {
+      allow read: if isAdmin();
+    }
+    match /discussions/{id} {
+      // Fans can only read visible (non-hidden) posts.
+      // Admins can read all posts regardless of hidden state.
+      allow read: if isAdmin() ||
+        (signedIn() && resource.data.get('hidden', false) == false);
+      allow create: if signedIn()
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.title is string
+        && request.resource.data.title.size() >= 4
+        && request.resource.data.title.size() <= 100
+        && request.resource.data.body is string
+        && request.resource.data.body.size() >= 10
+        && request.resource.data.body.size() <= 1500
+        && request.resource.data.rating is int
+        && request.resource.data.rating >= 1
+        && request.resource.data.rating <= 5
+        // Fans cannot create a post that is already hidden.
+        && request.resource.data.get('hidden', false) == false;
+      // Admins can update any field (including hidden). Fans can only
+      // update their own allowed content fields, and may not change hidden.
+      allow update: if isAdmin() ||
+        (signedIn() && resource.data.userId == request.auth.uid
+         && request.resource.data.userId == resource.data.userId
+         && request.resource.data.get('hidden', false) == false);
+      allow delete: if isAdmin() ||
+        (signedIn() && resource.data.userId == request.auth.uid);
+    }
+    match /{document=**} { allow read, write: if false; }
+  }
+}
