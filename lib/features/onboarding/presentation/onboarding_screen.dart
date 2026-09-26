@@ -305,7 +305,9 @@ class _SlideViewState extends State<_SlideView>
             child: SlideTransition(
               position: _slideAnim,
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(28, 0, 28, 140),
+                padding: slide.isLandingSlide 
+                    ? EdgeInsets.fromLTRB(24, 0, 24, MediaQuery.of(context).padding.bottom + 24)
+                    : const EdgeInsets.fromLTRB(28, 0, 28, 140),
                 child: slide.isLandingSlide
                     ? _buildLandingUI(context, slide)
                     : Column(
@@ -386,7 +388,7 @@ class _SlideViewState extends State<_SlideView>
           decoration: BoxDecoration(
             color: Colors.white.withValues(alpha: 0.05),
             borderRadius: BorderRadius.circular(32),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.15), width: 1.5),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.1), width: 1.0),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withValues(alpha: 0.2),
@@ -396,31 +398,33 @@ class _SlideViewState extends State<_SlideView>
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               // Badge
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(99),
-                  border: Border.all(color: slide.accentColor.withValues(alpha: 0.5)),
-                  color: slide.accentColor.withValues(alpha: 0.12),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.bolt, color: slide.accentColor, size: 13),
-                    const SizedBox(width: 6),
-                    Text(
-                      slide.badge,
-                      style: TextStyle(
-                        color: slide.accentColor,
-                        fontSize: 11,
-                        fontWeight: FontWeight.w900,
-                        letterSpacing: 1.4,
+              Center(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(99),
+                    border: Border.all(color: slide.accentColor.withValues(alpha: 0.5)),
+                    color: slide.accentColor.withValues(alpha: 0.12),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.bolt, color: slide.accentColor, size: 13),
+                      const SizedBox(width: 6),
+                      Text(
+                        slide.badge,
+                        style: TextStyle(
+                          color: slide.accentColor,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 1.4,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
               const SizedBox(height: 16),
