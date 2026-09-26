@@ -218,8 +218,8 @@ class _HomeTab extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final catalog =
         ref.watch(contentCatalogProvider).asData?.value ?? contentCatalog;
-    final featured = catalog.where((item) => item.trending).toList();
-    if (featured.isEmpty) featured.addAll(catalog.take(4));
+    final featured = catalog.where((item) => item.trending).toList().reversed.toList();
+    if (featured.isEmpty) featured.addAll(catalog.take(4).toList().reversed.toList());
     final categories = catalog.map((item) => item.category).toSet().toList();
 
     // Personalized fandom items based on profile.selectedFandoms
@@ -323,17 +323,19 @@ class _HomeTab extends ConsumerWidget {
                   ],
                 ),
               ),
-              SliverPadding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                sliver: SliverGrid.builder(
-                  itemCount: featured.length,
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    crossAxisSpacing: 14,
-                    mainAxisSpacing: 14,
-                    childAspectRatio: .72,
+              SliverToBoxAdapter(
+                child: SizedBox(
+                  height: 250,
+                  child: ListView.separated(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    scrollDirection: Axis.horizontal,
+                    itemCount: featured.length,
+                    separatorBuilder: (_, __) => const SizedBox(width: 14),
+                    itemBuilder: (_, index) => SizedBox(
+                      width: 160,
+                      child: _StoryCard(item: featured[index]),
+                    ),
                   ),
-                  itemBuilder: (_, index) => _StoryCard(item: featured[index]),
                 ),
               ),
               const SliverToBoxAdapter(child: SizedBox(height: 28)),
