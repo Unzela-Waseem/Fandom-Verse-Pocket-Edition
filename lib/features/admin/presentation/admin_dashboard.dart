@@ -15,26 +15,7 @@ class AdminDashboard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      appBar: AppBar(
-        title: const Text('Admin Console'),
-        actions: [
-          IconButton(
-            tooltip: 'Audit logs',
-            onPressed: () => Navigator.of(context).push(
-              MaterialPageRoute<void>(
-                builder: (_) => const AdminAuditLogsScreen(),
-              ),
-            ),
-            icon: const Icon(Icons.history_outlined),
-          ),
-          IconButton(
-            tooltip: 'Sign out',
-            onPressed: () => ref.read(authServiceProvider).signOut(),
-            icon: const Icon(Icons.logout),
-          ),
-        ],
-      ),
+      backgroundColor: const Color(0xFF09040E),
       body: Stack(
         children: [
           // Background ambient radial light glow effects
@@ -49,7 +30,7 @@ class AdminDashboard extends ConsumerWidget {
                   gradient: RadialGradient(
                     center: Alignment.topCenter,
                     radius: 0.9,
-                    colors: [Color(0x40A855F7), Color(0x0006040F)],
+                    colors: [Color(0x55A855F7), Color(0x0009040E)],
                   ),
                 ),
               ),
@@ -66,31 +47,35 @@ class AdminDashboard extends ConsumerWidget {
                   gradient: RadialGradient(
                     center: Alignment.center,
                     radius: 0.8,
-                    colors: [Color(0x25D946EF), Color(0x0006040F)],
+                    colors: [Color(0x35D946EF), Color(0x0009040E)],
                   ),
                 ),
               ),
             ),
           ),
-          Positioned.fill(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _AdminGreeting(profile: profile),
-                  const SizedBox(height: 20),
-                  const _AdminStatsRow(),
-                  const SizedBox(height: 24),
-                  Text(
-                    'Manage',
-                    style: Theme.of(
-                      context,
-                    ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
-                  ),
-                  const SizedBox(height: 14),
-                  _AdminModuleGrid(profile: profile),
-                ],
+          SafeArea(
+            child: Positioned.fill(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const _AdminTopBar(),
+                    const SizedBox(height: 24),
+                    const _AdminStatsRow(),
+                    const SizedBox(height: 32),
+                    const Text(
+                      'Manage Modules',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    _AdminModuleGrid(profile: profile),
+                  ],
+                ),
               ),
             ),
           ),
@@ -100,64 +85,70 @@ class AdminDashboard extends ConsumerWidget {
   }
 }
 
-// ── Greeting ─────────────────────────────────────────────────────────────────
-
-class _AdminGreeting extends StatelessWidget {
-  const _AdminGreeting({required this.profile});
-
-  final AppUser profile;
+class _AdminTopBar extends ConsumerWidget {
+  const _AdminTopBar();
 
   @override
-  Widget build(BuildContext context) {
-    final hour = DateTime.now().hour;
-    final greeting = hour < 12
-        ? 'Good morning'
-        : hour < 18
-        ? 'Good afternoon'
-        : 'Good evening';
+  Widget build(BuildContext context, WidgetRef ref) {
     return Row(
       children: [
-        CircleAvatar(
-          radius: 26,
-          backgroundImage: profile.avatarUrl != null
-              ? NetworkImage(profile.avatarUrl!)
-              : null,
-          child: profile.avatarUrl == null
-              ? Text(
-                  profile.displayName.isNotEmpty
-                      ? profile.displayName[0].toUpperCase()
-                      : 'A',
-                )
-              : null,
+        Container(
+          width: 48,
+          height: 48,
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              colors: [Color(0xFFA855F7), Color(0xFFD946EF)],
+            ),
+            borderRadius: BorderRadius.circular(14),
+          ),
+          child: const Icon(Icons.auto_awesome, color: Colors.white, size: 24),
         ),
         const SizedBox(width: 14),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                '$greeting, ${profile.displayName}',
-                style: Theme.of(
-                  context,
-                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
-              ),
-              Text(profile.email, style: Theme.of(context).textTheme.bodySmall),
-            ],
-          ),
-        ),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-          decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.primaryContainer,
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: Text(
-            'Admin',
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w700,
-              color: Theme.of(context).colorScheme.onPrimaryContainer,
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: const [
+            Text(
+              'StarVerse',
+              style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w900, letterSpacing: 0.5),
             ),
+            Text(
+              'Admin panel',
+              style: TextStyle(color: Color(0xFFC084FC), fontSize: 13, fontWeight: FontWeight.w500),
+            ),
+          ],
+        ),
+        const Spacer(),
+        Container(
+          decoration: BoxDecoration(
+            color: const Color(0xFF1C0D38),
+            shape: BoxShape.circle,
+            border: Border.all(color: const Color(0xFFA855F7).withOpacity(0.3)),
+          ),
+          child: PopupMenuButton<int>(
+            icon: const Icon(Icons.notifications_none, color: Color(0xFFFACC15)),
+            color: const Color(0xFF1C0D38),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(14),
+              side: BorderSide(color: const Color(0xFFA855F7).withOpacity(0.3)),
+            ),
+            offset: const Offset(0, 48),
+            onSelected: (value) {
+              if (value == 0) {
+                Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const AdminAuditLogsScreen()));
+              } else if (value == 1) {
+                ref.read(authServiceProvider).signOut();
+              }
+            },
+            itemBuilder: (context) => [
+              const PopupMenuItem(
+                value: 0,
+                child: Row(children: [Icon(Icons.history_outlined, color: Color(0xFFE9D5FF)), SizedBox(width: 12), Text('Audit logs', style: TextStyle(color: Colors.white))]),
+              ),
+              const PopupMenuItem(
+                value: 1,
+                child: Row(children: [Icon(Icons.logout, color: Colors.redAccent), SizedBox(width: 12), Text('Sign out', style: TextStyle(color: Colors.white))]),
+              ),
+            ],
           ),
         ),
       ],
@@ -243,35 +234,45 @@ class _StatCard extends StatelessWidget {
       future: future,
       builder: (context, snapshot) {
         final count = snapshot.data?.count ?? 0;
-        return SizedBox(
-          width: 90,
-          child: Card(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 10),
-              child: Column(
+        return Container(
+          width: 130,
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: const Color(0xFF2A1154).withOpacity(0.5),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: const Color(0xFFA855F7).withOpacity(0.3)),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
                 children: [
-                  Icon(
-                    icon,
-                    size: 22,
-                    color: Theme.of(context).colorScheme.primary,
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    '$count',
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                  Text(
-                    label,
-                    style: Theme.of(context).textTheme.bodySmall,
-                    textAlign: TextAlign.center,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
+                  Icon(icon, size: 20, color: const Color(0xFFC084FC)),
+                  const Spacer(),
+                  Icon(Icons.arrow_drop_up, size: 20, color: const Color(0xFFE879F9)),
                 ],
               ),
-            ),
+              const SizedBox(height: 12),
+              Text(
+                '$count',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 24,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                label,
+                style: const TextStyle(
+                  color: Color(0xFFD8B4FE),
+                  fontSize: 13,
+                  fontWeight: FontWeight.w500,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
           ),
         );
       },
@@ -364,7 +365,12 @@ class _AdminModuleGrid extends StatelessWidget {
       ),
       itemBuilder: (context, index) {
         final module = modules[index];
-        return Card(
+        return Container(
+          decoration: BoxDecoration(
+            color: const Color(0xFF180A2E),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: const Color(0xFFA855F7).withOpacity(0.15)),
+          ),
           child: InkWell(
             borderRadius: BorderRadius.circular(20),
             onTap: () => Navigator.of(
@@ -376,28 +382,37 @@ class _AdminModuleGrid extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Container(
-                    padding: const EdgeInsets.all(8),
+                    padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
-                      color: Theme.of(
-                        context,
-                      ).colorScheme.primaryContainer.withAlpha(128),
-                      borderRadius: BorderRadius.circular(10),
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFFA855F7), Color(0xFFD946EF)],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(12),
                     ),
                     child: Icon(
                       module.icon,
-                      size: 22,
-                      color: Theme.of(context).colorScheme.primary,
+                      size: 24,
+                      color: Colors.white,
                     ),
                   ),
                   const Spacer(),
                   Text(
                     module.title,
-                    style: const TextStyle(fontWeight: FontWeight.w800),
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                  const SizedBox(height: 2),
+                  const SizedBox(height: 4),
                   Text(
                     module.subtitle,
-                    style: Theme.of(context).textTheme.bodySmall,
+                    style: const TextStyle(
+                      color: Color(0xFFC084FC),
+                      fontSize: 12,
+                    ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
