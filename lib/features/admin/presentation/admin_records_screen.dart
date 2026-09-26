@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:flutter/material.dart';
@@ -99,7 +100,7 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
     } catch (error) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(error.message ?? 'Status update failed.')),
+          SnackBar(content: Text(error.toString())),
         );
       }
     } finally {
@@ -150,7 +151,7 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
     } catch (error) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(error.message ?? 'Deletion failed.')),
+          SnackBar(content: Text(error.toString())),
         );
       }
     } finally {
