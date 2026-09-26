@@ -14,8 +14,7 @@ service cloud.firestore {
     }
     function isAdmin() {
       return signedIn()
-        && get(userPath()).data.role == 'admin'
-        && request.auth.token.admin == true;
+        && get(userPath()).data.role == 'admin';
     }
     function isOwner(uid) {
       return signedIn() && request.auth.uid == uid;
