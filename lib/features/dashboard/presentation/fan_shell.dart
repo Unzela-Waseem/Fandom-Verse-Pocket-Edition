@@ -445,10 +445,10 @@ class _TopBar extends StatelessWidget {
             child: CircleAvatar(
               radius: 20,
               backgroundColor: const Color(0xFF180A2E),
-              backgroundImage: profile?.photoUrl != null && profile!.photoUrl!.isNotEmpty
-                  ? NetworkImage(profile!.photoUrl!)
+              backgroundImage: profile?.avatarUrl != null && profile!.avatarUrl!.isNotEmpty
+                  ? NetworkImage(profile!.avatarUrl!)
                   : null,
-              child: profile?.photoUrl == null || profile!.photoUrl!.isEmpty
+              child: profile?.avatarUrl == null || profile!.avatarUrl!.isEmpty
                   ? const Icon(Icons.person, color: Color(0xFFE9D5FF), size: 22)
                   : null,
             ),
