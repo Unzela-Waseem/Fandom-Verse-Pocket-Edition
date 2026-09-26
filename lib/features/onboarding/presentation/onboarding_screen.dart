@@ -363,6 +363,7 @@ class _SlideViewState extends State<_SlideView>
                           ),
                         ],
                       ),
+                ),
               ),
             ),
           ),
