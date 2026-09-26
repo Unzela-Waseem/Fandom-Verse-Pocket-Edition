@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ui';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -291,7 +292,7 @@ class _HomeTab extends ConsumerWidget {
                     ),
                     const SizedBox(height: 14),
                     SizedBox(
-                      height: 90,
+                      height: 120,
                       child: ListView.separated(
                         scrollDirection: Axis.horizontal,
                         itemCount: categories.length,
@@ -792,39 +793,47 @@ class _CategoryAvatar extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Container(
-            width: 56,
-            height: 56,
+            width: 74,
+            height: 74,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               gradient: const LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
-                colors: [Color(0xFF9333EA), Color(0xFF6B21A8)],
+                colors: [Color(0xBB9333EA), Color(0x446B21A8)],
               ),
               boxShadow: [
                 BoxShadow(
-                  color: const Color(0xFFA855F7).withValues(alpha: 0.4),
+                  color: const Color(0xFFA855F7).withValues(alpha: 0.35),
+                  blurRadius: 18,
+                  offset: const Offset(0, 6),
+                ),
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.5),
                   blurRadius: 12,
-                  offset: const Offset(0, 4),
+                  offset: const Offset(0, 0),
+                  blurStyle: BlurStyle.inner,
                 ),
               ],
               border: Border.all(
-                color: const Color(0xFFC084FC).withValues(alpha: 0.5),
-                width: 1.5,
+                color: const Color(0xFFE879F9).withValues(alpha: 0.8),
+                width: 2,
               ),
             ),
-            child: Icon(icon, color: Colors.white, size: 26),
+            child: Center(
+              child: Icon(icon, color: Colors.white, size: 32),
+            ),
           ),
-          const SizedBox(height: 7),
+          const SizedBox(height: 12),
           Text(
-            category,
+            category.toUpperCase(),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: const TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w700,
-              color: Color(0xFFE9D5FF),
-              letterSpacing: 0.2,
+              fontSize: 12,
+              fontWeight: FontWeight.w900,
+              color: Colors.white,
+              letterSpacing: 1.2,
             ),
           ),
         ],
@@ -1295,18 +1304,28 @@ class _TrendingFandomCarouselState extends State<_TrendingFandomCarousel> {
                               child: Icon(icon, size: 80, color: accent.withValues(alpha: 0.2)),
                             ),
                           ),
-                          // Gradient overlay - stronger at bottom
-                          Container(
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                begin: Alignment.topCenter,
-                                end: Alignment.bottomCenter,
-                                colors: [
-                                  Colors.black.withValues(alpha: 0.15),
-                                  Colors.black.withValues(alpha: 0.45),
-                                  Colors.black.withValues(alpha: 0.88),
-                                ],
-                                stops: const [0.0, 0.4, 1.0],
+                          // Premium Glassmorphic Gradient overlay
+                          Align(
+                            alignment: Alignment.bottomCenter,
+                            child: ClipRect(
+                              child: BackdropFilter(
+                                filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+                                child: Container(
+                                  height: 115,
+                                  decoration: BoxDecoration(
+                                    border: Border(top: BorderSide(color: accent.withValues(alpha: 0.3), width: 1)),
+                                    gradient: LinearGradient(
+                                      begin: Alignment.topCenter,
+                                      end: Alignment.bottomCenter,
+                                      colors: [
+                                        Colors.black.withValues(alpha: 0.2),
+                                        Colors.black.withValues(alpha: 0.7),
+                                        Colors.black.withValues(alpha: 0.95),
+                                      ],
+                                      stops: const [0.0, 0.4, 1.0],
+                                    ),
+                                  ),
+                                ),
                               ),
                             ),
                           ),
