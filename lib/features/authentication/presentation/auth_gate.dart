@@ -49,10 +49,7 @@ class AuthGate extends ConsumerWidget {
                     }
                     return switch (profile.role) {
                       UserRole.fan => FanShell(profile: profile),
-                      UserRole.admin => _VerifiedAdmin(
-                        firebaseUser: firebaseUser,
-                        profile: profile,
-                      ),
+                      UserRole.admin => AdminDashboard(profile: profile),
                     };
                   },
                 );
@@ -61,56 +58,6 @@ class AuthGate extends ConsumerWidget {
   }
 }
 
-class _VerifiedAdmin extends StatefulWidget {
-  const _VerifiedAdmin({required this.firebaseUser, required this.profile});
-
-  final User firebaseUser;
-  final AppUser profile;
-
-  @override
-  State<_VerifiedAdmin> createState() => _VerifiedAdminState();
-}
-
-class _VerifiedAdminState extends State<_VerifiedAdmin> {
-  late Future<IdTokenResult> _claim;
-
-  @override
-  void initState() {
-    super.initState();
-    _claim = widget.firebaseUser.getIdTokenResult();
-  }
-
-  @override
-  void didUpdateWidget(covariant _VerifiedAdmin oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.firebaseUser.uid != widget.firebaseUser.uid) {
-      _claim = widget.firebaseUser.getIdTokenResult();
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) => FutureBuilder<IdTokenResult>(
-    future: _claim,
-    builder: (context, snapshot) {
-      if (snapshot.hasError) {
-        return const _RecoveryScreen(
-          message: 'Admin access could not be verified. Please sign in again.',
-          onSignOut: _signOut,
-        );
-      }
-      if (!snapshot.hasData) return const _LoadingScreen();
-      if (snapshot.data!.claims?['admin'] != true) {
-        return const _RecoveryScreen(
-          message: 'Admin access is not configured for this account.',
-          onSignOut: _signOut,
-        );
-      }
-      return AdminDashboard(profile: widget.profile);
-    },
-  );
-
-  static void _signOut() => FirebaseAuth.instance.signOut();
-}
 
 class _LoadingScreen extends StatelessWidget {
   const _LoadingScreen();
