@@ -463,9 +463,10 @@ class _AboutScreen extends StatelessWidget {
               ),
             ),
             child: Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
                 Container(
-                  width: 72, height: 72,
+                  width: 58, height: 58,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     gradient: const LinearGradient(
@@ -474,31 +475,31 @@ class _AboutScreen extends StatelessWidget {
                     boxShadow: [
                       BoxShadow(
                         color: const Color(0xFF7B2FBE).withValues(alpha: 0.4),
-                        blurRadius: 20, spreadRadius: 2,
+                        blurRadius: 16, spreadRadius: 1,
                       ),
                     ],
                   ),
-                  child: const Icon(Icons.auto_awesome, size: 34, color: Colors.white),
+                  child: const Icon(Icons.auto_awesome, size: 28, color: Colors.white),
                 ),
-                const SizedBox(height: 14),
+                const SizedBox(height: 8),
                 const Text(
                   'Fandom Verse',
                   style: TextStyle(
-                    fontSize: 26, fontWeight: FontWeight.w900,
+                    fontSize: 22, fontWeight: FontWeight.w900,
                     color: Colors.white, letterSpacing: 0.5,
                   ),
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: 2),
                 const Text(
                   'POCKET EDITION',
                   style: TextStyle(
-                    fontSize: 12, letterSpacing: 4,
+                    fontSize: 11, letterSpacing: 3,
                     color: Color(0xFF00E5FF), fontWeight: FontWeight.w600,
                   ),
                 ),
-                const SizedBox(height: 10),
+                const SizedBox(height: 6),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(20),
                     color: const Color(0xFF2979FF).withValues(alpha: 0.2),
@@ -506,7 +507,7 @@ class _AboutScreen extends StatelessWidget {
                   ),
                   child: const Text(
                     'TechWiz World Tech Championship',
-                    style: TextStyle(fontSize: 11, color: Color(0xFF90CAF9)),
+                    style: TextStyle(fontSize: 10, color: Color(0xFF90CAF9)),
                   ),
                 ),
               ],
