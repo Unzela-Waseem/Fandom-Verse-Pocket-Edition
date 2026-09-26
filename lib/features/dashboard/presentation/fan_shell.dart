@@ -559,6 +559,11 @@ class _CharacterCarouselState extends State<_CharacterCarousel> {
       'category': 'GAMING',
     },
     {
+      'image': 'assets/ninja.jpg',
+      'title': 'The Way of the Ninja',
+      'category': 'ANIME',
+    },
+    {
       'image': 'assets/avengers.jpeg',
       'title': 'The Most Powerful Avengers',
       'category': 'MOVIES',
