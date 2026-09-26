@@ -15,12 +15,14 @@ class ContactScreen extends StatefulWidget {
 
 class _ContactScreenState extends State<ContactScreen> {
   final _formKey = GlobalKey<FormState>();
+  final _nameController = TextEditingController();
   final _subjectController = TextEditingController();
   final _messageController = TextEditingController();
   bool _submitting = false;
 
   @override
   void dispose() {
+    _nameController.dispose();
     _subjectController.dispose();
     _messageController.dispose();
     super.dispose();
@@ -43,6 +45,7 @@ class _ContactScreenState extends State<ContactScreen> {
           .collection('inquiries')
           .add({
             'userId': user.uid,
+            'name': _nameController.text.trim(),
             'email': user.email,
             'subject': _subjectController.text.trim(),
             'message': _messageController.text.trim(),
@@ -50,6 +53,7 @@ class _ContactScreenState extends State<ContactScreen> {
             'createdAt': FieldValue.serverTimestamp(),
             'updatedAt': FieldValue.serverTimestamp(),
           });
+      _nameController.clear();
       _subjectController.clear();
       _messageController.clear();
       if (mounted) {
@@ -152,11 +156,26 @@ class _ContactScreenState extends State<ContactScreen> {
             ),
             const SizedBox(height: 16),
             TextFormField(
+              controller: _nameController,
+              validator: (value) =>
+                  InputValidators.required(value, label: 'Name'),
+              maxLength: 60,
+              textCapitalization: TextCapitalization.words,
+              decoration: const InputDecoration(
+                labelText: 'Name',
+                prefixIcon: Icon(Icons.person_outline),
+              ),
+            ),
+            const SizedBox(height: 12),
+            TextFormField(
               controller: _subjectController,
               validator: (value) =>
                   InputValidators.required(value, label: 'Subject'),
               maxLength: 100,
-              decoration: const InputDecoration(labelText: 'Subject'),
+              decoration: const InputDecoration(
+                labelText: 'Subject',
+                prefixIcon: Icon(Icons.subject_outlined),
+              ),
             ),
             const SizedBox(height: 12),
             TextFormField(

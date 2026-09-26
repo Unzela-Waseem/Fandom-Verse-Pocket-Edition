@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import '../../../core/media/remote_media.dart';
 import 'ar_preview_screen.dart';
 import 'quote_recognizer_sheet.dart';
+import 'wishlist_screen.dart';
 
 import '../../library/application/library_controller.dart';
 import '../../library/data/cloud_catalog.dart';
@@ -72,6 +73,19 @@ class _StoreScreenState extends ConsumerState<StoreScreen> {
                   style: TextStyle(fontSize: 30, fontWeight: FontWeight.w900),
                 ),
               ),
+              Badge(
+                label: Text('${library.wishlist.length}'),
+                isLabelVisible: library.wishlist.isNotEmpty,
+                backgroundColor: Colors.redAccent,
+                child: IconButton.filledTonal(
+                  tooltip: 'Open wishlist',
+                  onPressed: () => Navigator.of(context).push(
+                    MaterialPageRoute<void>(builder: (_) => const WishlistScreen()),
+                  ),
+                  icon: const Icon(Icons.favorite_outline),
+                ),
+              ),
+              const SizedBox(width: 8),
               Badge(
                 label: Text('$cartCount'),
                 isLabelVisible: cartCount > 0,
@@ -360,6 +374,19 @@ class CartScreen extends ConsumerWidget {
                                   catalog: catalog,
                                 ),
                             icon: const Icon(Icons.add_circle_outline),
+                          ),
+                          const SizedBox(width: 4),
+                          IconButton(
+                            tooltip: 'Remove from cart',
+                            onPressed: () => ref
+                                .read(libraryProvider.notifier)
+                                .setCartQuantity(
+                                  product.id,
+                                  0,
+                                  catalog: catalog,
+                                ),
+                            icon: const Icon(Icons.delete_outline,
+                                color: Colors.redAccent),
                           ),
                         ],
                       ),
