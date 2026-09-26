@@ -522,6 +522,8 @@ class _TopBar extends StatelessWidget {
                 fontSize: 17,
                 color: Colors.white,
               ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
           ],
         ),
