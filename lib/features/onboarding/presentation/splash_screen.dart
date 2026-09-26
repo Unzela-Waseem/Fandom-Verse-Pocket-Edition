@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
-import 'onboarding_screen.dart';
+import '../../authentication/presentation/auth_gate.dart';
 
 class VideoSplashScreen extends StatefulWidget {
   const VideoSplashScreen({super.key});
@@ -42,9 +42,9 @@ class _VideoSplashScreenState extends State<VideoSplashScreen> {
     _controller.removeListener(_videoListener);
     _controller.pause();
     
-    // Navigate to Onboarding, replacing the splash screen entirely
+    // Navigate to AuthGate, replacing the splash screen entirely
     Navigator.of(context).pushReplacement(
-      MaterialPageRoute(builder: (_) => const OnboardingScreen()),
+      MaterialPageRoute(builder: (_) => const AuthGate()),
     );
   }
 

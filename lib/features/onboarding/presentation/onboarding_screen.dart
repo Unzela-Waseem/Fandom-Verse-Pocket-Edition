@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../authentication/presentation/landing_screen.dart';
+import '../../authentication/presentation/login_screen.dart';
+import '../../dashboard/presentation/fan_shell.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -29,6 +30,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
       ],
       accentColor: Color(0xFFA855F7),
       gradientColors: [Color(0xCC08061A), Color(0xFF08061A)],
+      hideBadge: true, // Hide badge for slide 1
     ),
     _SlideData(
       image: 'assets/slide3_ai.jpg',
@@ -47,14 +49,10 @@ class _OnboardingScreenState extends State<OnboardingScreen>
       image: 'assets/slide2_gaming.png',
       badge: 'GAMING AND ESPORTS',
       title: 'Dominate the\nArena',
-      features: [
-        'Live Esports brackets and tournament updates',
-        'Speedrunning routes and pro gaming guides',
-        'DLC walkthroughs and retro gaming lore',
-        'Connect with gamers from your fandom',
-      ],
+      features: [],
       accentColor: Color(0xFFAB47BC),
       gradientColors: [Color(0xCC0A0018), Color(0xFF0A0018)],
+      isLandingSlide: true, // Show landing UI instead of standard features
     ),
   ];
 
@@ -88,13 +86,12 @@ class _OnboardingScreenState extends State<OnboardingScreen>
   }
 
   void _onFinish() {
-    Navigator.of(context).pushReplacement(
-      PageRouteBuilder<void>(
-        pageBuilder: (_, __, ___) => const LandingScreen(),
-        transitionsBuilder: (_, anim, __, child) =>
-            FadeTransition(opacity: anim, child: child),
-        transitionDuration: const Duration(milliseconds: 400),
-      ),
+    // Navigate to fan shell or do nothing since slide 3 handles it
+    if (_currentPage == _slides.length - 1) return;
+    _pageController.animateToPage(
+      _slides.length - 1,
+      duration: const Duration(milliseconds: 400),
+      curve: Curves.easeInOut,
     );
   }
 
@@ -139,62 +136,61 @@ class _OnboardingScreenState extends State<OnboardingScreen>
               ),
             ),
           ),
-          // Bottom controls
-          Positioned(
-            left: 28,
-            right: 28,
-            bottom: 0,
-            child: SafeArea(
-              child: Padding(
-                padding: const EdgeInsets.only(bottom: 28),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    // CTA button
-                    _NextButton(
-                      label: _currentPage == _slides.length - 1
-                          ? "Get Started - It's Free"
-                          : 'Continue',
-                      accentColor: _slides[_currentPage].accentColor,
-                      onTap: _onNext,
-                    ),
-                    const SizedBox(height: 20),
-                    // Page dots
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: List.generate(
-                        _slides.length,
-                        (idx) => AnimatedContainer(
-                          duration: const Duration(milliseconds: 300),
-                          margin: const EdgeInsets.symmetric(horizontal: 4),
-                          width: _currentPage == idx ? 24 : 8,
-                          height: 8,
-                          decoration: BoxDecoration(
-                            color: _currentPage == idx
-                                ? _slides[_currentPage].accentColor
-                                : Colors.white24,
-                            borderRadius: BorderRadius.circular(99),
+          // Bottom controls (Hidden on final landing slide)
+          if (_currentPage != _slides.length - 1)
+            Positioned(
+              left: 28,
+              right: 28,
+              bottom: 0,
+              child: SafeArea(
+                child: Padding(
+                  padding: const EdgeInsets.only(bottom: 28),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // CTA button
+                      _NextButton(
+                        label: 'Continue',
+                        accentColor: _slides[_currentPage].accentColor,
+                        onTap: _onNext,
+                      ),
+                      const SizedBox(height: 20),
+                      // Page dots
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: List.generate(
+                          _slides.length,
+                          (idx) => AnimatedContainer(
+                            duration: const Duration(milliseconds: 300),
+                            margin: const EdgeInsets.symmetric(horizontal: 4),
+                            width: _currentPage == idx ? 24 : 8,
+                            height: 8,
+                            decoration: BoxDecoration(
+                              color: _currentPage == idx
+                                  ? _slides[_currentPage].accentColor
+                                  : Colors.white24,
+                              borderRadius: BorderRadius.circular(99),
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                    const SizedBox(height: 20),
-                    // Footer links
-                    const Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        _FooterLink(label: 'Terms of use'),
-                        _Dot(),
-                        _FooterLink(label: 'Privacy Policy'),
-                        _Dot(),
-                        _FooterLink(label: 'Restore'),
-                      ],
-                    ),
-                  ],
+                      const SizedBox(height: 20),
+                      // Footer links
+                      const Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          _FooterLink(label: 'Terms of use'),
+                          _Dot(),
+                          _FooterLink(label: 'Privacy Policy'),
+                          _Dot(),
+                          _FooterLink(label: 'Restore'),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
-          ),
         ],
       ),
     );
@@ -209,6 +205,8 @@ class _SlideData {
   final List<String> features;
   final Color accentColor;
   final List<Color> gradientColors;
+  final bool hideBadge;
+  final bool isLandingSlide;
 
   const _SlideData({
     required this.image,
@@ -217,6 +215,8 @@ class _SlideData {
     required this.features,
     required this.accentColor,
     required this.gradientColors,
+    this.hideBadge = false,
+    this.isLandingSlide = false,
   });
 }
 
@@ -305,60 +305,165 @@ class _SlideViewState extends State<_SlideView>
               position: _slideAnim,
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(28, 0, 28, 140),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    // Badge
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 14, vertical: 7),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(99),
-                        border: Border.all(
-                            color: slide.accentColor.withValues(alpha: 0.5)),
-                        color: slide.accentColor.withValues(alpha: 0.12),
-                      ),
-                      child: Row(
+                child: slide.isLandingSlide
+                    ? _buildLandingUI(context, slide)
+                    : Column(
                         mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
-                          Icon(Icons.auto_awesome,
-                              color: slide.accentColor, size: 13),
-                          const SizedBox(width: 6),
-                          Text(
-                            slide.badge,
-                            style: TextStyle(
-                              color: slide.accentColor,
-                              fontSize: 11,
-                              fontWeight: FontWeight.w900,
-                              letterSpacing: 1.4,
+                          // Badge
+                          if (!slide.hideBadge)
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 14, vertical: 7),
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(99),
+                                border: Border.all(
+                                    color: slide.accentColor.withValues(alpha: 0.5)),
+                                color: slide.accentColor.withValues(alpha: 0.12),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(Icons.auto_awesome,
+                                      color: slide.accentColor, size: 13),
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    slide.badge,
+                                    style: TextStyle(
+                                      color: slide.accentColor,
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w900,
+                                      letterSpacing: 1.4,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
+                          if (!slide.hideBadge) const SizedBox(height: 16),
+                          // Title
+                          Text(
+                            slide.title,
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
+                              fontSize: 34,
+                              fontWeight: FontWeight.w900,
+                              color: Colors.white,
+                              height: 1.1,
+                              letterSpacing: -0.5,
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+                          // Feature list
+                          ...slide.features.map(
+                            (f) => _FeatureItem(
+                                label: f, accentColor: slide.accentColor),
                           ),
                         ],
                       ),
-                    ),
-                    const SizedBox(height: 16),
-                    // Title
-                    Text(
-                      slide.title,
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        fontSize: 34,
-                        fontWeight: FontWeight.w900,
-                        color: Colors.white,
-                        height: 1.1,
-                        letterSpacing: -0.5,
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                    // Feature list
-                    ...slide.features.map(
-                      (f) => _FeatureItem(label: f, accentColor: slide.accentColor),
-                    ),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  void _openLogin(BuildContext context, {required bool admin}) {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(builder: (_) => LoginScreen(adminMode: admin)),
+    );
+  }
+
+  Widget _buildLandingUI(BuildContext context, _SlideData slide) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Row(
+          children: [
+            Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFFA855F7), Color(0xFFD946EF)],
+                ),
+                borderRadius: BorderRadius.circular(14),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFFA855F7).withValues(alpha: 0.4),
+                    blurRadius: 10,
+                  ),
+                ],
+              ),
+              child: const Icon(Icons.bolt, color: Colors.white, size: 26),
+            ),
+            const SizedBox(width: 12),
+            const Text(
+              'FANDOM VERSE',
+              style: TextStyle(
+                fontWeight: FontWeight.w900,
+                letterSpacing: 1.2,
+                color: Colors.white,
+                fontSize: 18,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 40),
+        RichText(
+          text: TextSpan(
+            style: Theme.of(context).textTheme.displaySmall?.copyWith(
+                  fontWeight: FontWeight.w900,
+                  height: .98,
+                  letterSpacing: -1.4,
+                  color: Colors.white,
+                ),
+            children: const [
+              TextSpan(text: 'Your worlds.\n'),
+              TextSpan(
+                text: 'One universe.',
+                style: TextStyle(
+                  color: Color(0xFFD946EF),
+                  shadows: [
+                    Shadow(color: Color(0xFFA855F7), blurRadius: 12),
                   ],
                 ),
               ),
-            ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 14),
+        Text(
+          'Stories, events, communities, and collectibles for every kind of fan.',
+          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                color: Colors.white70,
+                height: 1.4,
+              ),
+        ),
+        const SizedBox(height: 32),
+        FilledButton(
+          onPressed: () => _openLogin(context, admin: false),
+          child: const Text('CONTINUE AS A FAN'),
+        ),
+        const SizedBox(height: 10),
+        OutlinedButton(
+          onPressed: () => Navigator.of(context).pushReplacement(
+            MaterialPageRoute<void>(builder: (_) => const FanShell()),
+          ),
+          style: OutlinedButton.styleFrom(
+            minimumSize: const Size.fromHeight(50),
+          ),
+          child: const Text('EXPLORE PREVIEW'),
+        ),
+        const SizedBox(height: 16),
+        TextButton.icon(
+          onPressed: () => _openLogin(context, admin: true),
+          icon: const Icon(Icons.shield_outlined, size: 18, color: Colors.white70),
+          label: const Text(
+            'Admin sign in',
+            style: TextStyle(color: Colors.white70),
           ),
         ),
       ],

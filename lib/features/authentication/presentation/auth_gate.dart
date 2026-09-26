@@ -7,7 +7,7 @@ import '../../dashboard/presentation/fan_shell.dart';
 import '../application/auth_providers.dart';
 import '../domain/app_user.dart';
 import 'complete_fan_profile_screen.dart';
-import 'landing_screen.dart';
+import '../../onboarding/presentation/onboarding_screen.dart';
 
 class AuthGate extends ConsumerWidget {
   const AuthGate({super.key});
@@ -23,7 +23,7 @@ class AuthGate extends ConsumerWidget {
                 'Unable to verify your session. Check your connection and try again.',
           ),
           data: (firebaseUser) {
-            if (firebaseUser == null) return const LandingScreen();
+            if (firebaseUser == null) return const OnboardingScreen();
             return ref
                 .watch(currentUserProfileProvider(firebaseUser.uid))
                 .when(
