@@ -35,25 +35,66 @@ class AdminDashboard extends ConsumerWidget {
           ),
         ],
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _AdminGreeting(profile: profile),
-            const SizedBox(height: 20),
-            const _AdminStatsRow(),
-            const SizedBox(height: 24),
-            Text(
-              'Manage',
-              style: Theme.of(
-                context,
-              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+      body: Stack(
+        children: [
+          // Background ambient radial light glow effects
+          Positioned(
+            top: -60,
+            left: 0,
+            right: 0,
+            height: 300,
+            child: IgnorePointer(
+              child: Container(
+                decoration: const BoxDecoration(
+                  gradient: RadialGradient(
+                    center: Alignment.topCenter,
+                    radius: 0.9,
+                    colors: [Color(0x40A855F7), Color(0x0006040F)],
+                  ),
+                ),
+              ),
             ),
-            const SizedBox(height: 14),
-            _AdminModuleGrid(profile: profile),
-          ],
-        ),
+          ),
+          Positioned(
+            bottom: -50,
+            right: -80,
+            width: 260,
+            height: 260,
+            child: IgnorePointer(
+              child: Container(
+                decoration: const BoxDecoration(
+                  gradient: RadialGradient(
+                    center: Alignment.center,
+                    radius: 0.8,
+                    colors: [Color(0x25D946EF), Color(0x0006040F)],
+                  ),
+                ),
+              ),
+            ),
+          ),
+          Positioned.fill(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _AdminGreeting(profile: profile),
+                  const SizedBox(height: 20),
+                  const _AdminStatsRow(),
+                  const SizedBox(height: 24),
+                  Text(
+                    'Manage',
+                    style: Theme.of(
+                      context,
+                    ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+                  ),
+                  const SizedBox(height: 14),
+                  _AdminModuleGrid(profile: profile),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

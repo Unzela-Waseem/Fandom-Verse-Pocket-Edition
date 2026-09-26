@@ -28,8 +28,7 @@ abstract final class AppTheme {
           : const Color(0xFFEBE3FF),
     );
 
-    const scaffoldBg = Color(0xFF09040E);
-    const cardBg = Color(0xFF160B28);
+    const scaffoldBg = Color(0xFF06040F);
     const borderViolet = Color(0xFFA855F7);
 
     return ThemeData(
@@ -78,18 +77,15 @@ abstract final class AppTheme {
         ),
       ),
       cardTheme: CardThemeData(
-        elevation: 6,
-        color: isDark ? cardBg : Colors.white,
-        shadowColor: isDark
-            ? const Color(0xFFA855F7).withValues(alpha: 0.25)
-            : Colors.black12,
+        elevation: 0,
+        color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.white,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(24),
           side: BorderSide(
             color: isDark
-                ? borderViolet.withValues(alpha: 0.3)
+                ? Colors.white.withValues(alpha: 0.1)
                 : borderViolet.withValues(alpha: 0.12),
-            width: 1.2,
+            width: 1.0,
           ),
         ),
       ),

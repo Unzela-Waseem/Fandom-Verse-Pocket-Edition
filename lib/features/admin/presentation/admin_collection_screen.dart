@@ -240,24 +240,62 @@ class _AdminCollectionScreenState extends State<AdminCollectionScreen> {
         icon: const Icon(Icons.add),
         label: const Text('Create'),
       ),
-      body: RefreshIndicator(
-        onRefresh: _refresh,
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
-              child: TextField(
-                onChanged: (value) => setState(() => _query = value.trim()),
-                decoration: const InputDecoration(
-                  prefixIcon: Icon(Icons.search),
-                  labelText: 'Search',
+      body: Stack(
+        children: [
+          // Background ambient radial light glow effects
+          Positioned(
+            top: -60,
+            left: 0,
+            right: 0,
+            height: 300,
+            child: IgnorePointer(
+              child: Container(
+                decoration: const BoxDecoration(
+                  gradient: RadialGradient(
+                    center: Alignment.topCenter,
+                    radius: 0.9,
+                    colors: [Color(0x40A855F7), Color(0x0006040F)],
+                  ),
                 ),
               ),
             ),
-            Expanded(
-              child: _loading && _records.isEmpty
-                  ? const Center(child: CircularProgressIndicator())
-                  : filtered.isEmpty
+          ),
+          Positioned(
+            bottom: -50,
+            right: -80,
+            width: 260,
+            height: 260,
+            child: IgnorePointer(
+              child: Container(
+                decoration: const BoxDecoration(
+                  gradient: RadialGradient(
+                    center: Alignment.center,
+                    radius: 0.8,
+                    colors: [Color(0x25D946EF), Color(0x0006040F)],
+                  ),
+                ),
+              ),
+            ),
+          ),
+          Positioned.fill(
+            child: RefreshIndicator(
+              onRefresh: _refresh,
+              child: Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+                    child: TextField(
+                      onChanged: (value) => setState(() => _query = value.trim()),
+                      decoration: const InputDecoration(
+                        prefixIcon: Icon(Icons.search),
+                        labelText: 'Search',
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    child: _loading && _records.isEmpty
+                        ? const Center(child: CircularProgressIndicator())
+                        : filtered.isEmpty
                   ? const Center(child: Text('No matching records.'))
                   : ListView.builder(
                       padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
