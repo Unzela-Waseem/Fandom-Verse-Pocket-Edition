@@ -304,11 +304,12 @@ class _SlideViewState extends State<_SlideView>
             opacity: _fadeAnim,
             child: SlideTransition(
               position: _slideAnim,
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(28, 0, 28, 140),
-                child: slide.isLandingSlide
-                    ? _buildLandingUI(context, slide)
-                    : Column(
+              child: SafeArea(
+                child: Padding(
+                  padding: EdgeInsets.fromLTRB(28, 0, 28, slide.isLandingSlide ? 28 : 140),
+                  child: slide.isLandingSlide
+                      ? _buildLandingUI(context, slide)
+                      : Column(
                         mainAxisSize: MainAxisSize.min,
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
