@@ -136,12 +136,12 @@ void main() {
       // Filter by News
       await tester.tap(find.text('News'));
       await tester.pumpAndSettle();
-      expect(find.textContaining('Season Announced'), findsAtLeastNWidgets(1));
+      expect(find.textContaining('Anya Forger'), findsAtLeastNWidgets(1));
 
-      // Filter by Videos
-      await tester.tap(find.text('Videos'));
+      // Filter by Galleries
+      await tester.tap(find.text('Galleries'));
       await tester.pumpAndSettle();
-      expect(find.textContaining('Video:'), findsAtLeastNWidgets(1));
+      expect(find.textContaining('Gallery:'), findsAtLeastNWidgets(1));
 
       // Filter by Podcasts
       await tester.tap(find.text('Podcasts'));
@@ -191,7 +191,7 @@ void main() {
       // Test keyword 'Marvel'
       await tester.enterText(searchField, 'Marvel');
       await tester.pumpAndSettle();
-      expect(find.textContaining('Marvel Multiverse'), findsOneWidget);
+      expect(find.textContaining('Iron Man Armor'), findsOneWidget);
 
       // Test negative query 'xyzabc123'
       await tester.enterText(searchField, 'xyzabc123');
@@ -238,8 +238,8 @@ void main() {
       expect(find.text('Anime Champion'), findsOneWidget);
 
       // Check Trending Fandom Carousel
-      expect(find.text('Trending Fandoms Carousel'), findsOneWidget);
-      expect(find.text('#1 TRENDING UNIVERSE'), findsOneWidget);
+      expect(find.text('Trending Universes'), findsOneWidget);
+      expect(find.text('#1 TRENDING'), findsOneWidget);
       expect(find.text('Shinobi Rising & New Seasons'), findsOneWidget);
 
       // Check Hub Shortcuts
@@ -247,7 +247,7 @@ void main() {
       expect(find.text('Deep Dive 🧠'), findsOneWidget);
 
       // Check Personalized section based on user's selected fandoms
-      expect(find.text('Curated for you'), findsOneWidget);
+      expect(find.text('Featured stories'), findsOneWidget);
     });
 
     testWidgets('6️⃣ Profile displays Bio, Avatar, Liked Fandoms, Bookmarks, and Orders', (

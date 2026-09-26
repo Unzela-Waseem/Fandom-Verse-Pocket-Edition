@@ -28,7 +28,7 @@ void main() {
     );
     await tester.ensureVisible(find.text('Continue with Google'));
     expect(find.text('Continue with Google'), findsOneWidget);
-    expect(find.text('Create fan account'), findsOneWidget);
+    expect(find.text('Sign Up'), findsOneWidget);
 
     await tester.pumpWidget(
       const ProviderScope(
@@ -36,7 +36,7 @@ void main() {
       ),
     );
     expect(find.text('Continue with Google'), findsNothing);
-    expect(find.text('Create fan account'), findsNothing);
+    expect(find.text('Sign Up'), findsNothing);
   });
 
   testWidgets('preview opens the fan dashboard', (tester) async {
@@ -60,14 +60,17 @@ void main() {
 
     await tester.drag(find.byType(CustomScrollView), const Offset(0, -350));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Beginner Hub'));
+    await tester.tap(find.text('Beginner Hub 🌱'));
+    await tester.pumpAndSettle();
+    
+    await tester.tap(find.textContaining('Stories ('));
     await tester.pumpAndSettle();
     expect(
-      find.text('Your first journey through the multiverse'),
+      find.text('Naruto: Whispers of the Hidden Valley'),
       findsOneWidget,
     );
 
-    await tester.tap(find.text('Your first journey through the multiverse'));
+    await tester.tap(find.text('Naruto: Whispers of the Hidden Valley'));
     await tester.pumpAndSettle();
     expect(find.byType(ContentDetailScreen), findsOneWidget);
     expect(find.text('By Fandom Verse Editorial'), findsOneWidget);

@@ -31,7 +31,7 @@ void main() {
       const ProviderScope(child: MaterialApp(home: RegistrationScreen())),
     );
     await tester.enterText(
-      find.widgetWithText(TextFormField, 'Display name'),
+      find.widgetWithText(TextFormField, 'Display Name'),
       'Fan Tester',
     );
     await tester.tap(find.text('Continue with Google'));
@@ -48,7 +48,7 @@ void main() {
       const ProviderScope(child: MaterialApp(home: RegistrationScreen())),
     );
     await tester.enterText(
-      find.widgetWithText(TextFormField, 'Display name'),
+      find.widgetWithText(TextFormField, 'Display Name'),
       'Fan Tester',
     );
     await tester.tap(find.text('Gaming'));
