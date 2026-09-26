@@ -793,8 +793,8 @@ class _CategoryAvatar extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Container(
-            width: 74,
-            height: 74,
+            width: 60,
+            height: 60,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               gradient: const LinearGradient(
@@ -821,16 +821,16 @@ class _CategoryAvatar extends StatelessWidget {
               ),
             ),
             child: Center(
-              child: Icon(icon, color: Colors.white, size: 32),
+              child: Icon(icon, color: Colors.white, size: 26),
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 10),
           Text(
             category.toUpperCase(),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: const TextStyle(
-              fontSize: 12,
+              fontSize: 10,
               fontWeight: FontWeight.w900,
               color: Colors.white,
               letterSpacing: 1.2,
@@ -1125,7 +1125,7 @@ class _TrendingFandomCarousel extends StatefulWidget {
 }
 
 class _TrendingFandomCarouselState extends State<_TrendingFandomCarousel> {
-  final PageController _controller = PageController(viewportFraction: 0.91);
+  final PageController _controller = PageController(viewportFraction: 1.0);
   int _currentPage = 0;
   Timer? _autoScrollTimer;
 
@@ -1264,7 +1264,7 @@ class _TrendingFandomCarouselState extends State<_TrendingFandomCarousel> {
               final Color border = card['borderColor'] as Color;
               final IconData icon = card['icon'] as IconData;
               return Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 5),
+                padding: const EdgeInsets.symmetric(horizontal: 0),
                 child: GestureDetector(
                   onTap: () => Navigator.of(context).push(
                     MaterialPageRoute<void>(
@@ -1537,44 +1537,61 @@ class _HubQuickCards extends StatelessWidget {
               ),
             ),
             child: Container(
-              padding: const EdgeInsets.all(16),
+              clipBehavior: Clip.antiAlias,
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(20),
                 gradient: const LinearGradient(
-                  colors: [Color(0xFF1D0D36), Color(0xFF100622)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [Color(0xFF2A1154), Color(0xFF100622)],
                 ),
                 border: Border.all(
                   color: const Color(0xFFA855F7).withValues(alpha: 0.4),
+                  width: 1.5,
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: const Color(0xFFA855F7).withValues(alpha: 0.15),
-                    blurRadius: 10,
+                    color: const Color(0xFFA855F7).withValues(alpha: 0.2),
+                    blurRadius: 15,
+                    offset: const Offset(0, 5),
                   ),
                 ],
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: const [
-                  CircleAvatar(
-                    radius: 18,
-                    backgroundColor: Color(0xFFA855F7),
-                    foregroundColor: Colors.white,
-                    child: Icon(Icons.eco, size: 20),
+              child: Stack(
+                children: [
+                  Positioned(
+                    right: -15,
+                    bottom: -15,
+                    child: Icon(Icons.eco, size: 90, color: Colors.white.withValues(alpha: 0.04)),
                   ),
-                  SizedBox(height: 12),
-                  Text(
-                    'Beginner Hub 🌱',
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w900,
-                      color: Colors.white,
+                  Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: const [
+                        CircleAvatar(
+                          radius: 18,
+                          backgroundColor: Color(0xFFA855F7),
+                          foregroundColor: Colors.white,
+                          child: Icon(Icons.eco, size: 20),
+                        ),
+                        SizedBox(height: 12),
+                        Text(
+                          'Beginner Hub',
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w900,
+                            color: Colors.white,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                        SizedBox(height: 4),
+                        Text(
+                          'Terminology glossary & stories for new fans.',
+                          style: TextStyle(fontSize: 11, color: Colors.white70, height: 1.3),
+                        ),
+                      ],
                     ),
-                  ),
-                  SizedBox(height: 4),
-                  Text(
-                    'Terminology glossary, profiles & stories for new fans.',
-                    style: TextStyle(fontSize: 11, color: Colors.white60),
                   ),
                 ],
               ),
@@ -1589,44 +1606,61 @@ class _HubQuickCards extends StatelessWidget {
               MaterialPageRoute<void>(builder: (_) => const DeepDiveScreen()),
             ),
             child: Container(
-              padding: const EdgeInsets.all(16),
+              clipBehavior: Clip.antiAlias,
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(20),
                 gradient: const LinearGradient(
-                  colors: [Color(0xFF2B0A42), Color(0xFF160326)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [Color(0xFF3B0B5E), Color(0xFF160326)],
                 ),
                 border: Border.all(
                   color: const Color(0xFFD946EF).withValues(alpha: 0.4),
+                  width: 1.5,
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: const Color(0xFFD946EF).withValues(alpha: 0.15),
-                    blurRadius: 10,
+                    color: const Color(0xFFD946EF).withValues(alpha: 0.2),
+                    blurRadius: 15,
+                    offset: const Offset(0, 5),
                   ),
                 ],
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: const [
-                  CircleAvatar(
-                    radius: 18,
-                    backgroundColor: Color(0xFFD946EF),
-                    foregroundColor: Colors.white,
-                    child: Icon(Icons.psychology, size: 20),
+              child: Stack(
+                children: [
+                  Positioned(
+                    right: -15,
+                    bottom: -15,
+                    child: Icon(Icons.psychology, size: 90, color: Colors.white.withValues(alpha: 0.04)),
                   ),
-                  SizedBox(height: 12),
-                  Text(
-                    'Deep Dive 🧠',
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w900,
-                      color: Colors.white,
+                  Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: const [
+                        CircleAvatar(
+                          radius: 18,
+                          backgroundColor: Color(0xFFD946EF),
+                          foregroundColor: Colors.white,
+                          child: Icon(Icons.psychology, size: 20),
+                        ),
+                        SizedBox(height: 12),
+                        Text(
+                          'Deep Dive',
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w900,
+                            color: Colors.white,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                        SizedBox(height: 4),
+                        Text(
+                          'Hidden trivia, advanced lore & creator interviews.',
+                          style: TextStyle(fontSize: 11, color: Colors.white70, height: 1.3),
+                        ),
+                      ],
                     ),
-                  ),
-                  SizedBox(height: 4),
-                  Text(
-                    'Hidden trivia, advanced lore & creator interviews.',
-                    style: TextStyle(fontSize: 11, color: Colors.white60),
                   ),
                 ],
               ),
