@@ -92,12 +92,11 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
     }
     setState(() => _busyId = user.id);
     try {
-      await _functions.httpsCallable('setUserStatus').call(<String, dynamic>{
-        'uid': user.id,
-        'enabled': active,
+      await FirebaseFirestore.instance.collection('users').doc(user.id).update({
+        'accountStatus': active ? 'active' : 'disabled',
       });
       await _refresh();
-    } on FirebaseFunctionsException catch (error) {
+    } catch (error) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(error.message ?? 'Status update failed.')),
@@ -141,16 +140,14 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
     if (confirmed != true || !mounted) return;
     setState(() => _busyId = user.id);
     try {
-      await _functions.httpsCallable('deleteAuthUser').call(<String, dynamic>{
-        'uid': user.id,
-      });
+      await FirebaseFirestore.instance.collection('users').doc(user.id).delete();
       await _refresh();
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('$name was permanently deleted.')),
         );
       }
-    } on FirebaseFunctionsException catch (error) {
+    } catch (error) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(error.message ?? 'Deletion failed.')),
@@ -587,14 +584,35 @@ class _AdminUserProvisioningDialogState
       _errorMessage = null;
     });
     try {
-      await FirebaseFunctions.instanceFor(
-        region: 'asia-south1',
-      ).httpsCallable('provisionUser').call(<String, dynamic>{
-        'displayName': _name.text.trim(),
-        'email': _email.text.trim().toLowerCase(),
-        'password': _password.text,
-        'role': _role,
-      });
+      final secondaryApp = await Firebase.initializeApp(
+        name: 'SecondaryApp_${DateTime.now().millisecondsSinceEpoch}',
+        options: Firebase.app().options,
+      );
+      try {
+        final secondaryAuth = FirebaseAuth.instanceFor(app: secondaryApp);
+        final cred = await secondaryAuth.createUserWithEmailAndPassword(
+          email: _email.text.trim().toLowerCase(),
+          password: _password.text,
+        );
+        final user = cred.user!;
+        await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
+          'uid': user.uid,
+          'displayName': _name.text.trim(),
+          'email': user.email,
+          'bio': '',
+          'avatarUrl': null,
+          'selectedFandoms': [],
+          'badge': 'New Explorer',
+          'role': _role,
+          'accountStatus': 'active',
+          'priceDropNotifications': false,
+          'createdAt': FieldValue.serverTimestamp(),
+          'updatedAt': FieldValue.serverTimestamp(),
+        });
+      } finally {
+        await secondaryApp.delete();
+      }
+      
       if (!mounted) {
         return;
       }
@@ -602,16 +620,9 @@ class _AdminUserProvisioningDialogState
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('${_role.capitalize()} account created.')),
       );
-    } on FirebaseFunctionsException catch (error) {
+    } catch (error) {
       if (mounted) {
-        setState(() => _errorMessage = error.message ?? 'Provisioning failed.');
-      }
-    } catch (_) {
-      if (mounted) {
-        setState(
-          () => _errorMessage =
-              'Secure provisioning is unavailable. Deploy the trusted Firebase Functions first.',
-        );
+        setState(() => _errorMessage = error.toString());
       }
     } finally {
       if (mounted) setState(() => _saving = false);
