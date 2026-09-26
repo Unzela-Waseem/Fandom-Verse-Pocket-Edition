@@ -312,7 +312,7 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
                 child: ListView.separated(
                   scrollDirection: Axis.horizontal,
                   itemCount: categories.length,
-                  separatorBuilder: (_, _) => const SizedBox(width: 8),
+                  separatorBuilder: (_, __) => const SizedBox(width: 8),
                   itemBuilder: (_, index) {
                     final category = categories[index];
                     return ChoiceChip(
@@ -352,7 +352,7 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
               child: ListView.separated(
                 scrollDirection: Axis.horizontal,
                 itemCount: _resourceTypeChoices.length,
-                separatorBuilder: (_, _) => const SizedBox(width: 8),
+                separatorBuilder: (_, __) => const SizedBox(width: 8),
                 itemBuilder: (_, index) {
                   final type = _resourceTypeChoices[index];
                   final isSelected = type == _resourceType;
@@ -406,7 +406,7 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
                 child: ListView.separated(
                   scrollDirection: Axis.horizontal,
                   itemCount: _trendingTags.length,
-                  separatorBuilder: (_, _) => const SizedBox(width: 6),
+                  separatorBuilder: (_, __) => const SizedBox(width: 6),
                   itemBuilder: (_, index) {
                     final tag = _trendingTags[index];
                     final isSelected = _selectedTag == tag;

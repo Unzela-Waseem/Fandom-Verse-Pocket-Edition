@@ -256,7 +256,7 @@ class _AiHelperScreenState extends State<AiHelperScreen> {
                 ),
                 scrollDirection: Axis.horizontal,
                 itemCount: _suggestedPrompts.length,
-                separatorBuilder: (_, _) => const SizedBox(width: 8),
+                separatorBuilder: (_, __) => const SizedBox(width: 8),
                 itemBuilder: (ctx, idx) {
                   final prompt = _suggestedPrompts[idx];
                   return ActionChip(

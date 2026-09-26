@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:model_viewer_plus/model_viewer_plus.dart';
-import 'package:webview_flutter_platform_interface/webview_flutter_platform_interface.dart';
 
 import '../../../core/media/remote_media.dart';
 import '../../library/application/library_controller.dart';
@@ -62,15 +61,8 @@ class _ARPreviewScreenState extends ConsumerState<ARPreviewScreen> {
 
   bool get _canRenderModelViewer {
     if (kIsWeb) return true;
-    if (defaultTargetPlatform == TargetPlatform.android ||
-        defaultTargetPlatform == TargetPlatform.iOS) {
-      try {
-        return WebViewPlatform.instance != null;
-      } catch (_) {
-        return false;
-      }
-    }
-    return false;
+    return defaultTargetPlatform == TargetPlatform.android ||
+        defaultTargetPlatform == TargetPlatform.iOS;
   }
 
   Widget _buildDesktopFallbackViewer() {
@@ -144,7 +136,7 @@ class _ARPreviewScreenState extends ConsumerState<ARPreviewScreen> {
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: const Text(
-                            '3D GLB Asset Loaded',
+                            'Desktop preview • AR on supported phones',
                             style: TextStyle(fontSize: 10, color: Colors.white70),
                           ),
                         ),
@@ -301,9 +293,9 @@ class _ARPreviewScreenState extends ConsumerState<ARPreviewScreen> {
               const SizedBox(height: 14),
               _buildHelpStep(
                 icon: Icons.aspect_ratio,
-                title: 'True 1:1 Scale Accuracy',
+                title: 'Product scale depends on its 3D model',
                 description:
-                    'All models are calibrated to real-world dimensions so you can see exact proportions before purchasing.',
+                    'AR places the supplied 3D model in your space. Its size and resemblance to the product depend on the model provided by the store, so check the product dimensions before ordering.',
               ),
               const SizedBox(height: 24),
               SizedBox(
@@ -466,7 +458,7 @@ class _ARPreviewScreenState extends ConsumerState<ARPreviewScreen> {
                       ),
                       const SizedBox(width: 8),
                       const Text(
-                        'AR Ready • 1:1 Scale',
+                        'AR available - scale may vary',
                         style: TextStyle(
                           color: Colors.white,
                           fontSize: 12,
@@ -511,7 +503,7 @@ class _ARPreviewScreenState extends ConsumerState<ARPreviewScreen> {
                 children: [
                   if (_activeProduct?.tryOnModelUrl != null && _activeProduct!.tryOnModelUrl!.isNotEmpty) ...[
                     IconButton(
-                      tooltip: _isTryOnMode ? 'View Product' : 'Try on Avatar',
+                      tooltip: _isTryOnMode ? 'View Product Model' : 'View Alternate Model',
                       icon: Icon(
                         _isTryOnMode ? Icons.accessibility_new : Icons.checkroom,
                         color: _isTryOnMode ? const Color(0xFF4ADE80) : Colors.white,

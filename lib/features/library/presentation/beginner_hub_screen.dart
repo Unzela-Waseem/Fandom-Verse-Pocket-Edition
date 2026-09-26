@@ -278,7 +278,7 @@ class _BeginnerHubScreenState extends ConsumerState<BeginnerHubScreen>
                     child: ListView.separated(
                       scrollDirection: Axis.horizontal,
                       itemCount: _fandoms.length,
-                      separatorBuilder: (_, _) => const SizedBox(width: 8),
+                      separatorBuilder: (_, __) => const SizedBox(width: 8),
                       itemBuilder: (_, index) {
                         final fandom = _fandoms[index];
                         final selected = fandom == _selectedFandom;
@@ -323,7 +323,7 @@ class _BeginnerHubScreenState extends ConsumerState<BeginnerHubScreen>
                       : ListView.separated(
                           padding: const EdgeInsets.all(16),
                           itemCount: glossaryTerms.length,
-                          separatorBuilder: (_, _) =>
+                          separatorBuilder: (_, __) =>
                               const SizedBox(height: 10),
                           itemBuilder: (context, index) {
                             final term = glossaryTerms[index];
@@ -367,7 +367,7 @@ class _BeginnerHubScreenState extends ConsumerState<BeginnerHubScreen>
                       : ListView.separated(
                           padding: const EdgeInsets.all(16),
                           itemCount: profiles.length,
-                          separatorBuilder: (_, _) =>
+                          separatorBuilder: (_, __) =>
                               const SizedBox(height: 12),
                           itemBuilder: (context, index) {
                             final item = profiles[index];
@@ -412,7 +412,7 @@ class _BeginnerHubScreenState extends ConsumerState<BeginnerHubScreen>
                       : ListView.separated(
                           padding: const EdgeInsets.all(16),
                           itemCount: stories.length,
-                          separatorBuilder: (_, _) =>
+                          separatorBuilder: (_, __) =>
                               const SizedBox(height: 12),
                           itemBuilder: (context, index) {
                             final item = stories[index];

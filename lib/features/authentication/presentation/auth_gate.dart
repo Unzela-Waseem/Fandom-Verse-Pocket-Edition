@@ -18,7 +18,7 @@ class AuthGate extends ConsumerWidget {
         .watch(authStateProvider)
         .when(
           loading: () => const _LoadingScreen(),
-          error: (_, _) => const _RecoveryScreen(
+          error: (err, stack) => const _RecoveryScreen(
             message:
                 'Unable to verify your session. Check your connection and try again.',
           ),
