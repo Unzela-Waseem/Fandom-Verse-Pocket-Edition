@@ -476,6 +476,8 @@ class _TopBar extends StatelessWidget {
         builder: (context) => GestureDetector(
           onTap: () => Scaffold.of(context).openDrawer(),
           child: Container(
+            width: 44,
+            height: 44,
             padding: const EdgeInsets.all(2),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(14),
@@ -497,6 +499,11 @@ class _TopBar extends StatelessWidget {
                 width: 40,
                 height: 40,
                 fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) => const Icon(
+                  Icons.star_rounded,
+                  color: Colors.white,
+                  size: 24,
+                ),
               ),
             ),
           ),
