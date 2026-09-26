@@ -44,7 +44,7 @@ class _ARPreviewScreenState extends ConsumerState<ARPreviewScreen> {
   bool _autoRotate = true;
   double _exposure = 1.0;
   int _environmentIndex = 0; // 0: Default, 1: Studio Bright, 2: Cyber Glow
-  late String _activeModelUrl;
+  String? _activeModelUrl;
   late String _activeProductName;
   Product? _activeProduct;
   int _viewerKeyCounter = 0;
@@ -60,6 +60,7 @@ class _ARPreviewScreenState extends ConsumerState<ARPreviewScreen> {
   ];
 
   bool get _canRenderModelViewer {
+    if (_activeModelUrl == null) return false;
     if (kIsWeb) return true;
     return defaultTargetPlatform == TargetPlatform.android ||
         defaultTargetPlatform == TargetPlatform.iOS;
@@ -173,7 +174,7 @@ class _ARPreviewScreenState extends ConsumerState<ARPreviewScreen> {
     _activeModelUrl = _resolveModelUrl(_activeProduct);
   }
 
-  String _resolveModelUrl(Product? product) {
+  String? _resolveModelUrl(Product? product) {
     if (_isTryOnMode && product?.tryOnModelUrl != null && product!.tryOnModelUrl!.isNotEmpty) {
       return product.tryOnModelUrl!;
     }
@@ -183,7 +184,7 @@ class _ARPreviewScreenState extends ConsumerState<ARPreviewScreen> {
     if (product != null && _fandom3DModels.containsKey(product.category)) {
       return _fandom3DModels[product.category]!;
     }
-    return 'https://modelviewer.dev/shared-assets/models/Astronaut.glb';
+    return null;
   }
 
   void _switchProduct(Product product) {
@@ -408,7 +409,7 @@ class _ARPreviewScreenState extends ConsumerState<ARPreviewScreen> {
                 ? ModelViewer(
                     key: ValueKey('mv_${_activeModelUrl}_$_viewerKeyCounter'),
                     backgroundColor: const Color(0xFF09040E),
-                    src: _activeModelUrl,
+                    src: _activeModelUrl!,
                     alt: '3D model of $_activeProductName',
                     ar: true,
                     arModes: const ['scene-viewer', 'webxr', 'quick-look'],
