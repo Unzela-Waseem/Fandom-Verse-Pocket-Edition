@@ -257,7 +257,11 @@ class _ProductCard extends ConsumerWidget {
                       OutlinedButton.icon(
                         onPressed: () => Navigator.of(context).push(
                           MaterialPageRoute<void>(
-                            builder: (_) => ARPreviewScreen(productName: product.name),
+                            builder: (_) => ARPreviewScreen(
+                              productName: product.name,
+                              product: product,
+                              catalog: catalog,
+                            ),
                           ),
                         ),
                         icon: const Icon(Icons.view_in_ar, size: 16),

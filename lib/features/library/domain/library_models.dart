@@ -146,6 +146,8 @@ class Product {
     required this.stock,
     this.previousPrice,
     this.imageUrl,
+    this.modelUrl,
+    this.tryOnModelUrl,
   });
 
   final String id;
@@ -156,6 +158,8 @@ class Product {
   final double? previousPrice;
   final int stock;
   final String? imageUrl;
+  final String? modelUrl;
+  final String? tryOnModelUrl;
 }
 
 class PurchaseOrder {

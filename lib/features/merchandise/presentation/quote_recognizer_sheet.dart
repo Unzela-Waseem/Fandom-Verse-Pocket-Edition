@@ -51,10 +51,12 @@ class _QuoteRecognizerSheetState extends State<QuoteRecognizerSheet> {
           _handleMatch();
         }
       },
-      listenFor: const Duration(seconds: 10),
-      pauseFor: const Duration(seconds: 3),
-      cancelOnError: true,
-      listenMode: ListenMode.confirmation,
+      listenOptions: SpeechListenOptions(
+        listenFor: const Duration(seconds: 10),
+        pauseFor: const Duration(seconds: 3),
+        cancelOnError: true,
+        listenMode: ListenMode.confirmation,
+      ),
     );
     setState(() {});
   }
@@ -129,7 +131,7 @@ class _QuoteRecognizerSheetState extends State<QuoteRecognizerSheet> {
                 boxShadow: [
                   if (_speechToText.isListening)
                     BoxShadow(
-                      color: Colors.redAccent.withOpacity(0.5),
+                      color: Colors.redAccent.withValues(alpha: 0.5),
                       blurRadius: 20,
                       spreadRadius: 5,
                     ),
@@ -149,7 +151,7 @@ class _QuoteRecognizerSheetState extends State<QuoteRecognizerSheet> {
             width: double.infinity,
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.05),
+              color: Colors.white.withValues(alpha: 0.05),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Column(

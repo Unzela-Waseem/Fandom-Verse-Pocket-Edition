@@ -3,19 +3,19 @@ import '../domain/library_models.dart';
 const contentCatalog = [
   // Core baseline items preserved for regression tests
   ContentItem(
-    id: 'beginner-multiverse',
-    title: 'Your first journey through the multiverse',
+    id: 'trending-batman',
+    title: 'The Dark Knight Returns: City Shadows',
     summary:
-        'A welcoming guide to fandom communities, language, and etiquette.',
+        'A comprehensive guide to the Gotham City lore, gadgets, and villains.',
     body:
-        'Fandom is built around shared enthusiasm. Start by choosing a world you enjoy, learn its common terms, and join conversations with curiosity and respect. Save this guide for offline access before your first event.',
-    category: 'Beginner Hub',
+        'Explore the depths of the bat-cave and the origins of the most iconic detective in comic history. Save this guide to track the vigilante\'s timeline.',
+    category: 'DC Comics',
     type: ContentType.beginnerGuide,
     creator: 'Fandom Verse Editorial',
-    tags: ['beginner', 'community'],
+    tags: ['batman', 'dc', 'comics'],
     trending: true,
     imageUrl:
-        'https://images.unsplash.com/photo-1578632767115-351597cf2477?w=800&q=80',
+        'https://images.unsplash.com/photo-1509347528160-9a9e33742cdb?w=800&q=80',
   ),
   ContentItem(
     id: 'profile-nova-lee',
@@ -59,18 +59,18 @@ const contentCatalog = [
   ),
   ContentItem(
     id: 'news-arena-season',
-    title: 'Community arena season announced',
+    title: 'Ultimate Gaming Controller Setup 2026',
     summary:
-        'Local teams will compete across four weekends with beginner brackets.',
+        'Neon-lit aesthetics, mechanical precision, and the ultimate competitive edge.',
     body:
-        'The new community season includes accessible beginner brackets, coaching sessions, and a code of conduct designed for welcoming competition.',
+        'The new community season is here. We explore the best glowing controller layouts, headset stands, and rgb mechanical keyboards to elevate your gaming experience to the next level.',
     category: 'Gaming',
     type: ContentType.news,
     creator: 'Arena Desk',
-    tags: ['esports', 'news'],
+    tags: ['esports', 'gaming', 'setup'],
     trending: true,
     imageUrl:
-        'https://images.unsplash.com/photo-1542751371-adc38448a05e?w=800&q=80',
+        'https://images.unsplash.com/photo-1593305841991-05c297ba4575?w=800&q=80',
   ),
   ContentItem(
     id: 'gallery-world-builders',
@@ -101,36 +101,36 @@ const contentCatalog = [
         'https://images.unsplash.com/photo-1590602847861-f357a9332bbc?w=800&q=80',
   ),
   ContentItem(
-    id: 'deep-dive-hidden-symbols',
-    title: 'Deep Dive: Hidden symbols in imagined cities',
+    id: 'deep-dive-iron-man',
+    title: 'Deep Dive: The Evolution of Iron Man Armor',
     summary:
-        'Advanced visual storytelling, production details, and hidden trivia.',
+        'From Mark I to Nanotech, tracing the genius of Tony Stark.',
     body:
-        'Repeated shapes can reveal how a fictional society sees itself. Circular architecture often implies continuity, while broken grids can suggest disruption. These original examples demonstrate the technique without relying on an existing franchise.',
-    category: 'Deep Dive',
+        'We break down the cinematic and comic book history of the iconic red and gold suit, featuring unibeam schematics, arc reactor trivia, and hidden details in the HUD interface.',
+    category: 'Marvel',
     type: ContentType.deepDive,
     creator: 'Lore Lab',
-    tags: ['trivia', 'behind-the-scenes', 'advanced'],
+    tags: ['iron-man', 'marvel', 'tech'],
     trending: true,
     imageUrl:
-        'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=800&q=80',
+        'https://images.unsplash.com/photo-1534447677768-be436bb09401?w=800&q=80',
   ),
 
   // Anime Fandom - News, Story, Gallery, Video, Podcast, Profile
   ContentItem(
-    id: 'news-anime-season',
-    title: 'New Anime Season Announced: Shinobi Rising',
+    id: 'news-anime-anya',
+    title: 'Spy x Family: Anya Forger steals the show!',
     summary:
-        'The official production committee unveils the upcoming autumn anime season slate featuring legendary ninja sagas.',
+        'The telepathic fan-favorite returns with more peanuts and wholesome chaos.',
     body:
-        'Studio animators confirmed an explosive 24-episode seasonal run featuring high-octane sakuga sequences and original character arcs. Fans can expect simultaneous worldwide broadcasts with multi-language subtitling. Official key visuals showcase our protagonist balancing elemental fire and wind techniques.',
+        'Studio animators confirmed an explosive new arc featuring Anya, Loid, and Yor. Fans can expect simultaneous worldwide broadcasts with multi-language subtitling. Get ready for more mind-reading antics!',
     category: 'Anime',
     type: ContentType.news,
     creator: 'Fandom Verse Team',
-    tags: ['anime', 'news', 'naruto', 'trending'],
+    tags: ['anime', 'anya', 'spyxfamily'],
     trending: true,
     imageUrl:
-        'https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?w=800&q=80',
+        'https://images.unsplash.com/photo-1613376023733-f5424cdfb0db?w=800&q=80',
   ),
   ContentItem(
     id: 'story-anime-naruto',
@@ -208,19 +208,19 @@ const contentCatalog = [
 
   // Comics Fandom (Marvel & Superhero) - News, Story, Gallery, Video, Podcast
   ContentItem(
-    id: 'news-marvel-multiverse',
-    title: 'Marvel Multiverse Incursion Protocol Revealed',
+    id: 'news-marvel-spiderman',
+    title: 'Spider-Man: Swinging through the Multiverse',
     summary:
-        'Editorial team outlines the timeline collision rules and variant registries for the upcoming cosmic comic event.',
+        'Editorial team outlines the timeline collision of our favorite web-slinger.',
     body:
         'Writers revealed the multiversal incursion rules that will govern the major comic crossover event. Alternate earths will face eight-hour convergence windows where heroes must coordinate across dimensional barriers to preserve reality continuity without destroying sister timelines.',
-    category: 'Comics',
+    category: 'Marvel',
     type: ContentType.news,
     creator: 'Fandom Verse Team',
-    tags: ['marvel', 'comics', 'news', 'trending'],
+    tags: ['marvel', 'comics', 'spiderman'],
     trending: true,
     imageUrl:
-        'https://images.unsplash.com/photo-1612036782180-6f0b6cd846fe?w=800&q=80',
+        'https://images.unsplash.com/photo-1608889175123-8ee362201f81?w=800&q=80',
   ),
   ContentItem(
     id: 'story-marvel-variants',
@@ -422,6 +422,8 @@ const productCatalog = [
     price: 6499,
     previousPrice: 7499,
     stock: 20,
+    modelUrl: 'https://modelviewer.dev/shared-assets/models/Astronaut.glb',
+    tryOnModelUrl: 'https://modelviewer.dev/shared-assets/models/RobotExpressive.glb',
   ),
   Product(
     id: 'portal-pin',
@@ -430,6 +432,9 @@ const productCatalog = [
     category: 'Collectibles',
     price: 1199,
     stock: 45,
+    modelUrl:
+        'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/DamagedHelmet/glTF-Binary/DamagedHelmet.glb',
+    tryOnModelUrl: 'https://modelviewer.dev/shared-assets/models/Astronaut.glb',
   ),
   Product(
     id: 'lore-journal',
@@ -438,6 +443,8 @@ const productCatalog = [
     category: 'Collectibles',
     price: 2299,
     stock: 30,
+    modelUrl: 'https://modelviewer.dev/shared-assets/models/NeilArmstrong.glb',
+    tryOnModelUrl: 'https://modelviewer.dev/shared-assets/models/RobotExpressive.glb',
   ),
   Product(
     id: 'cosmic-wallpaper',
@@ -447,6 +454,8 @@ const productCatalog = [
     price: 799,
     previousPrice: 999,
     stock: 999,
+    modelUrl: 'https://modelviewer.dev/shared-assets/models/RobotExpressive.glb',
+    tryOnModelUrl: 'https://modelviewer.dev/shared-assets/models/Astronaut.glb',
   ),
   Product(
     id: 'arena-shirt',
@@ -455,5 +464,8 @@ const productCatalog = [
     category: 'Apparel',
     price: 3299,
     stock: 18,
+    modelUrl:
+        'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/BoomBox/glTF-Binary/BoomBox.glb',
+    tryOnModelUrl: 'https://modelviewer.dev/shared-assets/models/NeilArmstrong.glb',
   ),
 ];

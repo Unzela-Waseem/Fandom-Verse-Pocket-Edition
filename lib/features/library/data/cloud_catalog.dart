@@ -160,5 +160,7 @@ Product? productFromDocument(
     previousPrice: previousPrice is num ? previousPrice.toDouble() : null,
     stock: stock is num ? stock.toInt() : 0,
     imageUrl: data['imageUrl'] as String?,
+    modelUrl: data['modelUrl'] as String?,
+    tryOnModelUrl: data['tryOnModelUrl'] as String?,
   );
 }

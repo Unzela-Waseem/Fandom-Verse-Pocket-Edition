@@ -282,9 +282,7 @@ class _HomeTab extends ConsumerWidget {
                   children: [
                     _TopBar(profile: profile, openExplore: openExplore),
                     const SizedBox(height: 18),
-                    _HeroCard(openExplore: openExplore),
-                    const SizedBox(height: 22),
-                    const _StatsSection(),
+                    _CharacterCarousel(featured: featured, openExplore: openExplore),
                     const SizedBox(height: 24),
                     _SectionTitle(
                       title: 'Explore fandoms',
@@ -293,7 +291,7 @@ class _HomeTab extends ConsumerWidget {
                     ),
                     const SizedBox(height: 14),
                     SizedBox(
-                      height: 104,
+                      height: 90,
                       child: ListView.separated(
                         scrollDirection: Axis.horizontal,
                         itemCount: categories.length,
@@ -315,26 +313,6 @@ class _HomeTab extends ConsumerWidget {
                     const _TrendingFandomCarousel(),
                     const SizedBox(height: 24),
                     const _HubQuickCards(),
-                    if (personalized.isNotEmpty) ...[
-                      const SizedBox(height: 24),
-                      _SectionTitle(
-                        title: 'Curated for you',
-                        action: 'See all',
-                        onPressed: openExplore,
-                      ),
-                      const SizedBox(height: 12),
-                      SizedBox(
-                        height: 140,
-                        child: ListView.separated(
-                          scrollDirection: Axis.horizontal,
-                          itemCount: personalized.length,
-                          separatorBuilder: (_, _) =>
-                              const SizedBox(width: 12),
-                          itemBuilder: (_, index) =>
-                              _CuratedMiniCard(item: personalized[index]),
-                        ),
-                      ),
-                    ],
                     const SizedBox(height: 24),
                     _SectionTitle(
                       title: 'Featured stories',
@@ -475,39 +453,38 @@ class _TopBar extends StatelessWidget {
   );
 }
 
-/// Statistics metrics row matching the reference image section ("42 / 204 / 24M / 112")
 class _StatsSection extends StatelessWidget {
   const _StatsSection();
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
+      padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
       decoration: BoxDecoration(
-        color: const Color(0xFF140926),
-        borderRadius: BorderRadius.circular(20),
+        color: const Color(0xFF1A0B2E).withValues(alpha: 0.6),
+        borderRadius: BorderRadius.circular(24),
         border: Border.all(
-          color: const Color(0xFFA855F7).withValues(alpha: 0.3),
-          width: 1.2,
+          color: const Color(0xFFA855F7).withValues(alpha: 0.2),
+          width: 1,
         ),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFFA855F7).withValues(alpha: 0.15),
-            blurRadius: 14,
-            offset: const Offset(0, 4),
+            color: const Color(0xFFA855F7).withValues(alpha: 0.1),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
           ),
         ],
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: const [
-          _StatTile(number: '42M+', label: 'Total Reads'),
+          _StatTile(number: '42M+', label: 'Reads'),
           _StatDivider(),
           _StatTile(number: '204+', label: 'Universes'),
           _StatDivider(),
-          _StatTile(number: '24M+', label: 'Active Fans'),
+          _StatTile(number: '24M+', label: 'Fans'),
           _StatDivider(),
-          _StatTile(number: '112+', label: 'Live Events'),
+          _StatTile(number: '112+', label: 'Events'),
         ],
       ),
     );
@@ -524,26 +501,21 @@ class _StatTile extends StatelessWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        ShaderMask(
-          shaderCallback: (bounds) => const LinearGradient(
-            colors: [Color(0xFFE879F9), Color(0xFFA855F7)],
-          ).createShader(bounds),
-          child: Text(
-            number,
-            style: const TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w900,
-              color: Colors.white,
-              letterSpacing: -0.5,
-            ),
+        Text(
+          number,
+          style: const TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.w900,
+            color: Colors.white,
+            letterSpacing: -0.5,
           ),
         ),
-        const SizedBox(height: 2),
+        const SizedBox(height: 4),
         Text(
           label,
           style: const TextStyle(
-            fontSize: 10,
-            color: Colors.white60,
+            fontSize: 12,
+            color: Color(0xFFC084FC),
             fontWeight: FontWeight.w600,
           ),
         ),
@@ -558,189 +530,177 @@ class _StatDivider extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 24,
+      height: 32,
       width: 1,
-      color: const Color(0xFFA855F7).withValues(alpha: 0.25),
+      color: const Color(0xFFA855F7).withValues(alpha: 0.2),
     );
   }
 }
 
-class _HeroCard extends StatelessWidget {
-  const _HeroCard({required this.openExplore});
-
+class _CharacterCarousel extends StatefulWidget {
+  const _CharacterCarousel({required this.featured, required this.openExplore});
+  final List<ContentItem> featured;
   final VoidCallback openExplore;
 
   @override
-  Widget build(BuildContext context) => Container(
-    decoration: BoxDecoration(
-      borderRadius: BorderRadius.circular(26),
-      gradient: const LinearGradient(
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-        colors: [Color(0xFF2B104E), Color(0xFF130726), Color(0xFF09040E)],
-      ),
-      border: Border.all(
-        color: const Color(0xFFA855F7).withValues(alpha: 0.4),
-        width: 1.5,
-      ),
-      boxShadow: [
-        BoxShadow(
-          color: const Color(0xFFA855F7).withValues(alpha: 0.25),
-          blurRadius: 18,
-          offset: const Offset(0, 6),
-        ),
-      ],
-    ),
-    clipBehavior: Clip.antiAlias,
-    child: InkWell(
-      onTap: openExplore,
-      child: Stack(
-        children: [
-          // Graphic watermark & stars backdrop
-          Positioned(
-            right: -30,
-            top: -20,
-            child: Icon(
-              Icons.auto_awesome,
-              size: 200,
-              color: const Color(0xFFA855F7).withValues(alpha: 0.08),
-            ),
-          ),
-          Positioned(
-            right: 20,
-            top: 16,
-            child: Row(
-              children: const [
-                Text(
-                  '✦',
-                  style: TextStyle(color: Color(0xFFE879F9), fontSize: 16),
-                ),
-                SizedBox(width: 8),
-                Text(
-                  '✦',
-                  style: TextStyle(color: Color(0xFFA855F7), fontSize: 12),
-                ),
-              ],
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(22),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const _Pill(label: '✦ INFINITE POSSIBILITIES ✦'),
-                const SizedBox(height: 14),
-                RichText(
-                  text: TextSpan(
-                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                      fontWeight: FontWeight.w900,
-                      height: 1.05,
-                      color: Colors.white,
-                    ),
-                    children: const [
-                      TextSpan(text: 'The worlds are\n'),
-                      TextSpan(
-                        text: 'calling you',
-                        style: TextStyle(
-                          color: Color(0xFFD946EF),
-                          shadows: [
-                            Shadow(color: Color(0xFFA855F7), blurRadius: 12),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 12),
-                const Text(
-                  'Explore original fandom stories, events, drops & lore',
-                  style: TextStyle(color: Colors.white70, fontSize: 13),
-                ),
-                const SizedBox(height: 18),
+  State<_CharacterCarousel> createState() => _CharacterCarouselState();
+}
 
-                // Sleek Card Gallery Fan Preview (inspired by reference image)
-                SizedBox(
-                  height: 90,
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Container(
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(
-                              color: const Color(
-                                0xFFA855F7,
-                              ).withValues(alpha: 0.5),
+class _CharacterCarouselState extends State<_CharacterCarousel> {
+  final PageController _controller = PageController(viewportFraction: 0.93);
+  int _currentPage = 0;
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (widget.featured.isEmpty) return const SizedBox.shrink();
+    return Column(
+      children: [
+        SizedBox(
+          height: 210,
+          child: PageView.builder(
+            controller: _controller,
+            itemCount: widget.featured.length,
+            onPageChanged: (idx) => setState(() => _currentPage = idx),
+            itemBuilder: (context, index) {
+              final item = widget.featured[index];
+              final hasCustomImage = isHttpsMediaUrl(item.imageUrl);
+              return Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 5),
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(28),
+                  onTap: () => Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (_) => ContentDetailScreen(item: item),
+                    ),
+                  ),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(28),
+                      color: const Color(0xFF160B28),
+                      border: Border.all(
+                        color: const Color(0xFFA855F7).withValues(alpha: 0.3),
+                        width: 1.5,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFFA855F7).withValues(alpha: 0.2),
+                          blurRadius: 18,
+                          offset: const Offset(0, 8),
+                        ),
+                      ],
+                    ),
+                    clipBehavior: Clip.antiAlias,
+                    child: Stack(
+                      fit: StackFit.expand,
+                      children: [
+                        if (hasCustomImage)
+                          RemoteMediaImage(url: item.imageUrl!)
+                        else
+                          Container(
+                            color: const Color(0xFF2B104E),
+                            child: const Center(
+                              child: Icon(Icons.auto_awesome, size: 60, color: Colors.white24),
                             ),
-                            image: const DecorationImage(
-                              image: AssetImage(AppAssets.multiverse),
-                              fit: BoxFit.cover,
+                          ),
+                        Container(
+                          decoration: const BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                              colors: [Colors.transparent, Color(0xE609040E)],
+                              stops: [0.2, 1.0],
                             ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: const Color(
-                                  0xFFA855F7,
-                                ).withValues(alpha: 0.3),
-                                blurRadius: 8,
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.all(20),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFD946EF).withValues(alpha: 0.2),
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(color: const Color(0xFFD946EF).withValues(alpha: 0.5)),
+                                ),
+                                child: Text(
+                                  item.category.toUpperCase(),
+                                  style: const TextStyle(
+                                    color: Color(0xFFE879F9),
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w900,
+                                    letterSpacing: 0.5,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 10),
+                              Text(
+                                item.title,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.w900,
+                                  color: Colors.white,
+                                  height: 1.15,
+                                ),
+                              ),
+                              const SizedBox(height: 6),
+                              Row(
+                                children: [
+                                  const Icon(Icons.person, size: 12, color: Colors.white70),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    item.creator,
+                                    style: const TextStyle(
+                                      fontSize: 11,
+                                      color: Colors.white70,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ],
                           ),
-                          child: Container(
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(16),
-                              gradient: const LinearGradient(
-                                begin: Alignment.topCenter,
-                                end: Alignment.bottomCenter,
-                                colors: [Colors.transparent, Color(0xDD09040E)],
-                              ),
-                            ),
-                            padding: const EdgeInsets.all(8),
-                            alignment: Alignment.bottomLeft,
-                            child: const Text(
-                              'Multiverse Sagas',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 10,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
                         ),
-                      ),
-                      const SizedBox(width: 10),
-                      Container(
-                        width: 52,
-                        height: 52,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          gradient: const LinearGradient(
-                            colors: [Color(0xFFA855F7), Color(0xFF7E22CE)],
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: const Color(
-                                0xFFA855F7,
-                              ).withValues(alpha: 0.5),
-                              blurRadius: 10,
-                            ),
-                          ],
-                        ),
-                        child: const Icon(
-                          Icons.arrow_forward,
-                          color: Colors.white,
-                          size: 22,
-                        ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
-              ],
+              );
+            },
+          ),
+        ),
+        const SizedBox(height: 14),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: List.generate(
+            widget.featured.length,
+            (idx) => AnimatedContainer(
+              duration: const Duration(milliseconds: 300),
+              margin: const EdgeInsets.symmetric(horizontal: 4),
+              width: _currentPage == idx ? 24 : 8,
+              height: 8,
+              decoration: BoxDecoration(
+                color: _currentPage == idx
+                    ? const Color(0xFFA855F7)
+                    : Colors.white24,
+                borderRadius: BorderRadius.circular(99),
+              ),
             ),
           ),
-        ],
-      ),
-    ),
-  );
+        ),
+      ],
+    );
+  }
 }
 
 class _Pill extends StatelessWidget {
@@ -816,99 +776,63 @@ class _CategoryAvatar extends StatelessWidget {
   final String category;
   final VoidCallback onTap;
 
-  Map<String, dynamic> _getCategoryStyle(String cat) {
+  IconData _getIcon(String cat) {
     switch (cat.toLowerCase()) {
-      case 'anime':
-        return {
-          'icon': Icons.bolt,
-          'color': const Color(0xFFFFB74D),
-          'bg': const Color(0xFF2A1505),
-        };
-      case 'gaming':
-        return {
-          'icon': Icons.sports_esports,
-          'color': const Color(0xFFE879F9),
-          'bg': const Color(0xFF2E0938),
-        };
-      case 'sci-fi':
-        return {
-          'icon': Icons.rocket_launch,
-          'color': const Color(0xFF38BDF8),
-          'bg': const Color(0xFF0C1F38),
-        };
-      case 'comics':
-        return {
-          'icon': Icons.auto_awesome,
-          'color': const Color(0xFFF43F5E),
-          'bg': const Color(0xFF330914),
-        };
-      case 'fantasy':
-        return {
-          'icon': Icons.castle,
-          'color': const Color(0xFFFACC15),
-          'bg': const Color(0xFF2E2606),
-        };
-      case 'art':
-        return {
-          'icon': Icons.palette,
-          'color': const Color(0xFF2DD4BF),
-          'bg': const Color(0xFF072B26),
-        };
-      default:
-        return {
-          'icon': Icons.auto_stories_outlined,
-          'color': const Color(0xFFA855F7),
-          'bg': const Color(0xFF1E0C38),
-        };
+      case 'anime': return Icons.bolt;
+      case 'gaming': return Icons.sports_esports;
+      case 'sci-fi': return Icons.rocket_launch;
+      case 'comics': return Icons.auto_awesome;
+      case 'fantasy': return Icons.castle;
+      case 'art': return Icons.palette;
+      default: return Icons.auto_stories_outlined;
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final style = _getCategoryStyle(category);
-    final IconData icon = style['icon'] as IconData;
-    final Color color = style['color'] as Color;
-    final Color bg = style['bg'] as Color;
-
-    return InkWell(
+    final icon = _getIcon(category);
+    return GestureDetector(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(40),
-      child: SizedBox(
-        width: 76,
-        child: Column(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(2.5),
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(color: color, width: 2),
-                boxShadow: [
-                  BoxShadow(
-                    color: color.withValues(alpha: 0.35),
-                    blurRadius: 10,
-                    spreadRadius: 1,
-                  ),
-                ],
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 56,
+            height: 56,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: const LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [Color(0xFF9333EA), Color(0xFF6B21A8)],
               ),
-              child: CircleAvatar(
-                radius: 27,
-                backgroundColor: bg,
-                child: Icon(icon, color: color, size: 26),
-              ),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              category,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFFA855F7).withValues(alpha: 0.4),
+                  blurRadius: 12,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+              border: Border.all(
+                color: const Color(0xFFC084FC).withValues(alpha: 0.5),
+                width: 1.5,
               ),
             ),
-          ],
-        ),
+            child: Icon(icon, color: Colors.white, size: 26),
+          ),
+          const SizedBox(height: 7),
+          Text(
+            category,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+              color: Color(0xFFE9D5FF),
+              letterSpacing: 0.2,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -985,6 +909,28 @@ class _StoryCard extends ConsumerWidget {
     }
   }
 
+  /// Returns a category-appropriate character/scene image URL
+  String _getFallbackImage(ContentItem item) {
+    switch (item.category.toLowerCase()) {
+      case 'anime':
+        return 'https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?w=600&q=80';
+      case 'gaming':
+        return 'https://images.unsplash.com/photo-1542751371-adc38448a05e?w=600&q=80';
+      case 'sci-fi':
+        return 'https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?w=600&q=80';
+      case 'comics':
+      case 'dc comics':
+      case 'marvel':
+        return 'https://images.unsplash.com/photo-1531259683007-016a7b628fc3?w=600&q=80';
+      case 'fantasy':
+        return 'https://images.unsplash.com/photo-1578632767115-351597cf2477?w=600&q=80';
+      case 'art':
+        return 'https://images.unsplash.com/photo-1579783900882-c0d3dad7b119?w=600&q=80';
+      default:
+        return 'https://images.unsplash.com/photo-1534447677768-be436bb09401?w=600&q=80';
+    }
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final bookmarked = ref
@@ -995,9 +941,11 @@ class _StoryCard extends ConsumerWidget {
     final theme = _getThemeForItem(item);
     final List<Color> colors = theme['gradient'] as List<Color>;
     final Color accent = theme['accent'] as Color;
-    final IconData categoryIcon = theme['icon'] as IconData;
     final IconData typeIcon = _getTypeIcon(item.type);
     final bool hasCustomImage = isHttpsMediaUrl(item.imageUrl);
+    // Use custom image if available, otherwise use category-specific fallback
+    final String imageToShow =
+        hasCustomImage ? item.imageUrl! : _getFallbackImage(item);
 
     return InkWell(
       borderRadius: BorderRadius.circular(20),
@@ -1009,17 +957,13 @@ class _StoryCard extends ConsumerWidget {
       child: Container(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: accent.withValues(alpha: 0.35), width: 1.2),
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: colors,
-          ),
+          border: Border.all(color: accent.withValues(alpha: 0.45), width: 1.2),
+          color: colors.first,
           boxShadow: [
             BoxShadow(
-              color: colors.first.withValues(alpha: 0.3),
-              blurRadius: 12,
-              offset: const Offset(0, 4),
+              color: accent.withValues(alpha: 0.25),
+              blurRadius: 14,
+              offset: const Offset(0, 6),
             ),
           ],
         ),
@@ -1027,42 +971,33 @@ class _StoryCard extends ConsumerWidget {
         child: Stack(
           fit: StackFit.expand,
           children: [
-            if (hasCustomImage) ...[
-              RemoteMediaImage(url: item.imageUrl!),
-              Container(
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [Colors.transparent, Color(0xF209040E)],
-                    stops: [0.2, 1.0],
+            // Always show image (custom or fallback)
+            Image.network(
+              imageToShow,
+              fit: BoxFit.cover,
+              alignment: Alignment.topCenter,
+              errorBuilder: (_, __, ___) => Container(
+                color: colors.first,
+                child: Center(
+                  child: Icon(
+                    theme['icon'] as IconData,
+                    size: 60,
+                    color: accent.withValues(alpha: 0.3),
                   ),
                 ),
               ),
-            ] else ...[
-              // Themed Background Watermark Graphic
-              Positioned(
-                right: -16,
-                bottom: -16,
-                child: Icon(
-                  categoryIcon,
-                  size: 130,
-                  color: Colors.white.withValues(alpha: 0.07),
+            ),
+            // Gradient overlay
+            Container(
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [Colors.transparent, Color(0xEE09040E)],
+                  stops: [0.25, 1.0],
                 ),
               ),
-              Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      Colors.black.withValues(alpha: 0.1),
-                      Colors.black.withValues(alpha: 0.88),
-                    ],
-                  ),
-                ),
-              ),
-            ],
+            ),
 
             // Content Padding & Badges
             Padding(
@@ -1186,50 +1121,78 @@ class _TrendingFandomCarousel extends StatefulWidget {
 }
 
 class _TrendingFandomCarouselState extends State<_TrendingFandomCarousel> {
-  final PageController _controller = PageController(viewportFraction: 0.92);
+  final PageController _controller = PageController(viewportFraction: 0.91);
   int _currentPage = 0;
+  Timer? _autoScrollTimer;
 
   static const _trendingCards = [
     {
       'fandom': 'Anime',
       'title': 'Shinobi Rising & New Seasons',
-      'tag': '#1 TRENDING UNIVERSE',
-      'desc':
-          'Explore original ninja sagas, creator profiles, and combat galleries.',
-      'gradient': [Color(0xFF380E05), Color(0xFF140502)],
+      'tag': '#1 TRENDING',
+      'desc': 'Original ninja sagas, creator profiles & combat galleries.',
+      'members': '12.4M fans',
+      'accentColor': Color(0xFFFFB74D),
+      'borderColor': Color(0xFFFF8C00),
+      'image': 'assets/trending_anime.jpg',
       'icon': Icons.bolt,
     },
     {
       'fandom': 'Gaming',
       'title': 'Arena Champions 2026',
-      'tag': '#2 TRENDING UNIVERSE',
-      'desc':
-          'Esports brackets, speedrunning lore, and competitive cyberpunk arenas.',
-      'gradient': [Color(0xFF38084A), Color(0xFF14021C)],
+      'tag': '#2 TRENDING',
+      'desc': 'Esports brackets, speedrunning lore & cyberpunk arenas.',
+      'members': '9.1M fans',
+      'accentColor': Color(0xFFE879F9),
+      'borderColor': Color(0xFFD946EF),
+      'image': 'assets/trending_gaming.jpg',
       'icon': Icons.sports_esports,
     },
     {
       'fandom': 'Comics',
-      'title': 'Marvel Multiverse Incursion',
-      'tag': '#3 TRENDING UNIVERSE',
-      'desc':
-          'Parallel variant timelines, superhero covers, and cosmic crossover events.',
-      'gradient': [Color(0xFF3D080E), Color(0xFF170205)],
+      'title': 'Multiverse Incursion Event',
+      'tag': '#3 TRENDING',
+      'desc': 'Variant timelines, superhero covers & cosmic crossovers.',
+      'members': '15.2M fans',
+      'accentColor': Color(0xFFF43F5E),
+      'borderColor': Color(0xFFE11D48),
+      'image': 'assets/trending_comics.jpg',
       'icon': Icons.auto_awesome,
     },
     {
       'fandom': 'Sci-Fi',
       'title': 'Starship Odyssey Chronicles',
-      'tag': '#4 TRENDING UNIVERSE',
-      'desc':
-          'Deep space precursor arks, warp drive physics, and alien homeworlds.',
-      'gradient': [Color(0xFF092040), Color(0xFF030C1C)],
+      'tag': '#4 TRENDING',
+      'desc': 'Deep space arks, warp drive physics & alien homeworlds.',
+      'members': '6.8M fans',
+      'accentColor': Color(0xFF38BDF8),
+      'borderColor': Color(0xFF0EA5E9),
+      'image': 'assets/trending_scifi.jpg',
       'icon': Icons.rocket_launch,
     },
   ];
 
   @override
+  void initState() {
+    super.initState();
+    _startAutoScroll();
+  }
+
+  void _startAutoScroll() {
+    _autoScrollTimer = Timer.periodic(const Duration(seconds: 4), (_) {
+      if (!mounted) return;
+      final next = (_currentPage + 1) % _trendingCards.length;
+      _controller.animateToPage(
+        next,
+        duration: const Duration(milliseconds: 600),
+        curve: Curves.easeInOut,
+      );
+    });
+  }
+
+  @override
   void dispose() {
+    _autoScrollTimer?.cancel();
     _controller.dispose();
     super.dispose();
   }
@@ -1239,39 +1202,66 @@ class _TrendingFandomCarouselState extends State<_TrendingFandomCarousel> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        // Section header
         Row(
-          children: const [
-            Icon(
-              Icons.local_fire_department,
-              color: Color(0xFFD946EF),
-              size: 20,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(6),
+              decoration: BoxDecoration(
+                color: const Color(0xFFD946EF).withValues(alpha: 0.15),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.local_fire_department,
+                color: Color(0xFFD946EF),
+                size: 18,
+              ),
             ),
-            SizedBox(width: 6),
-            Text(
-              'Trending Fandoms Carousel',
+            const SizedBox(width: 8),
+            const Text(
+              'Trending Universes',
               style: TextStyle(
                 fontSize: 19,
                 fontWeight: FontWeight.w900,
                 color: Colors.white,
               ),
             ),
+            const Spacer(),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(
+                color: const Color(0xFFD946EF).withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(99),
+                border: Border.all(color: const Color(0xFFD946EF).withValues(alpha: 0.3)),
+              ),
+              child: const Text(
+                'LIVE',
+                style: TextStyle(
+                  color: Color(0xFFE879F9),
+                  fontSize: 10,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 1.0,
+                ),
+              ),
+            ),
           ],
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 14),
+        // Carousel
         SizedBox(
-          height: 160,
+          height: 220,
           child: PageView.builder(
             controller: _controller,
             itemCount: _trendingCards.length,
             onPageChanged: (idx) => setState(() => _currentPage = idx),
             itemBuilder: (context, index) {
               final card = _trendingCards[index];
-              final gradient = card['gradient'] as List<Color>;
-              final icon = card['icon'] as IconData;
+              final Color accent = card['accentColor'] as Color;
+              final Color border = card['borderColor'] as Color;
+              final IconData icon = card['icon'] as IconData;
               return Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 4),
-                child: InkWell(
-                  borderRadius: BorderRadius.circular(22),
+                padding: const EdgeInsets.symmetric(horizontal: 5),
+                child: GestureDetector(
                   onTap: () => Navigator.of(context).push(
                     MaterialPageRoute<void>(
                       builder: (_) => ExploreScreen(
@@ -1280,92 +1270,201 @@ class _TrendingFandomCarouselState extends State<_TrendingFandomCarousel> {
                       ),
                     ),
                   ),
-                  child: Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(22),
-                      gradient: LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: gradient,
-                      ),
-                      border: Border.all(
-                        color: const Color(0xFFA855F7).withValues(alpha: 0.35),
-                        width: 1.2,
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: const Color(
-                            0xFFA855F7,
-                          ).withValues(alpha: 0.15),
-                          blurRadius: 10,
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(26),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(26),
+                        border: Border.all(
+                          color: border.withValues(alpha: 0.5),
+                          width: 1.5,
                         ),
-                      ],
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 10,
-                                vertical: 4,
-                              ),
-                              decoration: BoxDecoration(
-                                color: Colors.black.withValues(alpha: 0.6),
-                                borderRadius: BorderRadius.circular(99),
-                                border: Border.all(
-                                  color: const Color(
-                                    0xFFD946EF,
-                                  ).withValues(alpha: 0.4),
-                                ),
-                              ),
-                              child: Text(
-                                card['tag'] as String,
-                                style: const TextStyle(
-                                  color: Color(0xFFE879F9),
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w900,
-                                ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: accent.withValues(alpha: 0.25),
+                            blurRadius: 24,
+                            offset: const Offset(0, 10),
+                          ),
+                        ],
+                      ),
+                      child: Stack(
+                        fit: StackFit.expand,
+                        children: [
+                          // Background image
+                          Image.asset(
+                            card['image'] as String,
+                            fit: BoxFit.cover,
+                            alignment: Alignment.center,
+                            errorBuilder: (_, __, ___) => Container(
+                              color: const Color(0xFF1A0B2E),
+                              child: Icon(icon, size: 80, color: accent.withValues(alpha: 0.2)),
+                            ),
+                          ),
+                          // Gradient overlay - stronger at bottom
+                          Container(
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.topCenter,
+                                end: Alignment.bottomCenter,
+                                colors: [
+                                  Colors.black.withValues(alpha: 0.15),
+                                  Colors.black.withValues(alpha: 0.45),
+                                  Colors.black.withValues(alpha: 0.88),
+                                ],
+                                stops: const [0.0, 0.4, 1.0],
                               ),
                             ),
-                            const Spacer(),
-                            Icon(
-                              icon,
-                              color: const Color(0xFFC084FC),
-                              size: 20,
+                          ),
+                          // Content overlay
+                          Padding(
+                            padding: const EdgeInsets.all(18),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                // Top row: tag + icon
+                                Row(
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 10,
+                                        vertical: 5,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: Colors.black.withValues(alpha: 0.55),
+                                        borderRadius: BorderRadius.circular(99),
+                                        border: Border.all(
+                                          color: accent.withValues(alpha: 0.7),
+                                          width: 1.2,
+                                        ),
+                                      ),
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Icon(Icons.local_fire_department, color: accent, size: 11),
+                                          const SizedBox(width: 4),
+                                          Text(
+                                            card['tag'] as String,
+                                            style: TextStyle(
+                                              color: accent,
+                                              fontSize: 10,
+                                              fontWeight: FontWeight.w900,
+                                              letterSpacing: 0.5,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    const Spacer(),
+                                    // Members badge
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                      decoration: BoxDecoration(
+                                        color: Colors.black.withValues(alpha: 0.6),
+                                        borderRadius: BorderRadius.circular(99),
+                                        border: Border.all(color: Colors.white24),
+                                      ),
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          const Icon(Icons.people, color: Colors.white70, size: 11),
+                                          const SizedBox(width: 4),
+                                          Text(
+                                            card['members'] as String,
+                                            style: const TextStyle(
+                                              color: Colors.white70,
+                                              fontSize: 10,
+                                              fontWeight: FontWeight.w700,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const Spacer(),
+                                // Fandom label
+                                Row(
+                                  children: [
+                                    Icon(icon, color: accent, size: 14),
+                                    const SizedBox(width: 5),
+                                    Text(
+                                      (card['fandom'] as String).toUpperCase(),
+                                      style: TextStyle(
+                                        color: accent,
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w900,
+                                        letterSpacing: 1.0,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 4),
+                                // Title
+                                Text(
+                                  card['title'] as String,
+                                  style: const TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w900,
+                                    color: Colors.white,
+                                    height: 1.15,
+                                    shadows: [
+                                      Shadow(color: Colors.black87, blurRadius: 8),
+                                    ],
+                                  ),
+                                ),
+                                const SizedBox(height: 5),
+                                // Description
+                                Text(
+                                  card['desc'] as String,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.white70,
+                                    height: 1.4,
+                                  ),
+                                ),
+                                const SizedBox(height: 10),
+                                // Explore CTA
+                                Row(
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                      decoration: BoxDecoration(
+                                        gradient: LinearGradient(
+                                          colors: [accent, accent.withValues(alpha: 0.6)],
+                                        ),
+                                        borderRadius: BorderRadius.circular(99),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: accent.withValues(alpha: 0.4),
+                                            blurRadius: 10,
+                                          ),
+                                        ],
+                                      ),
+                                      child: const Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Text(
+                                            'Explore Universe',
+                                            style: TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 11,
+                                              fontWeight: FontWeight.w800,
+                                            ),
+                                          ),
+                                          SizedBox(width: 4),
+                                          Icon(Icons.arrow_forward, color: Colors.white, size: 12),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
                             ),
-                          ],
-                        ),
-                        const Spacer(),
-                        Text(
-                          card['fandom'] as String,
-                          style: const TextStyle(
-                            color: Color(0xFFD946EF),
-                            fontSize: 11,
-                            fontWeight: FontWeight.w900,
                           ),
-                        ),
-                        Text(
-                          card['title'] as String,
-                          style: const TextStyle(
-                            fontSize: 17,
-                            fontWeight: FontWeight.w900,
-                            color: Colors.white,
-                          ),
-                        ),
-                        const SizedBox(height: 3),
-                        Text(
-                          card['desc'] as String,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            fontSize: 12,
-                            color: Colors.white70,
-                          ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                 ),
@@ -1373,23 +1472,34 @@ class _TrendingFandomCarouselState extends State<_TrendingFandomCarousel> {
             },
           ),
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: 12),
+        // Indicator dots
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: List.generate(
             _trendingCards.length,
-            (idx) => AnimatedContainer(
-              duration: const Duration(milliseconds: 250),
-              margin: const EdgeInsets.symmetric(horizontal: 3),
-              width: _currentPage == idx ? 20 : 6,
-              height: 6,
-              decoration: BoxDecoration(
-                color: _currentPage == idx
-                    ? const Color(0xFFA855F7)
-                    : Colors.white24,
-                borderRadius: BorderRadius.circular(99),
-              ),
-            ),
+            (idx) {
+              final Color accent =
+                  (_trendingCards[idx]['accentColor'] as Color);
+              return AnimatedContainer(
+                duration: const Duration(milliseconds: 300),
+                margin: const EdgeInsets.symmetric(horizontal: 3),
+                width: _currentPage == idx ? 24 : 7,
+                height: 7,
+                decoration: BoxDecoration(
+                  color: _currentPage == idx ? accent : Colors.white24,
+                  borderRadius: BorderRadius.circular(99),
+                  boxShadow: _currentPage == idx
+                      ? [
+                          BoxShadow(
+                            color: accent.withValues(alpha: 0.5),
+                            blurRadius: 6,
+                          ),
+                        ]
+                      : null,
+                ),
+              );
+            },
           ),
         ),
       ],
