@@ -438,37 +438,256 @@ class _PurchaseHistoryScreen extends ConsumerWidget {
 
 class _AboutScreen extends StatelessWidget {
   const _AboutScreen();
+
   @override
-  Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text('About Us')),
-    body: ListView(
-      padding: const EdgeInsets.all(20),
-      children: const [
-        Icon(Icons.auto_awesome, size: 64, color: Color(0xFFFFD740)),
-        SizedBox(height: 18),
-        Text(
-          'Fandom Verse Pocket Edition',
-          textAlign: TextAlign.center,
-          style: TextStyle(fontSize: 25, fontWeight: FontWeight.w900),
-        ),
-        SizedBox(height: 14),
-        Text(
-          'A unified mobile experience for discovering fandom stories, community events, original merchandise concepts, and helpful beginner resources.',
-          textAlign: TextAlign.center,
-          style: TextStyle(height: 1.55, color: Colors.white70),
-        ),
-        SizedBox(height: 28),
-        ListTile(
-          leading: CircleAvatar(child: Icon(Icons.person_outline)),
-          title: Text('Unzela Waseem'),
-          subtitle: Text('Project developer and application owner'),
-        ),
-        SizedBox(height: 16),
-        Text(
-          'All demonstration content and artwork in this application is original and created for the Fandom Verse project.',
-          style: TextStyle(color: Colors.white60),
-        ),
-      ],
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFF050B14),
+      appBar: AppBar(
+        title: const Text('About Us'),
+        backgroundColor: const Color(0xFF050B14),
+      ),
+      body: ListView(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+        children: [
+          // ── Header ─────────────────────────────────────────
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 20),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(20),
+              gradient: const LinearGradient(
+                colors: [Color(0xFF1A0533), Color(0xFF0A1628)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+            ),
+            child: Column(
+              children: [
+                Container(
+                  width: 72, height: 72,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFF7B2FBE), Color(0xFF2979FF)],
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFF7B2FBE).withValues(alpha: 0.4),
+                        blurRadius: 20, spreadRadius: 2,
+                      ),
+                    ],
+                  ),
+                  child: const Icon(Icons.auto_awesome, size: 34, color: Colors.white),
+                ),
+                const SizedBox(height: 14),
+                const Text(
+                  'Fandom Verse',
+                  style: TextStyle(
+                    fontSize: 26, fontWeight: FontWeight.w900,
+                    color: Colors.white, letterSpacing: 0.5,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                const Text(
+                  'POCKET EDITION',
+                  style: TextStyle(
+                    fontSize: 12, letterSpacing: 4,
+                    color: Color(0xFF00E5FF), fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(20),
+                    color: const Color(0xFF2979FF).withValues(alpha: 0.2),
+                    border: Border.all(color: const Color(0xFF2979FF).withValues(alpha: 0.4)),
+                  ),
+                  child: const Text(
+                    'TechWiz World Tech Championship',
+                    style: TextStyle(fontSize: 11, color: Color(0xFF90CAF9)),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 24),
+
+          // ── About the App ──────────────────────────────────
+          const Text(
+            '📱 About the App',
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: Colors.white),
+          ),
+          const SizedBox(height: 10),
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(14),
+              color: Colors.white.withValues(alpha: 0.05),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+            ),
+            child: const Text(
+              'Fandom Verse Pocket Edition is a cross-platform mobile app that connects fans from Anime, Gaming, Comics, Sci-Fi, K-Pop, and Cosplay communities. It provides fandom stories, lore exploration, nearby events, fan merchandise, and an AI-powered helper — all in one app.',
+              style: TextStyle(color: Colors.white70, height: 1.6, fontSize: 13.5),
+            ),
+          ),
+          const SizedBox(height: 24),
+
+          // ── Developer ──────────────────────────────────────
+          const Text(
+            '👩‍💻 Developer',
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: Colors.white),
+          ),
+          const SizedBox(height: 10),
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(14),
+              gradient: LinearGradient(
+                colors: [
+                  const Color(0xFF7B2FBE).withValues(alpha: 0.15),
+                  const Color(0xFF7B2FBE).withValues(alpha: 0.05),
+                ],
+              ),
+              border: Border.all(color: const Color(0xFF7B2FBE).withValues(alpha: 0.3)),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  width: 48, height: 48,
+                  decoration: const BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: LinearGradient(
+                      colors: [Color(0xFF7B2FBE), Color(0xFF9C4DCC)],
+                    ),
+                  ),
+                  child: const Icon(Icons.person_rounded, color: Colors.white, size: 24),
+                ),
+                const SizedBox(width: 14),
+                const Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Unzela Waseem', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 15)),
+                    SizedBox(height: 3),
+                    Text('Lead Developer & Project Owner', style: TextStyle(color: Colors.white54, fontSize: 12)),
+                    Text('Aptech North Karachi', style: TextStyle(color: Colors.white38, fontSize: 11)),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 24),
+
+          // ── Key Features ───────────────────────────────────
+          const Text(
+            '✨ Key Features',
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: Colors.white),
+          ),
+          const SizedBox(height: 10),
+          _featureItem('⛩️ Fandom Lore & Glossary', 'Explore stories, glossary terms, and deep dive trivia across multiple fandoms.'),
+          _featureItem('📍 Events & Conventions', 'Discover nearby fan events with GPS-based location sorting and offline agenda.'),
+          _featureItem('🛍️ Fan Merchandise Store', 'Browse, wishlist, and checkout official fandom merchandise.'),
+          _featureItem('🤖 AI Fan Helper', 'Get instant answers about fandoms, app features, and cosplay tips.'),
+          _featureItem('🔔 Price Drop Alerts', 'Get notified when a wishlisted product goes on sale.'),
+          _featureItem('📶 Offline Mode', 'Save articles, events, and stories for offline reading.'),
+          const SizedBox(height: 24),
+
+          // ── Contact ────────────────────────────────────────
+          const Text(
+            '📬 Contact',
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: Colors.white),
+          ),
+          const SizedBox(height: 10),
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(14),
+              color: Colors.white.withValues(alpha: 0.05),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+            ),
+            child: const Column(
+              children: [
+                _ContactRow(icon: Icons.email_outlined, label: 'unzelawaseem3@gmail.com'),
+                SizedBox(height: 8),
+                _ContactRow(icon: Icons.phone_outlined, label: '+92 316 2705226'),
+                SizedBox(height: 8),
+                _ContactRow(icon: Icons.location_on_outlined, label: 'North Karachi, Pakistan'),
+              ],
+            ),
+          ),
+          const SizedBox(height: 24),
+
+          // ── Footer ─────────────────────────────────────────
+          Container(
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(14),
+              color: Colors.white.withValues(alpha: 0.03),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
+            ),
+            child: Column(
+              children: [
+                const Icon(Icons.verified_rounded, color: Color(0xFF00E5FF), size: 24),
+                const SizedBox(height: 6),
+                const Text('Version 1.0.0', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
+                const SizedBox(height: 4),
+                Text(
+                  '© 2024 Fandom Verse Pocket Edition\nAll content is original and created for this project.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: Colors.white.withValues(alpha: 0.35), fontSize: 11, height: 1.5),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 30),
+        ],
+      ),
+    );
+  }
+
+  Widget _featureItem(String title, String desc) => Padding(
+    padding: const EdgeInsets.only(bottom: 8),
+    child: Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        color: Colors.white.withValues(alpha: 0.04),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.07)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(title.substring(0, 2), style: const TextStyle(fontSize: 20)),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title.substring(3), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 13)),
+                const SizedBox(height: 2),
+                Text(desc, style: const TextStyle(color: Colors.white54, fontSize: 11.5, height: 1.4)),
+              ],
+            ),
+          ),
+        ],
+      ),
     ),
   );
 }
+
+class _ContactRow extends StatelessWidget {
+  const _ContactRow({required this.icon, required this.label});
+  final IconData icon;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) => Row(
+    children: [
+      Icon(icon, size: 18, color: const Color(0xFF00E5FF)),
+      const SizedBox(width: 10),
+      Expanded(child: Text(label, style: const TextStyle(color: Colors.white70, fontSize: 13))),
+    ],
+  );
+}
+
