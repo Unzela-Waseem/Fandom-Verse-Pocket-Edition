@@ -96,46 +96,6 @@ class _VideoSplashScreenState extends State<VideoSplashScreen> {
             ),
           ),
 
-          // Brand Logo at Bottom
-          Positioned(
-            left: 0,
-            right: 0,
-            bottom: 40,
-            child: SafeArea(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    width: 44,
-                    height: 44,
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [Color(0xFFA855F7), Color(0xFFD946EF)],
-                      ),
-                      borderRadius: BorderRadius.circular(14),
-                      boxShadow: [
-                        BoxShadow(
-                          color: const Color(0xFFA855F7).withValues(alpha: 0.4),
-                          blurRadius: 10,
-                        ),
-                      ],
-                    ),
-                    child: const Icon(Icons.bolt, color: Colors.white, size: 26),
-                  ),
-                  const SizedBox(height: 12),
-                  const Text(
-                    'FANDOM VERSE',
-                    style: TextStyle(
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: 3.0,
-                      color: Colors.white,
-                      fontSize: 14,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
             
           // Glassy Skip Button
           Positioned(
