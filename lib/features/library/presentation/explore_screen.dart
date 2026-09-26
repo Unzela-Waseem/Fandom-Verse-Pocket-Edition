@@ -69,7 +69,11 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen>
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Explore Fandoms'),
+        title: Text(widget.standalone
+            ? (widget.initialCategory == 'All'
+                ? 'Explore Fandoms'
+                : 'Explore ${widget.initialCategory}')
+            : 'Explore Fandoms'),
         bottom: TabBar(
           controller: _tabController,
           isScrollable: true,
@@ -84,39 +88,41 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen>
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Universe Selection
-          Container(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-            child: const Text(
-              'Select your Universe',
-              style: TextStyle(
-                fontSize: 13,
-                color: Colors.white70,
-                fontWeight: FontWeight.w600,
+          if (!widget.standalone) ...[
+            // Universe Selection
+            Container(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+              child: const Text(
+                'Select your Universe',
+                style: TextStyle(
+                  fontSize: 13,
+                  color: Colors.white70,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ),
-          ),
-          SizedBox(
-            height: 60,
-            child: ListView.separated(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              scrollDirection: Axis.horizontal,
-              itemCount: categories.length,
-              separatorBuilder: (_, _) => const SizedBox(width: 8),
-              itemBuilder: (context, index) {
-                final category = categories[index];
-                final isSelected = category == _selectedCategory;
-                return ChoiceChip(
-                  label: Text(category),
-                  selected: isSelected,
-                  selectedColor: const Color(0xFFA855F7),
-                  onSelected: (selected) {
-                    if (selected) setState(() => _selectedCategory = category);
-                  },
-                );
-              },
+            SizedBox(
+              height: 60,
+              child: ListView.separated(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                scrollDirection: Axis.horizontal,
+                itemCount: categories.length,
+                separatorBuilder: (_, _) => const SizedBox(width: 8),
+                itemBuilder: (context, index) {
+                  final category = categories[index];
+                  final isSelected = category == _selectedCategory;
+                  return ChoiceChip(
+                    label: Text(category),
+                    selected: isSelected,
+                    selectedColor: const Color(0xFFA855F7),
+                    onSelected: (selected) {
+                      if (selected) setState(() => _selectedCategory = category);
+                    },
+                  );
+                },
+              ),
             ),
-          ),
+          ],
 
           // Search Bar
           Padding(

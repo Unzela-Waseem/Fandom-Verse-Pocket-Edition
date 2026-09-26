@@ -443,6 +443,9 @@ class _AdminCollectionScreenState extends State<AdminCollectionScreen> {
           ],
         ),
       ),
+          ),
+        ],
+      ),
     );
   }
 
