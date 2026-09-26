@@ -559,7 +559,7 @@ class _CharacterCarouselState extends State<_CharacterCarousel> {
       'category': 'GAMING',
     },
     {
-      'image': 'assets/The Most Powerful Avengers In The MCU Ranked - Looper.jpeg',
+      'image': 'assets/avengers.jpeg',
       'title': 'The Most Powerful Avengers',
       'category': 'MOVIES',
     },
