@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../core/services/connectivity_provider.dart';
 import '../features/authentication/presentation/auth_gate.dart';
+import '../features/onboarding/presentation/splash_screen.dart';
 import 'theme/app_theme.dart';
 
 final GlobalKey<ScaffoldMessengerState> scaffoldMessengerKey =
@@ -64,7 +65,7 @@ class FandomVerseApp extends ConsumerWidget {
       theme: AppTheme.light,
       darkTheme: AppTheme.dark,
       themeMode: ThemeMode.dark,
-      home: home ?? const AuthGate(),
+      home: home ?? const VideoSplashScreen(),
     );
   }
 }
