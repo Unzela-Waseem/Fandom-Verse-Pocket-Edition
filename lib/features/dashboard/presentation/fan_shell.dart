@@ -476,29 +476,28 @@ class _TopBar extends StatelessWidget {
         builder: (context) => GestureDetector(
           onTap: () => Scaffold.of(context).openDrawer(),
           child: Container(
-            padding: const EdgeInsets.all(2.5),
+            padding: const EdgeInsets.all(2),
             decoration: BoxDecoration(
-              shape: BoxShape.circle,
+              borderRadius: BorderRadius.circular(14),
               gradient: const LinearGradient(
                 colors: [Color(0xFFA855F7), Color(0xFFD946EF)],
               ),
               boxShadow: [
                 BoxShadow(
-                  color: const Color(0xFFA855F7).withValues(alpha: 0.4),
+                  color: const Color(0xFFA855F7).withOpacity(0.4),
                   blurRadius: 10,
                   spreadRadius: 1,
                 ),
               ],
             ),
-            child: CircleAvatar(
-              radius: 20,
-              backgroundColor: const Color(0xFF180A2E),
-              backgroundImage: profile?.avatarUrl != null && profile!.avatarUrl!.isNotEmpty
-                  ? NetworkImage(profile!.avatarUrl!)
-                  : null,
-              child: profile?.avatarUrl == null || profile!.avatarUrl!.isEmpty
-                  ? const Icon(Icons.person, color: Color(0xFFE9D5FF), size: 22)
-                  : null,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: Image.asset(
+                'assets/images/logo.jpg',
+                width: 40,
+                height: 40,
+                fit: BoxFit.cover,
+              ),
             ),
           ),
         ),
