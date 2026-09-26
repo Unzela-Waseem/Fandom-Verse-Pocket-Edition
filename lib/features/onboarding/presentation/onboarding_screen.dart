@@ -47,10 +47,10 @@ class _OnboardingScreenState extends State<OnboardingScreen>
     ),
     _SlideData(
       image: 'assets/slide2_gaming.png',
-      badge: 'GAMING AND ESPORTS',
-      title: 'Dominate the\nArena',
+      badge: 'ENTER THE MULTIVERSE',
+      title: 'Your worlds.\nOne universe.',
       features: [],
-      accentColor: Color(0xFFAB47BC),
+      accentColor: Color(0xFFD946EF),
       gradientColors: [Color(0xCC0A0018), Color(0xFF0A0018)],
       isLandingSlide: true, // Show landing UI instead of standard features
     ),
@@ -378,56 +378,56 @@ class _SlideViewState extends State<_SlideView>
   Widget _buildLandingUI(BuildContext context, _SlideData slide) {
     return Column(
       mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.stretch,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        Row(
-          children: [
-            Container(
-              width: 44,
-              height: 44,
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFFA855F7), Color(0xFFD946EF)],
-                ),
-                borderRadius: BorderRadius.circular(14),
-                boxShadow: [
-                  BoxShadow(
-                    color: const Color(0xFFA855F7).withValues(alpha: 0.4),
-                    blurRadius: 10,
-                  ),
-                ],
-              ),
-              child: const Icon(Icons.bolt, color: Colors.white, size: 26),
-            ),
-            const SizedBox(width: 12),
-            const Text(
-              'FANDOM VERSE',
-              style: TextStyle(
-                fontWeight: FontWeight.w900,
-                letterSpacing: 1.2,
-                color: Colors.white,
-                fontSize: 18,
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 40),
-        RichText(
-          text: TextSpan(
-            style: Theme.of(context).textTheme.displaySmall?.copyWith(
+        // Badge
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(99),
+            border: Border.all(color: slide.accentColor.withValues(alpha: 0.5)),
+            color: slide.accentColor.withValues(alpha: 0.12),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.bolt, color: slide.accentColor, size: 13),
+              const SizedBox(width: 6),
+              Text(
+                slide.badge,
+                style: TextStyle(
+                  color: slide.accentColor,
+                  fontSize: 11,
                   fontWeight: FontWeight.w900,
-                  height: .98,
-                  letterSpacing: -1.4,
-                  color: Colors.white,
+                  letterSpacing: 1.4,
                 ),
-            children: const [
-              TextSpan(text: 'Your worlds.\n'),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 16),
+        // Title
+        RichText(
+          textAlign: TextAlign.center,
+          text: TextSpan(
+            style: const TextStyle(
+              fontSize: 34,
+              fontWeight: FontWeight.w900,
+              color: Colors.white,
+              height: 1.1,
+              letterSpacing: -0.5,
+            ),
+            children: [
+              const TextSpan(text: 'Your worlds.\n'),
               TextSpan(
                 text: 'One universe.',
                 style: TextStyle(
-                  color: Color(0xFFD946EF),
+                  color: slide.accentColor,
                   shadows: [
-                    Shadow(color: Color(0xFFA855F7), blurRadius: 12),
+                    Shadow(
+                      color: slide.accentColor.withValues(alpha: 0.5),
+                      blurRadius: 12,
+                    ),
                   ],
                 ),
               ),
@@ -437,33 +437,25 @@ class _SlideViewState extends State<_SlideView>
         const SizedBox(height: 14),
         Text(
           'Stories, events, communities, and collectibles for every kind of fan.',
-          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+          textAlign: TextAlign.center,
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 color: Colors.white70,
                 height: 1.4,
               ),
         ),
         const SizedBox(height: 32),
-        FilledButton(
-          onPressed: () => _openLogin(context, admin: false),
-          child: const Text('CONTINUE AS A FAN'),
-        ),
-        const SizedBox(height: 10),
-        OutlinedButton(
-          onPressed: () => Navigator.of(context).pushReplacement(
-            MaterialPageRoute<void>(builder: (_) => const FanShell()),
-          ),
-          style: OutlinedButton.styleFrom(
-            minimumSize: const Size.fromHeight(50),
-          ),
-          child: const Text('EXPLORE PREVIEW'),
+        _NextButton(
+          label: 'CONTINUE AS A FAN',
+          accentColor: slide.accentColor,
+          onTap: () => _openLogin(context, admin: false),
         ),
         const SizedBox(height: 16),
         TextButton.icon(
           onPressed: () => _openLogin(context, admin: true),
-          icon: const Icon(Icons.shield_outlined, size: 18, color: Colors.white70),
+          icon: const Icon(Icons.shield_outlined, size: 16, color: Colors.white54),
           label: const Text(
             'Admin sign in',
-            style: TextStyle(color: Colors.white70),
+            style: TextStyle(color: Colors.white54, fontSize: 13),
           ),
         ),
       ],
