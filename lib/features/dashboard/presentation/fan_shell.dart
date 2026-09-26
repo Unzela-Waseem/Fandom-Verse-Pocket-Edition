@@ -296,7 +296,7 @@ class _HomeTab extends ConsumerWidget {
                       child: ListView.separated(
                         scrollDirection: Axis.horizontal,
                         itemCount: categories.length,
-                        separatorBuilder: (_, _) => const SizedBox(width: 14),
+                        separatorBuilder: (_, __) => const SizedBox(width: 14),
                         itemBuilder: (_, index) => _CategoryAvatar(
                           category: categories[index],
                           onTap: () => Navigator.of(context).push(

@@ -43,22 +43,24 @@ class AuthService {
       );
       return;
     }
-    _googleInitialization ??= GoogleSignIn.instance.initialize();
-    await _googleInitialization;
-    if (!GoogleSignIn.instance.supportsAuthenticate()) {
-      throw const FederatedSignInException(
-        'Google sign-in is unavailable on this platform.',
-      );
+    final googleSignIn = GoogleSignIn(scopes: ['email']);
+    final googleUser = await googleSignIn.signIn();
+    if (googleUser == null) {
+      throw const FederatedSignInException('Google sign-in was canceled.');
     }
-    final googleUser = await GoogleSignIn.instance.authenticate();
-    final idToken = googleUser.authentication.idToken;
-    if (idToken == null) {
+    final googleAuth = await googleUser.authentication;
+    final idToken = googleAuth.idToken;
+    final accessToken = googleAuth.accessToken;
+    if (idToken == null && accessToken == null) {
       throw const FederatedSignInException(
         'Google did not provide a sign-in token. Check the app configuration.',
       );
     }
     final credential = await _auth.signInWithCredential(
-      GoogleAuthProvider.credential(idToken: idToken),
+      GoogleAuthProvider.credential(
+        idToken: idToken,
+        accessToken: accessToken,
+      ),
     );
     await _ensureFanProfile(
       credential,
@@ -195,11 +197,6 @@ class AuthService {
 
 String friendlyAuthError(Object error) {
   if (error is FederatedSignInException) return error.message;
-  if (error is GoogleSignInException) {
-    return error.code == GoogleSignInExceptionCode.canceled
-        ? 'Google sign-in was canceled.'
-        : 'Google sign-in failed. Check the provider configuration and try again.';
-  }
   if (error is FirebaseAuthException) {
     return switch (error.code) {
       'invalid-email' => 'Enter a valid email address.',

@@ -93,7 +93,7 @@ class _DeepDiveScreenState extends ConsumerState<DeepDiveScreen>
                     child: ListView.separated(
                       scrollDirection: Axis.horizontal,
                       itemCount: _fandoms.length,
-                      separatorBuilder: (_, _) => const SizedBox(width: 8),
+                      separatorBuilder: (_, __) => const SizedBox(width: 8),
                       itemBuilder: (_, index) {
                         final fandom = _fandoms[index];
                         final selected = fandom == _selectedFandom;
@@ -122,7 +122,7 @@ class _DeepDiveScreenState extends ConsumerState<DeepDiveScreen>
                       : ListView.separated(
                           padding: const EdgeInsets.all(16),
                           itemCount: trivia.length,
-                          separatorBuilder: (_, _) =>
+                          separatorBuilder: (_, __) =>
                               const SizedBox(height: 14),
                           itemBuilder: (context, index) {
                             final item = trivia[index];
@@ -273,7 +273,7 @@ class _DeepDiveScreenState extends ConsumerState<DeepDiveScreen>
                       : ListView.separated(
                           padding: const EdgeInsets.all(16),
                           itemCount: lore.length,
-                          separatorBuilder: (_, _) =>
+                          separatorBuilder: (_, __) =>
                               const SizedBox(height: 14),
                           itemBuilder: (context, index) {
                             final item = lore[index];
@@ -375,7 +375,7 @@ class _DeepDiveScreenState extends ConsumerState<DeepDiveScreen>
                       : ListView.separated(
                           padding: const EdgeInsets.all(16),
                           itemCount: bts.length,
-                          separatorBuilder: (_, _) =>
+                          separatorBuilder: (_, __) =>
                               const SizedBox(height: 14),
                           itemBuilder: (context, index) {
                             final item = bts[index];

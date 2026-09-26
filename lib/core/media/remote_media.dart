@@ -117,13 +117,13 @@ class _RemoteMediaImageState extends State<RemoteMediaImage> {
         return CachedNetworkImage(
           imageUrl: effectiveUrl,
           fit: widget.fit,
-          placeholder: (_, _) => Container(
+          placeholder: (_, __) => Container(
             color: const Color(0xFF1B1B22),
             child: const Center(
               child: CircularProgressIndicator(strokeWidth: 2),
             ),
           ),
-          errorWidget: (_, _, _) =>
+          errorWidget: (_, __, ___) =>
               Image.asset(AppAssets.multiverse, fit: widget.fit),
         );
       },

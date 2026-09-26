@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -16,25 +18,30 @@ Future<void> main() async {
     cacheSizeBytes: Settings.CACHE_SIZE_UNLIMITED,
   );
   
+  runApp(const ProviderScope(child: FandomVerseApp()));
+  unawaited(_initializeNotifications());
+}
+
+Future<void> _initializeNotifications() async {
+
   try {
     await FirebaseMessaging.instance.requestPermission();
-    
-    // Setup local notifications for foreground FCM messages
+
     final flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
     const initializationSettings = InitializationSettings(
       android: AndroidInitializationSettings('@mipmap/ic_launcher'),
       iOS: DarwinInitializationSettings(),
     );
-    await flutterLocalNotificationsPlugin.initialize(settings: initializationSettings);
-    
+    await flutterLocalNotificationsPlugin.initialize(initializationSettings);
+
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
       final notification = message.notification;
       if (notification != null) {
         flutterLocalNotificationsPlugin.show(
-          id: notification.hashCode,
-          title: notification.title,
-          body: notification.body,
-          notificationDetails: const NotificationDetails(
+          notification.hashCode,
+          notification.title,
+          notification.body,
+          const NotificationDetails(
             android: AndroidNotificationDetails(
               'fandomverse_channel',
               'FandomVerse Notifications',
@@ -51,6 +58,4 @@ Future<void> main() async {
       }
     });
   } catch (_) {}
-  
-  runApp(const ProviderScope(child: FandomVerseApp()));
 }

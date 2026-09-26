@@ -23,203 +23,668 @@ class ExploreScreen extends ConsumerStatefulWidget {
   ConsumerState<ExploreScreen> createState() => _ExploreScreenState();
 }
 
-class _ExploreScreenState extends ConsumerState<ExploreScreen>
-    with SingleTickerProviderStateMixin {
-  late String _selectedCategory;
-  String _searchQuery = '';
-  late TabController _tabController;
+class _ExploreScreenState extends ConsumerState<ExploreScreen> {
+  String _query = '';
+  late String _category;
+  String _resourceType = 'All';
+  String _selectedCreator = 'All';
+  String? _selectedTag;
 
-  static const _tabs = [
-    (title: 'Videos', icon: Icons.video_library, type: ContentType.video),
-    (title: 'Podcasts', icon: Icons.podcasts, type: ContentType.podcast),
-    (title: 'Stories', icon: Icons.auto_stories, type: ContentType.story),
-    (title: 'Galleries', icon: Icons.photo_library, type: ContentType.gallery),
-    (title: 'News', icon: Icons.article, type: ContentType.news),
-    (title: 'Profiles', icon: Icons.person_pin, type: ContentType.profile),
+  static const _trendingTags = [
+    'anime',
+    'marvel',
+    'gaming',
+    'scifi',
+    'comics',
+    'esports',
+    'lore',
+    'cosplay',
+    'naruto',
+    'news',
+    'podcast',
+    'trivia',
+  ];
+
+  static const _resourceTypeChoices = [
+    'All',
+    'News',
+    'Galleries',
+    'Videos',
+    'Podcasts',
+    'Stories',
+    'Glossary',
+    'Deep Dive',
   ];
 
   @override
   void initState() {
     super.initState();
-    _selectedCategory = widget.initialCategory;
-    _tabController = TabController(length: _tabs.length, vsync: this);
+    _category = widget.initialCategory;
   }
 
-  @override
-  void dispose() {
-    _tabController.dispose();
-    super.dispose();
+  ContentType? _mapResourceNameToType(String name) {
+    return switch (name) {
+      'News' => ContentType.news,
+      'Galleries' => ContentType.gallery,
+      'Videos' => ContentType.video,
+      'Podcasts' => ContentType.podcast,
+      'Stories' => ContentType.story,
+      'Glossary' => ContentType.glossary,
+      'Deep Dive' => ContentType.deepDive,
+      _ => null,
+    };
   }
 
   @override
   Widget build(BuildContext context) {
-    final catalog = ref.watch(contentCatalogProvider).asData?.value ?? contentCatalog;
-    
-    // Extract unique categories (Universes)
-    final categories = ['All'];
-    final uniqueCats = catalog.map((item) => item.category).toSet().toList()..sort();
-    categories.addAll(uniqueCats);
+    final cloudCatalog = ref.watch(contentCatalogProvider);
+    final catalog = cloudCatalog.asData?.value ?? contentCatalog;
+    final categories = [
+      'All',
+      ...{for (final item in catalog) item.category},
+    ];
 
-    // If initialCategory is passed but not in list, fallback to All
-    if (!categories.contains(_selectedCategory)) {
-      _selectedCategory = 'All';
-    }
+    final creators = [
+      'All',
+      ...{for (final item in catalog) item.creator},
+    ];
 
-    final query = _searchQuery.toLowerCase().trim();
+    final results = catalog
+        .where((item) {
+          final query = _query.toLowerCase().trim();
+          final matchesQuery =
+              query.isEmpty ||
+              item.title.toLowerCase().contains(query) ||
+              item.summary.toLowerCase().contains(query) ||
+              item.body.toLowerCase().contains(query) ||
+              item.creator.toLowerCase().contains(query) ||
+              item.tags.any((tag) => tag.toLowerCase().contains(query));
+
+          final matchesCategory =
+              _category == 'All' || item.category == _category;
+
+          final expectedType = _mapResourceNameToType(_resourceType);
+          final matchesType = expectedType == null || item.type == expectedType;
+
+          final matchesCreator =
+              _selectedCreator == 'All' || item.creator == _selectedCreator;
+
+          final matchesTag =
+              _selectedTag == null ||
+              item.tags.any(
+                (tag) => tag.toLowerCase() == _selectedTag!.toLowerCase(),
+              );
+
+          return matchesQuery &&
+              matchesCategory &&
+              matchesType &&
+              matchesCreator &&
+              matchesTag;
+        })
+        .toList(growable: false);
+
+    final library = ref.watch(libraryProvider);
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.standalone
-            ? (widget.initialCategory == 'All'
-                ? 'Explore Fandoms'
-                : 'Explore ${widget.initialCategory}')
-            : 'Explore Fandoms'),
-        bottom: TabBar(
-          controller: _tabController,
-          isScrollable: true,
-          indicatorColor: const Color(0xFFA855F7), // Theme accent
-          tabAlignment: TabAlignment.start,
-          tabs: _tabs.map((t) => Tab(
-            icon: Icon(t.icon, size: 20),
-            text: t.title,
-          )).toList(),
-        ),
-      ),
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          if (!widget.standalone) ...[
-            // Universe Selection
-            Container(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-              child: const Text(
-                'Select your Universe',
-                style: TextStyle(
-                  fontSize: 13,
-                  color: Colors.white70,
-                  fontWeight: FontWeight.w600,
+      appBar: widget.standalone ? AppBar(title: Text(_category)) : null,
+      body: SafeArea(
+        child: ListView(
+          padding: const EdgeInsets.fromLTRB(20, 18, 20, 24),
+          children: [
+            if (!widget.standalone) ...[
+              Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: const [
+                        Text(
+                          'Explore',
+                          style: TextStyle(
+                            fontSize: 30,
+                            fontWeight: FontWeight.w900,
+                          ),
+                        ),
+                        SizedBox(height: 4),
+                        Text(
+                          'Multimedia hub, stories, news, and fandom universes.',
+                          style: TextStyle(color: Colors.white60, fontSize: 13),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 14),
+
+              // Quick Hub Access Cards
+              Row(
+                children: [
+                  Expanded(
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(16),
+                      onTap: () => Navigator.of(context).push(
+                        MaterialPageRoute<void>(
+                          builder: (_) => const BeginnerHubScreen(),
+                        ),
+                      ),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 12,
+                        ),
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            colors: [Color(0xFF22362C), Color(0xFF14241B)],
+                          ),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: const Color(0xFF4CAF50).withAlpha(80),
+                          ),
+                        ),
+                        child: Row(
+                          children: const [
+                            CircleAvatar(
+                              radius: 16,
+                              backgroundColor: Color(0xFF4CAF50),
+                              foregroundColor: Colors.black,
+                              child: Icon(Icons.eco, size: 18),
+                            ),
+                            SizedBox(width: 10),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Beginner Hub',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 13,
+                                    ),
+                                  ),
+                                  Text(
+                                    'Glossary & terms',
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      color: Colors.white60,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(16),
+                      onTap: () => Navigator.of(context).push(
+                        MaterialPageRoute<void>(
+                          builder: (_) => const DeepDiveScreen(),
+                        ),
+                      ),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 12,
+                        ),
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            colors: [Color(0xFF382342), Color(0xFF23132B)],
+                          ),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: const Color(0xFFFFD740).withAlpha(80),
+                          ),
+                        ),
+                        child: Row(
+                          children: const [
+                            CircleAvatar(
+                              radius: 16,
+                              backgroundColor: Color(0xFFFFD740),
+                              foregroundColor: Colors.black,
+                              child: Icon(Icons.psychology, size: 18),
+                            ),
+                            SizedBox(width: 10),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Deep Dive',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 13,
+                                    ),
+                                  ),
+                                  Text(
+                                    'Lore & trivia',
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      color: Colors.white60,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 14),
+            ],
+
+            if (cloudCatalog.hasError)
+              const Padding(
+                padding: EdgeInsets.only(bottom: 12),
+                child: Text(
+                  'Cloud content is unavailable. Showing bundled items.',
+                  style: TextStyle(color: Colors.orangeAccent),
                 ),
               ),
+
+            // Search Bar
+            TextField(
+              onChanged: (value) => setState(() => _query = value),
+              decoration: InputDecoration(
+                hintText: 'Search by keyword (e.g. Marvel, Naruto, Anime)',
+                prefixIcon: const Icon(Icons.search),
+                suffixIcon: _query.isEmpty
+                    ? null
+                    : IconButton(
+                        onPressed: () => setState(() => _query = ''),
+                        icon: const Icon(Icons.clear),
+                      ),
+              ),
             ),
+            const SizedBox(height: 12),
+
+            if (!widget.standalone) ...[
+              // Fandom Category Chips
+              SizedBox(
+                height: 38,
+                child: ListView.separated(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: categories.length,
+                  separatorBuilder: (_, __) => const SizedBox(width: 8),
+                  itemBuilder: (_, index) {
+                    final category = categories[index];
+                    return ChoiceChip(
+                      label: Text(category),
+                      selected: category == _category,
+                      onSelected: (_) => setState(() => _category = category),
+                    );
+                  },
+                ),
+              ),
+              const SizedBox(height: 12),
+            ],
+
+            // Resource / Media Type Chips
+            const Row(
+              children: [
+                Icon(
+                  Icons.perm_media_outlined,
+                  size: 16,
+                  color: Colors.white54,
+                ),
+                SizedBox(width: 4),
+                Text(
+                  'RESOURCES & MEDIA',
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 1.1,
+                    color: Colors.white60,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
             SizedBox(
-              height: 60,
+              height: 38,
               child: ListView.separated(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 scrollDirection: Axis.horizontal,
-                itemCount: categories.length,
-                separatorBuilder: (_, _) => const SizedBox(width: 8),
-                itemBuilder: (context, index) {
-                  final category = categories[index];
-                  final isSelected = category == _selectedCategory;
+                itemCount: _resourceTypeChoices.length,
+                separatorBuilder: (_, __) => const SizedBox(width: 8),
+                itemBuilder: (_, index) {
+                  final type = _resourceTypeChoices[index];
+                  final isSelected = type == _resourceType;
                   return ChoiceChip(
-                    label: Text(category),
+                    label: Text(type),
                     selected: isSelected,
-                    selectedColor: const Color(0xFFA855F7),
-                    onSelected: (selected) {
-                      if (selected) setState(() => _selectedCategory = category);
-                    },
+                    onSelected: (_) => setState(() => _resourceType = type),
                   );
                 },
               ),
             ),
-          ],
+            const SizedBox(height: 12),
 
-          // Search Bar
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
-            child: TextField(
-              onChanged: (value) => setState(() => _searchQuery = value),
-              decoration: InputDecoration(
-                hintText: 'Search terms, profiles, or stories...',
-                prefixIcon: const Icon(Icons.search),
-                suffixIcon: _searchQuery.isEmpty
-                    ? null
-                    : IconButton(
-                        icon: const Icon(Icons.clear),
-                        onPressed: () => setState(() => _searchQuery = ''),
-                      ),
-              ),
-            ),
-          ),
-
-          // Tab Views
-          Expanded(
-            child: TabBarView(
-              controller: _tabController,
-              children: _tabs.map((tabInfo) {
-                final items = catalog.where((item) {
-                  final matchesType = item.type == tabInfo.type;
-                  final matchesCat = _selectedCategory == 'All' || 
-                                     item.category.toLowerCase() == _selectedCategory.toLowerCase();
-                  final matchesSearch = query.isEmpty ||
-                                        item.title.toLowerCase().contains(query) ||
-                                        item.summary.toLowerCase().contains(query);
-                  return matchesType && matchesCat && matchesSearch;
-                }).toList();
-
-                if (items.isEmpty) {
-                  return Center(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(tabInfo.icon, size: 48, color: Colors.white24),
-                        const SizedBox(height: 16),
-                        Text(
-                          'No ${tabInfo.title.toLowerCase()} found',
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w800,
-                            color: Colors.white,
-                          ),
+            if (!widget.standalone) ...[
+              // Trending Tags Chips
+              Row(
+                children: [
+                  const Icon(
+                    Icons.local_fire_department,
+                    size: 16,
+                    color: Colors.deepOrangeAccent,
+                  ),
+                  const SizedBox(width: 4),
+                  const Text(
+                    'TRENDING TAGS',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 1.1,
+                      color: Colors.white60,
+                    ),
+                  ),
+                  const Spacer(),
+                  if (_selectedTag != null)
+                    GestureDetector(
+                      onTap: () => setState(() => _selectedTag = null),
+                      child: const Text(
+                        'Clear tag',
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: Color(0xFFFFD740),
+                          fontWeight: FontWeight.bold,
                         ),
-                        const SizedBox(height: 8),
-                        const Text(
-                          'Try adjusting your search or universe filter.',
-                          style: TextStyle(color: Colors.white54),
+                      ),
+                    ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              SizedBox(
+                height: 36,
+                child: ListView.separated(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: _trendingTags.length,
+                  separatorBuilder: (_, __) => const SizedBox(width: 6),
+                  itemBuilder: (_, index) {
+                    final tag = _trendingTags[index];
+                    final isSelected = _selectedTag == tag;
+                    return FilterChip(
+                      label: Text(
+                        '#$tag',
+                        style: const TextStyle(fontSize: 12),
+                      ),
+                      selected: isSelected,
+                      onSelected: (selected) {
+                        setState(() {
+                          _selectedTag = selected ? tag : null;
+                        });
+                      },
+                    );
+                  },
+                ),
+              ),
+              const SizedBox(height: 12),
+
+              // Creator Filter Dropdown
+              Row(
+                children: [
+                  const Icon(
+                    Icons.person_outline,
+                    size: 16,
+                    color: Colors.white54,
+                  ),
+                  const SizedBox(width: 6),
+                  const Text(
+                    'Creator:',
+                    style: TextStyle(fontSize: 13, color: Colors.white70),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: DropdownButtonFormField<String>(
+                      initialValue: _selectedCreator,
+                      isDense: true,
+                      decoration: const InputDecoration(
+                        contentPadding: EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 8,
+                        ),
+                      ),
+                      items: creators
+                          .map(
+                            (c) => DropdownMenuItem(
+                              value: c,
+                              child: Text(
+                                c == 'All' ? 'All Creators' : c,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(fontSize: 13),
+                              ),
+                            ),
+                          )
+                          .toList(),
+                      onChanged: (value) =>
+                          setState(() => _selectedCreator = value ?? 'All'),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 14),
+            ],
+
+            // Results count & reset filters if filtered
+            Row(
+              children: [
+                Text(
+                  '${results.length} ${results.length == 1 ? 'item' : 'items'} found',
+                  style: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white70,
+                  ),
+                ),
+                const Spacer(),
+                if (_query.isNotEmpty ||
+                    _category != 'All' ||
+                    _resourceType != 'All' ||
+                    _selectedCreator != 'All' ||
+                    _selectedTag != null)
+                  TextButton.icon(
+                    style: TextButton.styleFrom(
+                      padding: EdgeInsets.zero,
+                      minimumSize: Size.zero,
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        _query = '';
+                        _category = 'All';
+                        _resourceType = 'All';
+                        _selectedCreator = 'All';
+                        _selectedTag = null;
+                      });
+                    },
+                    icon: const Icon(Icons.refresh, size: 14),
+                    label: const Text(
+                      'Reset filters',
+                      style: TextStyle(fontSize: 12),
+                    ),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 12),
+
+            if (results.isEmpty)
+              _EmptyResults(
+                onReset: () {
+                  setState(() {
+                    _query = '';
+                    _category = 'All';
+                    _resourceType = 'All';
+                    _selectedCreator = 'All';
+                    _selectedTag = null;
+                  });
+                },
+              )
+            else
+              ...results.map(
+                (item) => Card(
+                  margin: const EdgeInsets.only(bottom: 14),
+                  clipBehavior: Clip.antiAlias,
+                  child: InkWell(
+                    onTap: () => Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) => ContentDetailScreen(item: item),
+                      ),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Stack(
+                          children: [
+                            SizedBox(
+                              height: 130,
+                              width: double.infinity,
+                              child: RemoteMediaImage(url: item.imageUrl),
+                            ),
+                            Positioned(
+                              top: 10,
+                              left: 10,
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 4,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.black.withAlpha(190),
+                                  borderRadius: BorderRadius.circular(6),
+                                  border: Border.all(
+                                    color: const Color(0xFFFFD740),
+                                    width: 0.8,
+                                  ),
+                                ),
+                                child: Text(
+                                  _resourceBadgeText(item.type),
+                                  style: const TextStyle(
+                                    color: Color(0xFFFFD740),
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w900,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            if (item.type == ContentType.video)
+                              const Positioned.fill(
+                                child: Center(
+                                  child: CircleAvatar(
+                                    radius: 22,
+                                    backgroundColor: Colors.black54,
+                                    child: Icon(
+                                      Icons.play_arrow,
+                                      color: Colors.white,
+                                      size: 28,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(16, 12, 10, 14),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Text(
+                                          item.category.toUpperCase(),
+                                          style: const TextStyle(
+                                            color: Color(0xFFFFD740),
+                                            fontSize: 10,
+                                            fontWeight: FontWeight.w900,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 8),
+                                        Text(
+                                          '· By ${item.creator}',
+                                          style: const TextStyle(
+                                            fontSize: 11,
+                                            color: Colors.white54,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 5),
+                                    Text(
+                                      item.title,
+                                      style: const TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w900,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 6),
+                                    Text(
+                                      item.summary,
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: const TextStyle(
+                                        color: Colors.white60,
+                                        fontSize: 13,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              IconButton(
+                                tooltip:
+                                    library.bookmarkedContent.contains(item.id)
+                                    ? 'Remove offline bookmark'
+                                    : 'Save offline',
+                                onPressed: () => ref
+                                    .read(libraryProvider.notifier)
+                                    .toggleBookmark(item.id, item: item),
+                                icon: Icon(
+                                  library.bookmarkedContent.contains(item.id)
+                                      ? Icons.bookmark
+                                      : Icons.bookmark_border,
+                                  color:
+                                      library.bookmarkedContent.contains(
+                                        item.id,
+                                      )
+                                      ? const Color(0xFFFFD740)
+                                      : null,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ],
                     ),
-                  );
-                }
-
-                return ListView.separated(
-                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 100),
-                  itemCount: items.length,
-                  separatorBuilder: (_, _) => const SizedBox(height: 12),
-                  itemBuilder: (context, index) {
-                    final item = items[index];
-                    return Card(
-                      child: ListTile(
-                        leading: CircleAvatar(
-                          backgroundColor: const Color(0xFF24232B),
-                          backgroundImage: item.imageUrl != null ? NetworkImage(item.imageUrl!) : null,
-                          child: item.imageUrl == null ? Icon(tabInfo.icon, color: const Color(0xFFA855F7)) : null,
-                        ),
-                        title: Text(
-                          item.title,
-                          style: const TextStyle(fontWeight: FontWeight.w800),
-                        ),
-                        subtitle: Text(
-                          item.summary,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        trailing: const Icon(Icons.arrow_forward_ios, size: 14),
-                        onTap: () => Navigator.of(context).push(
-                          MaterialPageRoute<void>(
-                            builder: (_) => ContentDetailScreen(item: item),
-                          ),
-                        ),
-                      ),
-                    );
-                  },
-                );
-              }).toList(),
-            ),
-          ),
-        ],
+                  ),
+                ),
+              ),
+          ],
+        ),
       ),
     );
+  }
+
+  static String _resourceBadgeText(ContentType type) {
+    return switch (type) {
+      ContentType.news => '📰 NEWS',
+      ContentType.gallery => '🖼️ GALLERY',
+      ContentType.video => '🎬 VIDEO',
+      ContentType.podcast => '🎧 PODCAST',
+      ContentType.story => '✍️ STORY',
+      ContentType.glossary => '📚 GLOSSARY',
+      ContentType.deepDive => '🧠 DEEP DIVE',
+      ContentType.profile => '👤 PROFILE',
+      ContentType.beginnerGuide => '🌱 BEGINNER GUIDE',
+    };
   }
 }
 

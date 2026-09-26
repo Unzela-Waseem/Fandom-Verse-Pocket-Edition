@@ -72,6 +72,8 @@ class LibraryController extends Notifier<LibraryState> {
   Future<void> _lastPersist = Future<void>.value();
   final List<StreamSubscription<QuerySnapshot<Map<String, dynamic>>>>
   _cloudSubscriptions = [];
+  bool _disposed = false;
+  bool get _mounted => !_disposed;
 
   String _storageKey(String scope) => 'fandom_verse_library_v2_$scope';
 
@@ -93,6 +95,7 @@ class LibraryController extends Notifier<LibraryState> {
         unawaited(_loadScope(nextScope));
       });
       ref.onDispose(() {
+        _disposed = true;
         unawaited(subscription.cancel());
         for (final active in _cloudSubscriptions) {
           unawaited(active.cancel());
@@ -105,7 +108,7 @@ class LibraryController extends Notifier<LibraryState> {
 
   Future<void> _loadScope(String scope) async {
     await _restore(scope);
-    if (!ref.mounted ||
+    if (!_mounted ||
         scope != _scope ||
         scope == 'preview' ||
         Firebase.apps.isEmpty) {
@@ -113,9 +116,9 @@ class LibraryController extends Notifier<LibraryState> {
     }
     try {
       await _migrateLocalToCloud(scope);
-      if (ref.mounted && scope == _scope) _listenToCloud(scope);
+      if (_mounted && scope == _scope) _listenToCloud(scope);
     } catch (_) {
-      if (ref.mounted && scope == _scope) {
+      if (_mounted && scope == _scope) {
         state = state.copyWith(syncFailed: true);
       }
     }
@@ -123,7 +126,7 @@ class LibraryController extends Notifier<LibraryState> {
 
   Future<void> _restore(String scope) async {
     final preferences = await SharedPreferences.getInstance();
-    if (!ref.mounted || scope != _scope) return;
+    if (!_mounted || scope != _scope) return;
     final stored = preferences.getString(_storageKey(scope));
     if (stored == null) {
       state = state.copyWith(restored: true);
@@ -131,7 +134,7 @@ class LibraryController extends Notifier<LibraryState> {
     }
     try {
       final json = jsonDecode(stored) as Map<String, dynamic>;
-      if (!ref.mounted || scope != _scope) return;
+      if (!_mounted || scope != _scope) return;
       state = LibraryState(
         bookmarkedContent: Set<String>.from(
           json['bookmarkedContent'] as List? ?? const [],
@@ -161,7 +164,7 @@ class LibraryController extends Notifier<LibraryState> {
         restored: true,
       );
     } catch (_) {
-      if (ref.mounted && scope == _scope) {
+      if (_mounted && scope == _scope) {
         state = state.copyWith(restored: true);
       }
     }
@@ -190,7 +193,7 @@ class LibraryController extends Notifier<LibraryState> {
           await preferences.setString(_storageKey(scope), encoded);
         })
         .catchError((Object _) {
-          if (ref.mounted && scope == _scope) {
+          if (_mounted && scope == _scope) {
             state = state.copyWith(syncFailed: true);
           }
         });
@@ -207,7 +210,7 @@ class LibraryController extends Notifier<LibraryState> {
 
   Future<void> _migrateLocalToCloud(String scope) async {
     final preferences = await SharedPreferences.getInstance();
-    if (!ref.mounted || scope != _scope) return;
+    if (!_mounted || scope != _scope) return;
     final key = 'fandom_verse_library_cloud_migrated_$scope';
     if (preferences.getBool(key) == true || scope != _scope) return;
     final localSnapshot = state;
@@ -226,11 +229,11 @@ class LibraryController extends Notifier<LibraryState> {
       String id,
       Map<String, dynamic> data,
     ) async {
-      if (!ref.mounted || scope != _scope) {
+      if (!_mounted || scope != _scope) {
         throw StateError('Account changed during library migration.');
       }
       if (count >= 400) await flush();
-      if (!ref.mounted || scope != _scope) {
+      if (!_mounted || scope != _scope) {
         throw StateError('Account changed during library migration.');
       }
       batch.set(_userCollection(scope, collection).doc(id), data);
@@ -269,19 +272,19 @@ class LibraryController extends Notifier<LibraryState> {
       });
     }
     await flush();
-    if (ref.mounted && scope == _scope) await preferences.setBool(key, true);
+    if (_mounted && scope == _scope) await preferences.setBool(key, true);
   }
 
   void _listenToCloud(String scope) {
     void failure(Object _) {
-      if (ref.mounted && scope == _scope) {
+      if (_mounted && scope == _scope) {
         state = state.copyWith(syncFailed: true);
       }
     }
 
     _cloudSubscriptions.add(
       _userCollection(scope, 'bookmarks').snapshots().listen((snapshot) {
-        if (!ref.mounted ||
+        if (!_mounted ||
             scope != _scope ||
             (snapshot.metadata.isFromCache &&
                 snapshot.docs.isEmpty &&
@@ -309,7 +312,7 @@ class LibraryController extends Notifier<LibraryState> {
     );
     _cloudSubscriptions.add(
       _userCollection(scope, 'saved_events').snapshots().listen((snapshot) {
-        if (!ref.mounted ||
+        if (!_mounted ||
             scope != _scope ||
             (snapshot.metadata.isFromCache &&
                 snapshot.docs.isEmpty &&
@@ -337,7 +340,7 @@ class LibraryController extends Notifier<LibraryState> {
     );
     _cloudSubscriptions.add(
       _userCollection(scope, 'wishlist').snapshots().listen((snapshot) {
-        if (!ref.mounted ||
+        if (!_mounted ||
             scope != _scope ||
             (snapshot.metadata.isFromCache &&
                 snapshot.docs.isEmpty &&
@@ -353,7 +356,7 @@ class LibraryController extends Notifier<LibraryState> {
     );
     _cloudSubscriptions.add(
       _userCollection(scope, 'cart').snapshots().listen((snapshot) {
-        if (!ref.mounted ||
+        if (!_mounted ||
             scope != _scope ||
             (snapshot.metadata.isFromCache &&
                 snapshot.docs.isEmpty &&
@@ -373,7 +376,7 @@ class LibraryController extends Notifier<LibraryState> {
       _userCollection(scope, 'orders').limit(100).snapshots().listen((
         snapshot,
       ) {
-        if (!ref.mounted ||
+        if (!_mounted ||
             scope != _scope ||
             (snapshot.metadata.isFromCache &&
                 snapshot.docs.isEmpty &&
@@ -400,7 +403,7 @@ class LibraryController extends Notifier<LibraryState> {
     final operation = data == null ? document.delete() : document.set(data);
     unawaited(
       operation.catchError((Object _) {
-        if (ref.mounted && scope == _scope) {
+        if (_mounted && scope == _scope) {
           state = state.copyWith(syncFailed: true);
         }
       }),
@@ -490,10 +493,10 @@ class LibraryController extends Notifier<LibraryState> {
         } else {
           final flnp = FlutterLocalNotificationsPlugin();
           await flnp.show(
-            id: id.hashCode,
-            title: 'Price Drop Alert! 🎉',
-            body: 'An item in your wishlist just went on sale!',
-            notificationDetails: const NotificationDetails(
+            id.hashCode,
+            'Price Drop Alert! 🎉',
+            'An item in your wishlist just went on sale!',
+            const NotificationDetails(
               android: AndroidNotificationDetails(
                 'fandomverse_channel',
                 'FandomVerse Notifications',
@@ -584,7 +587,7 @@ class LibraryController extends Notifier<LibraryState> {
       }
       unawaited(
         batch.commit().catchError((Object _) {
-          if (ref.mounted && scope == _scope) {
+          if (_mounted && scope == _scope) {
             state = state.copyWith(syncFailed: true);
           }
         }),

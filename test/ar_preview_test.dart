@@ -51,7 +51,7 @@ void main() {
       expect(find.text('Nebula Explorer Hoodie'), findsAtLeastNWidgets(1));
 
       // Check AR badges
-      expect(find.text('AR Ready • 1:1 Scale'), findsOneWidget);
+      expect(find.text('AR available - scale may vary'), findsOneWidget);
 
       // Check bottom card details
       expect(find.text('APPAREL'), findsOneWidget);
@@ -95,7 +95,7 @@ void main() {
       expect(find.text('How Augmented Reality Works'), findsOneWidget);
       expect(find.textContaining('Mobile AR (Android ARCore'), findsOneWidget);
       expect(find.textContaining('360° Interactive Inspection'), findsOneWidget);
-      expect(find.textContaining('True 1:1 Scale Accuracy'), findsOneWidget);
+      expect(find.textContaining('Product scale depends on its 3D model'), findsOneWidget);
 
       // Close modal
       await tester.tap(find.text('Got it!'));
