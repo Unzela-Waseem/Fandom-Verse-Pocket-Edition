@@ -64,6 +64,8 @@ class AdminDashboard extends ConsumerWidget {
                     const SizedBox(height: 24),
                     const _AdminStatsRow(),
                     const SizedBox(height: 24),
+                    const _MockActivityChart(),
+                    const SizedBox(height: 24),
                     _AdminModuleGrid(profile: profile),
                   ],
                 ),
@@ -154,107 +156,199 @@ class _AdminStatsRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: const Color(0xFF2A1154).withOpacity(0.4),
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: const Color(0xFFA855F7).withOpacity(0.2)),
-      ),
-      child: Wrap(
-        spacing: 24,
-        runSpacing: 24,
-        alignment: WrapAlignment.spaceBetween,
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      clipBehavior: Clip.none,
+      child: Row(
         children: const [
-          _StatCard(label: 'Users', collectionPath: 'users', icon: Icons.arrow_drop_up, iconColor: Color(0xFFD946EF), subText: 'Active profiles'),
-          _StatCard(label: 'Content', collectionPath: 'content', icon: Icons.arrow_drop_up, iconColor: Color(0xFFD946EF), subText: 'Stories & media'),
-          _StatCard(label: 'Events', collectionPath: 'events', icon: Icons.arrow_drop_up, iconColor: Color(0xFFD946EF), subText: 'Upcoming events'),
-          _StatCard(label: 'Products', collectionPath: 'merchandise', icon: Icons.arrow_drop_up, iconColor: Color(0xFFD946EF), subText: 'Merch items'),
-          _StatCard(label: 'Discussions', collectionPath: 'discussions', icon: Icons.arrow_drop_down, iconColor: Colors.white54, subText: 'Active threads'),
-          _StatCard(label: 'Inquiries', collectionPath: 'inquiries', icon: Icons.arrow_drop_up, iconColor: Color(0xFFD946EF), useCollectionGroup: true, subText: 'Pending replies'),
+          _DoubleStatCard(
+            label1: 'Members', path1: 'users', sub1: '3.2% this week', up1: true,
+            label2: 'Pending posts', path2: 'content', sub2: '14 today', up2: false,
+          ),
+          SizedBox(width: 16),
+          _DoubleStatCard(
+            label1: 'Events', path1: 'events', sub1: '5 this week', up1: true,
+            label2: 'Products', path2: 'merchandise', sub2: 'New arrivals', up2: true,
+          ),
+          SizedBox(width: 16),
+          _DoubleStatCard(
+            label1: 'Discussions', path1: 'discussions', sub1: 'Active threads', up1: false,
+            label2: 'Inquiries', path2: 'inquiries', sub2: 'Pending replies', up2: true, group2: true,
+          ),
         ],
       ),
     );
   }
 }
 
-class _StatCard extends StatelessWidget {
-  const _StatCard({
-    required this.label,
-    required this.collectionPath,
-    required this.icon,
-    required this.iconColor,
-    required this.subText,
-    this.useCollectionGroup = false,
+class _DoubleStatCard extends StatelessWidget {
+  const _DoubleStatCard({
+    required this.label1, required this.path1, required this.sub1, required this.up1, this.group1 = false,
+    required this.label2, required this.path2, required this.sub2, required this.up2, this.group2 = false,
   });
 
-  final String label;
-  final String collectionPath;
-  final IconData icon;
-  final Color iconColor;
-  final String subText;
-  final bool useCollectionGroup;
+  final String label1, path1, sub1;
+  final bool up1, group1;
+  final String label2, path2, sub2;
+  final bool up2, group2;
 
   @override
   Widget build(BuildContext context) {
-    final future = useCollectionGroup
-        ? FirebaseFirestore.instance
-              .collectionGroup(collectionPath)
-              .count()
-              .get()
-        : FirebaseFirestore.instance.collection(collectionPath).count().get();
+    // 40 is padding (20 left + 20 right) in parent
+    final width = MediaQuery.of(context).size.width - 40;
+    return Container(
+      width: width > 400 ? 400 : width, // max width 400
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: const Color(0xFF2A1154).withOpacity(0.4),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: const Color(0xFFA855F7).withOpacity(0.2)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(child: _SingleStatColumn(label: label1, path: path1, sub: sub1, up: up1, group: group1)),
+          Expanded(child: _SingleStatColumn(label: label2, path: path2, sub: sub2, up: up2, group: group2)),
+        ],
+      ),
+    );
+  }
+}
+
+class _SingleStatColumn extends StatelessWidget {
+  const _SingleStatColumn({required this.label, required this.path, required this.sub, required this.up, required this.group});
+  
+  final String label, path, sub;
+  final bool up, group;
+
+  @override
+  Widget build(BuildContext context) {
+    final future = group
+        ? FirebaseFirestore.instance.collectionGroup(path).count().get()
+        : FirebaseFirestore.instance.collection(path).count().get();
+        
     return FutureBuilder<AggregateQuerySnapshot>(
       future: future,
       builder: (context, snapshot) {
         final count = snapshot.data?.count ?? 0;
-        return SizedBox(
-          width: 130,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                '$count',
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 24,
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: 0.5,
-                ),
+        final iconColor = up ? const Color(0xFFD946EF) : Colors.white54;
+        final icon = up ? Icons.arrow_drop_up : Icons.arrow_drop_down;
+        
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              count > 10000 ? '${(count / 1000).toStringAsFixed(1)}K' : '$count',
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 26,
+                fontWeight: FontWeight.w900,
+                letterSpacing: 0.5,
               ),
-              const SizedBox(height: 4),
-              Text(
-                label,
-                style: const TextStyle(
-                  color: Color(0xFFD8B4FE),
-                  fontSize: 14,
-                  fontWeight: FontWeight.w400,
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              label,
+              style: const TextStyle(
+                color: Color(0xFFD8B4FE),
+                fontSize: 15,
+                fontWeight: FontWeight.w400,
               ),
-              const SizedBox(height: 8),
-              Row(
-                children: [
-                  Icon(icon, size: 16, color: iconColor),
-                  const SizedBox(width: 4),
-                  Expanded(
-                    child: Text(
-                      subText,
-                      style: TextStyle(
-                        color: Colors.white.withOpacity(0.7),
-                        fontSize: 11,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Icon(icon, size: 16, color: iconColor),
+                const SizedBox(width: 4),
+                Expanded(
+                  child: Text(
+                    sub,
+                    style: TextStyle(
+                      color: Colors.white.withOpacity(0.7),
+                      fontSize: 12,
                     ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                ],
+                ),
+              ],
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _MockActivityChart extends StatelessWidget {
+  const _MockActivityChart();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: const Color(0xFF180A2E).withOpacity(0.6),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: const Color(0xFFA855F7).withOpacity(0.15)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: const [
+              Text(
+                'Activity, last 7 days',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+              Text(
+                'Details',
+                style: TextStyle(
+                  color: Color(0xFFC084FC),
+                  fontSize: 14,
+                ),
               ),
             ],
           ),
-        );
-      },
+          const SizedBox(height: 32),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              _buildBar(40),
+              _buildBar(60),
+              _buildBar(35),
+              _buildBar(80),
+              _buildBar(50),
+              _buildBar(100),
+              _buildBar(65),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBar(double height) {
+    return Container(
+      width: 32,
+      height: height,
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Color(0xFF9333EA), Color(0xFFC084FC)],
+          begin: Alignment.bottomCenter,
+          end: Alignment.topCenter,
+        ),
+        borderRadius: BorderRadius.circular(8),
+      ),
     );
   }
 }
