@@ -24,6 +24,9 @@ import '../../merchandise/presentation/store_screen.dart';
 import '../../notifications/presentation/notifications_screen.dart';
 import '../../notifications/data/notification_device_service.dart';
 import '../../profile/presentation/profile_screen.dart';
+import 'about_us_screen.dart';
+import 'contact_us_screen.dart';
+import 'privacy_policy_screen.dart';
 
 class FanShell extends StatefulWidget {
   const FanShell({super.key, this.profile});
@@ -354,27 +357,6 @@ class _FanDrawer extends StatelessWidget {
 
   final AppUser? profile;
 
-  void _showDummyDialog(BuildContext context, String title) {
-    Navigator.pop(context); // close drawer
-    showDialog<void>(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: const Color(0xFF1C0D38),
-        title: Text(title, style: const TextStyle(color: Colors.white)),
-        content: const Text(
-          'This section is coming soon! Stay tuned for updates.',
-          style: TextStyle(color: Colors.white70),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('OK', style: TextStyle(color: Color(0xFFE879F9))),
-          ),
-        ],
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Drawer(
@@ -435,22 +417,34 @@ class _FanDrawer extends StatelessWidget {
           ListTile(
             leading: const Icon(Icons.info_outline, color: Color(0xFFC084FC)),
             title: const Text('About Us', style: TextStyle(color: Colors.white)),
-            onTap: () => _showDummyDialog(context, 'About Us'),
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const AboutUsScreen()));
+            },
           ),
           ListTile(
             leading: const Icon(Icons.mail_outline, color: Color(0xFFC084FC)),
             title: const Text('Contact Us', style: TextStyle(color: Colors.white)),
-            onTap: () => _showDummyDialog(context, 'Contact Us'),
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const ContactUsScreen()));
+            },
           ),
           ListTile(
             leading: const Icon(Icons.privacy_tip_outlined, color: Color(0xFFC084FC)),
             title: const Text('Privacy Policy', style: TextStyle(color: Colors.white)),
-            onTap: () => _showDummyDialog(context, 'Privacy Policy'),
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const PrivacyPolicyScreen()));
+            },
           ),
           ListTile(
             leading: const Icon(Icons.settings, color: Color(0xFFC084FC)),
             title: const Text('Settings', style: TextStyle(color: Colors.white)),
-            onTap: () => _showDummyDialog(context, 'Settings'),
+            onTap: () {
+              // TODO: Settings screen
+              Navigator.pop(context);
+            },
           ),
           const Spacer(),
           const Divider(color: Colors.white12),
