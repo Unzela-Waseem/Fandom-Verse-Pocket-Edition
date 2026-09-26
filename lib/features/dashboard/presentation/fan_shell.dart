@@ -112,6 +112,7 @@ class _FanShellState extends State<FanShell> {
         final wide = constraints.maxWidth >= 800;
         return Scaffold(
           backgroundColor: const Color(0xFF09040E),
+          drawer: const _FanDrawer(),
           body: wide
               ? Row(
                   children: [
@@ -348,6 +349,72 @@ class _HomeTab extends ConsumerWidget {
   }
 }
 
+class _FanDrawer extends StatelessWidget {
+  const _FanDrawer();
+
+  @override
+  Widget build(BuildContext context) {
+    return Drawer(
+      backgroundColor: const Color(0xFF0C0616),
+      child: Column(
+        children: [
+          DrawerHeader(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Color(0xFF2A1154), Color(0xFF0C0616)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFA855F7).withValues(alpha: 0.2),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.rocket_launch, color: Color(0xFFE9D5FF), size: 32),
+                ),
+                const SizedBox(width: 16),
+                const Text(
+                  'FandomVerse',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 20,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          ListTile(
+            leading: const Icon(Icons.settings, color: Color(0xFFC084FC)),
+            title: const Text('Settings', style: TextStyle(color: Colors.white)),
+            onTap: () => Navigator.pop(context),
+          ),
+          ListTile(
+            leading: const Icon(Icons.help_outline, color: Color(0xFFC084FC)),
+            title: const Text('Help & Support', style: TextStyle(color: Colors.white)),
+            onTap: () => Navigator.pop(context),
+          ),
+          const Spacer(),
+          const Divider(color: Colors.white12),
+          ListTile(
+            leading: const Icon(Icons.logout, color: Colors.redAccent),
+            title: const Text('Sign Out', style: TextStyle(color: Colors.redAccent)),
+            onTap: () async {
+              Navigator.pop(context);
+              await FirebaseAuth.instance.signOut();
+            },
+          ),
+          const SizedBox(height: 20),
+        ],
+      ),
+    );
+  }
+}
+
 class _TopBar extends StatelessWidget {
   const _TopBar({required this.openExplore, this.profile});
 
@@ -357,25 +424,35 @@ class _TopBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Row(
     children: [
-      Container(
-        padding: const EdgeInsets.all(2.5),
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          gradient: const LinearGradient(
-            colors: [Color(0xFFA855F7), Color(0xFFD946EF)],
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: const Color(0xFFA855F7).withValues(alpha: 0.4),
-              blurRadius: 10,
-              spreadRadius: 1,
+      Builder(
+        builder: (context) => GestureDetector(
+          onTap: () => Scaffold.of(context).openDrawer(),
+          child: Container(
+            padding: const EdgeInsets.all(2.5),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: const LinearGradient(
+                colors: [Color(0xFFA855F7), Color(0xFFD946EF)],
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFFA855F7).withValues(alpha: 0.4),
+                  blurRadius: 10,
+                  spreadRadius: 1,
+                ),
+              ],
             ),
-          ],
-        ),
-        child: const CircleAvatar(
-          radius: 20,
-          backgroundColor: Color(0xFF180A2E),
-          child: Icon(Icons.person, color: Color(0xFFE9D5FF), size: 22),
+            child: CircleAvatar(
+              radius: 20,
+              backgroundColor: const Color(0xFF180A2E),
+              backgroundImage: profile?.photoUrl != null && profile!.photoUrl!.isNotEmpty
+                  ? NetworkImage(profile!.photoUrl!)
+                  : null,
+              child: profile?.photoUrl == null || profile!.photoUrl!.isEmpty
+                  ? const Icon(Icons.person, color: Color(0xFFE9D5FF), size: 22)
+                  : null,
+            ),
+          ),
         ),
       ),
       const SizedBox(width: 12),
@@ -410,46 +487,37 @@ class _TopBar extends StatelessWidget {
             color: const Color(0xFFA855F7).withValues(alpha: 0.3),
           ),
         ),
-        child: IconButton(
-          tooltip: 'AI Fan Helper',
-          onPressed: () => Navigator.of(
-            context,
-          ).push(MaterialPageRoute<void>(builder: (_) => AiHelperScreen())),
-          icon: const Icon(Icons.smart_toy_outlined, color: Color(0xFFE9D5FF)),
-        ),
-      ),
-      const SizedBox(width: 8),
-      Container(
-        decoration: BoxDecoration(
+        child: PopupMenuButton<int>(
+          icon: const Icon(Icons.more_vert, color: Color(0xFFE9D5FF)),
           color: const Color(0xFF1C0D38),
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(
-            color: const Color(0xFFA855F7).withValues(alpha: 0.3),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(14),
+            side: BorderSide(color: const Color(0xFFA855F7).withValues(alpha: 0.3)),
           ),
-        ),
-        child: IconButton(
-          tooltip: 'Explore and search',
-          onPressed: openExplore,
-          icon: const Icon(Icons.search, color: Color(0xFFE9D5FF)),
-        ),
-      ),
-      const SizedBox(width: 8),
-      Container(
-        decoration: BoxDecoration(
-          color: const Color(0xFF1C0D38),
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(
-            color: const Color(0xFFA855F7).withValues(alpha: 0.3),
-          ),
-        ),
-        child: IconButton(
-          tooltip: 'Notifications',
-          onPressed: () => Navigator.of(context).push(
-            MaterialPageRoute<void>(
-              builder: (_) => const NotificationsScreen(),
+          offset: const Offset(0, 48),
+          onSelected: (value) {
+            if (value == 0) openExplore();
+            if (value == 1) {
+              Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const NotificationsScreen()));
+            }
+            if (value == 2) {
+              Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => AiHelperScreen()));
+            }
+          },
+          itemBuilder: (context) => [
+            const PopupMenuItem(
+              value: 0,
+              child: Row(children: [Icon(Icons.search, color: Color(0xFFE9D5FF)), SizedBox(width: 12), Text('Explore & Search', style: TextStyle(color: Colors.white))]),
             ),
-          ),
-          icon: const Icon(Icons.notifications_none, color: Color(0xFFE9D5FF)),
+            const PopupMenuItem(
+              value: 1,
+              child: Row(children: [Icon(Icons.notifications_none, color: Color(0xFFE9D5FF)), SizedBox(width: 12), Text('Notifications', style: TextStyle(color: Colors.white))]),
+            ),
+            const PopupMenuItem(
+              value: 2,
+              child: Row(children: [Icon(Icons.smart_toy_outlined, color: Color(0xFFE9D5FF)), SizedBox(width: 12), Text('AI Fan Helper', style: TextStyle(color: Colors.white))]),
+            ),
+          ],
         ),
       ),
     ],
