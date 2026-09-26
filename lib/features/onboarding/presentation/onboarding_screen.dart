@@ -304,7 +304,7 @@ class _SlideViewState extends State<_SlideView>
             child: SlideTransition(
               position: _slideAnim,
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(28, 0, 28, 200),
+                padding: const EdgeInsets.fromLTRB(28, 0, 28, 140),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.center,
