@@ -29,9 +29,9 @@ service cloud.firestore {
     match /users/{uid} {
       allow read: if isOwner(uid) || isAdmin();
       // A newly authenticated user can create only their own Fan profile.
-      allow create: if authenticated() && request.auth.uid == uid
+      allow create: if isAdmin() || (authenticated() && request.auth.uid == uid
         && request.resource.data.role == 'fan'
-        && request.resource.data.get('accountStatus', 'active') == 'active';
+        && request.resource.data.get('accountStatus', 'active') == 'active');
       allow update: if isAdmin() || (isOwner(uid) && hasOnlyProfileFields());
       allow delete: if isAdmin();
     }
