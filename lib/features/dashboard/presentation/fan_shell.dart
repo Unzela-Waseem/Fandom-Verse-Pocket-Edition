@@ -552,6 +552,19 @@ class _CharacterCarouselState extends State<_CharacterCarousel> {
   final PageController _controller = PageController(viewportFraction: 0.93);
   int _currentPage = 0;
 
+  static const _heroBanners = [
+    {
+      'image': 'assets/gaming.jpg',
+      'title': 'Discover New Gaming Worlds',
+      'category': 'GAMING',
+    },
+    {
+      'image': 'assets/The Most Powerful Avengers In The MCU Ranked - Looper.jpeg',
+      'title': 'The Most Powerful Avengers',
+      'category': 'MOVIES',
+    },
+  ];
+
   @override
   void dispose() {
     _controller.dispose();
@@ -560,27 +573,21 @@ class _CharacterCarouselState extends State<_CharacterCarousel> {
 
   @override
   Widget build(BuildContext context) {
-    if (widget.featured.isEmpty) return const SizedBox.shrink();
     return Column(
       children: [
         SizedBox(
           height: 210,
           child: PageView.builder(
             controller: _controller,
-            itemCount: widget.featured.length,
+            itemCount: _heroBanners.length,
             onPageChanged: (idx) => setState(() => _currentPage = idx),
             itemBuilder: (context, index) {
-              final item = widget.featured[index];
-              final hasCustomImage = isHttpsMediaUrl(item.imageUrl);
+              final item = _heroBanners[index];
               return Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 5),
                 child: InkWell(
                   borderRadius: BorderRadius.circular(28),
-                  onTap: () => Navigator.of(context).push(
-                    MaterialPageRoute<void>(
-                      builder: (_) => ContentDetailScreen(item: item),
-                    ),
-                  ),
+                  onTap: widget.openExplore,
                   child: Container(
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(28),
@@ -601,15 +608,11 @@ class _CharacterCarouselState extends State<_CharacterCarousel> {
                     child: Stack(
                       fit: StackFit.expand,
                       children: [
-                        if (hasCustomImage)
-                          RemoteMediaImage(url: item.imageUrl!)
-                        else
-                          Container(
-                            color: const Color(0xFF2B104E),
-                            child: const Center(
-                              child: Icon(Icons.auto_awesome, size: 60, color: Colors.white24),
-                            ),
-                          ),
+                        Image.asset(
+                          item['image']!,
+                          fit: BoxFit.cover,
+                          alignment: Alignment.topCenter,
+                        ),
                         Container(
                           decoration: const BoxDecoration(
                             gradient: LinearGradient(
@@ -634,7 +637,7 @@ class _CharacterCarouselState extends State<_CharacterCarousel> {
                                   border: Border.all(color: const Color(0xFFD946EF).withValues(alpha: 0.5)),
                                 ),
                                 child: Text(
-                                  item.category.toUpperCase(),
+                                  item['category']!,
                                   style: const TextStyle(
                                     color: Color(0xFFE879F9),
                                     fontSize: 10,
@@ -645,7 +648,7 @@ class _CharacterCarouselState extends State<_CharacterCarousel> {
                               ),
                               const SizedBox(height: 10),
                               Text(
-                                item.title,
+                                item['title']!,
                                 maxLines: 2,
                                 overflow: TextOverflow.ellipsis,
                                 style: const TextStyle(
@@ -654,21 +657,6 @@ class _CharacterCarouselState extends State<_CharacterCarousel> {
                                   color: Colors.white,
                                   height: 1.15,
                                 ),
-                              ),
-                              const SizedBox(height: 6),
-                              Row(
-                                children: [
-                                  const Icon(Icons.person, size: 12, color: Colors.white70),
-                                  const SizedBox(width: 4),
-                                  Text(
-                                    item.creator,
-                                    style: const TextStyle(
-                                      fontSize: 11,
-                                      color: Colors.white70,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                ],
                               ),
                             ],
                           ),
@@ -685,7 +673,7 @@ class _CharacterCarouselState extends State<_CharacterCarousel> {
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: List.generate(
-            widget.featured.length,
+            _heroBanners.length,
             (idx) => AnimatedContainer(
               duration: const Duration(milliseconds: 300),
               margin: const EdgeInsets.symmetric(horizontal: 4),
