@@ -549,7 +549,7 @@ class _CharacterCarousel extends StatefulWidget {
 }
 
 class _CharacterCarouselState extends State<_CharacterCarousel> {
-  final PageController _controller = PageController(viewportFraction: 0.93);
+  final PageController _controller = PageController(viewportFraction: 1.0);
   int _currentPage = 0;
 
   static const _heroBanners = [
@@ -589,7 +589,7 @@ class _CharacterCarouselState extends State<_CharacterCarousel> {
             itemBuilder: (context, index) {
               final item = _heroBanners[index];
               return Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 5),
+                padding: const EdgeInsets.symmetric(horizontal: 0),
                 child: InkWell(
                   borderRadius: BorderRadius.circular(28),
                   onTap: widget.openExplore,
