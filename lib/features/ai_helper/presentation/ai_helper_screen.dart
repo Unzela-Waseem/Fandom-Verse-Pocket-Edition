@@ -132,7 +132,34 @@ class _AiHelperScreenState extends State<AiHelperScreen> {
       return '🛍️ **Official Fan Merchandise & Store**\nYou can browse hoodies, pins, and journals with category filters and price sorting. Add items to your wishlist (❤️) or cart to test simulated checkouts.\n\n💡 *Note: Payments are simulated for demo purposes as specified in the SRS scope.*';
     }
 
-    // 6. Glossary, Lore & Deep Dive
+    // 9. Offline Mode & Syncing
+    if (query.contains('offline') ||
+        query.contains('internet') ||
+        query.contains('download') ||
+        query.contains('sync') ||
+        query.contains('no connection')) {
+      return '📶 **Offline Mode & Caching**\nFandom Verse is designed to work offline! You can save articles, bookmarked events, and fan stories to your local device. If you lose internet, you can still view everything you have saved.\n\n💡 *Tip: Look for the save icon on articles to make them available offline.*';
+    }
+
+    // 10. Registration, Profile & Admin
+    if (query.contains('login') ||
+        query.contains('register') ||
+        query.contains('admin') ||
+        query.contains('password') ||
+        query.contains('profile')) {
+      return '👤 **Profiles & Admin Console**\nFans can register via Email or Social Sign-In (Google/Apple) to manage their personalized dashboard and badges. Admins have pre-configured logins and can moderate content and merchandise.\n\n💡 *Tip: Tap your Avatar on the Profile screen to edit your favorite fandoms.*';
+    }
+
+    // 11. TechWiz & Developer Info
+    if (query.contains('techwiz') ||
+        query.contains('aptech') ||
+        query.contains('developer') ||
+        query.contains('team') ||
+        query.contains('about')) {
+      return '🏆 **TechWiz & Project Info**\nThis app was built for the TechWiz World Tech Championship by Aptech. It demonstrates cross-platform capabilities, offline syncing, real-time database integration, and intuitive UI/UX design.\n\n💡 *Tip: Check out the "About" section in your Profile for team details!*';
+    }
+
+    // 12. Glossary, Lore & Deep Dive
     if (query.contains('glossary') ||
         query.contains('lore') ||
         query.contains('trivia') ||
@@ -141,7 +168,7 @@ class _AiHelperScreenState extends State<AiHelperScreen> {
       return '📚 **Fandom Lore & Glossary**\nOur app features 27+ rich glossary definitions and a Deep Dive hub with secret trivia facts, lore diagrams, and behind-the-scenes interviews.\n\n💡 *Tip: Tap "Deep Dive 🧠" from the profile or explore tab to unlock hidden lore!*';
     }
 
-    // 7. Community Guidelines & Safety
+    // 13. Community Guidelines & Safety
     if (query.contains('safe') ||
         query.contains('report') ||
         query.contains('rule') ||
@@ -149,13 +176,13 @@ class _AiHelperScreenState extends State<AiHelperScreen> {
       return '🛡️ **Community & Safety Guidelines**\nKeep discussions respectful, protect your personal identity, and report abusive behavior. Never share passwords or real banking information in public threads.';
     }
 
-    // 8. General Fandom Definition
+    // 14. General Fandom Definition
     if (query.contains('fandom') || query.contains('what is')) {
       return '🌟 **What is a Fandom?**\nA fandom is a vibrant subculture of passionate enthusiasts who share friendship and creativity around stories, games, art, and entertainment. They connect fans across the globe!';
     }
 
-    // 9. Intelligent General NLP Response Fallback
-    return '🤖 **Fandom Knowledge Search Result**\nRegarding "$question":\nOur Fandom Verse library includes verified guides across Anime, Gaming, Sci-Fi, Comics, and Fan Art. You can search by keywords in the Explore tab or filter content by fandom category.\n\nAsk me about:\n• ⛩️ Anime & Manga lore\n• 🎮 Gaming & Speedrunning\n• 📍 Nearby Events & Maps\n• 🛍️ Merch & Wishlist\n• 🎭 Cosplay Guidelines';
+    // 15. Intelligent General NLP Response Fallback
+    return '🤖 **Fandom Knowledge Search Result**\nRegarding "$question":\nOur Fandom Verse library includes verified guides across Anime, Gaming, Sci-Fi, Comics, and Fan Art. You can search by keywords in the Explore tab or filter content by fandom category.\n\nAsk me about:\n• 🦸‍♂️ Marvel & DC Comics\n• 🎤 K-Pop & Idols\n• 🚀 Sci-Fi & Star Wars\n• ⛩️ Anime & Manga\n• 📶 Offline Features';
   }
 
   @override

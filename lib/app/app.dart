@@ -6,6 +6,9 @@ import '../core/services/connectivity_provider.dart';
 import '../features/authentication/presentation/auth_gate.dart';
 import 'theme/app_theme.dart';
 
+final GlobalKey<ScaffoldMessengerState> scaffoldMessengerKey =
+    GlobalKey<ScaffoldMessengerState>();
+
 class FandomVerseApp extends ConsumerWidget {
   const FandomVerseApp({super.key, this.home});
 
@@ -15,6 +18,7 @@ class FandomVerseApp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final isOnline = ref.watch(connectivityProvider);
     return MaterialApp(
+      scaffoldMessengerKey: scaffoldMessengerKey,
       title: 'Fandom Verse',
       debugShowCheckedModeBanner: false,
       builder: (context, child) {

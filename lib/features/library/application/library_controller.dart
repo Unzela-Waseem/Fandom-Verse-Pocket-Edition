@@ -8,9 +8,12 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../data/demo_catalog.dart';
-import '../domain/library_models.dart';
+import '../../library/data/demo_catalog.dart';
+import '../../library/domain/library_models.dart';
 import '../../../core/media/offline_media_service.dart';
+import '../../../app/app.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 
 class LibraryState {
   const LibraryState({
@@ -475,25 +478,36 @@ class LibraryController extends Notifier<LibraryState> {
       // locally so it can be verified per SRS constraints.
       Future.delayed(const Duration(seconds: 5), () async {
         if (!state.wishlist.contains(id)) return;
-        final flnp = FlutterLocalNotificationsPlugin();
-        await flnp.show(
-          id: id.hashCode,
-          title: 'Price Drop Alert! 🎉',
-          body: 'An item in your wishlist just went on sale!',
-          notificationDetails: const NotificationDetails(
-            android: AndroidNotificationDetails(
-              'fandomverse_channel',
-              'FandomVerse Notifications',
-              importance: Importance.max,
-              priority: Priority.high,
+        
+        if (kIsWeb) {
+          scaffoldMessengerKey.currentState?.showSnackBar(
+            const SnackBar(
+              content: Text('🔔 Price Drop Alert! 🎉\nAn item in your wishlist just went on sale!'),
+              duration: Duration(seconds: 5),
+              backgroundColor: Color(0xFF26123D),
             ),
-            iOS: DarwinNotificationDetails(
-              presentAlert: true,
-              presentBadge: true,
-              presentSound: true,
+          );
+        } else {
+          final flnp = FlutterLocalNotificationsPlugin();
+          await flnp.show(
+            id: id.hashCode,
+            title: 'Price Drop Alert! 🎉',
+            body: 'An item in your wishlist just went on sale!',
+            notificationDetails: const NotificationDetails(
+              android: AndroidNotificationDetails(
+                'fandomverse_channel',
+                'FandomVerse Notifications',
+                importance: Importance.max,
+                priority: Priority.high,
+              ),
+              iOS: DarwinNotificationDetails(
+                presentAlert: true,
+                presentBadge: true,
+                presentSound: true,
+              ),
             ),
-          ),
-        );
+          );
+        }
       });
     } else {
       next.remove(id);
