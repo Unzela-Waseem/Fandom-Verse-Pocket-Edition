@@ -118,7 +118,7 @@ class _AdminTopBar extends ConsumerWidget {
             border: Border.all(color: const Color(0xFFA855F7).withOpacity(0.3)),
           ),
           child: PopupMenuButton<int>(
-            icon: const Icon(Icons.notifications_none, color: Color(0xFFFACC15)),
+            icon: const Icon(Icons.more_vert, color: Colors.white),
             color: const Color(0xFF1C0D38),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(14),
