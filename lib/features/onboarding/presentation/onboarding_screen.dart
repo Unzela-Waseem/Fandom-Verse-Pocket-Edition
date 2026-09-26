@@ -31,19 +31,6 @@ class _OnboardingScreenState extends State<OnboardingScreen>
       gradientColors: [Color(0xCC08061A), Color(0xFF08061A)],
     ),
     _SlideData(
-      image: 'assets/slide2_gaming.png',
-      badge: 'GAMING AND ESPORTS',
-      title: 'Dominate the\nArena',
-      features: [
-        'Live Esports brackets and tournament updates',
-        'Speedrunning routes and pro gaming guides',
-        'DLC walkthroughs and retro gaming lore',
-        'Connect with gamers from your fandom',
-      ],
-      accentColor: Color(0xFFAB47BC),
-      gradientColors: [Color(0xCC0A0018), Color(0xFF0A0018)],
-    ),
-    _SlideData(
       image: 'assets/slide3_ai.jpg',
       badge: 'AI AND EVENTS',
       title: 'Your Fandom\nAssistant',
@@ -55,6 +42,19 @@ class _OnboardingScreenState extends State<OnboardingScreen>
       ],
       accentColor: Color(0xFF29B6F6),
       gradientColors: [Color(0xCC020818), Color(0xFF020818)],
+    ),
+    _SlideData(
+      image: 'assets/slide2_gaming.png',
+      badge: 'GAMING AND ESPORTS',
+      title: 'Dominate the\nArena',
+      features: [
+        'Live Esports brackets and tournament updates',
+        'Speedrunning routes and pro gaming guides',
+        'DLC walkthroughs and retro gaming lore',
+        'Connect with gamers from your fandom',
+      ],
+      accentColor: Color(0xFFAB47BC),
+      gradientColors: [Color(0xCC0A0018), Color(0xFF0A0018)],
     ),
   ];
 
