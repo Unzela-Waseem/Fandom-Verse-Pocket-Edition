@@ -112,7 +112,7 @@ class _FanShellState extends State<FanShell> {
         final wide = constraints.maxWidth >= 800;
         return Scaffold(
           backgroundColor: const Color(0xFF09040E),
-          drawer: const _FanDrawer(),
+          drawer: _FanDrawer(profile: widget.profile),
           body: wide
               ? Row(
                   children: [
@@ -350,7 +350,30 @@ class _HomeTab extends ConsumerWidget {
 }
 
 class _FanDrawer extends StatelessWidget {
-  const _FanDrawer();
+  const _FanDrawer({this.profile});
+
+  final AppUser? profile;
+
+  void _showDummyDialog(BuildContext context, String title) {
+    Navigator.pop(context); // close drawer
+    showDialog<void>(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: const Color(0xFF1C0D38),
+        title: Text(title, style: const TextStyle(color: Colors.white)),
+        content: const Text(
+          'This section is coming soon! Stay tuned for updates.',
+          style: TextStyle(color: Colors.white70),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('OK', style: TextStyle(color: Color(0xFFE879F9))),
+          ),
+        ],
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -368,35 +391,66 @@ class _FanDrawer extends StatelessWidget {
             ),
             child: Row(
               children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFA855F7).withValues(alpha: 0.2),
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(Icons.rocket_launch, color: Color(0xFFE9D5FF), size: 32),
+                CircleAvatar(
+                  radius: 30,
+                  backgroundColor: const Color(0xFF180A2E),
+                  backgroundImage: profile?.avatarUrl != null && profile!.avatarUrl!.isNotEmpty
+                      ? NetworkImage(profile!.avatarUrl!)
+                      : null,
+                  child: profile?.avatarUrl == null || profile!.avatarUrl!.isEmpty
+                      ? const Icon(Icons.person, color: Color(0xFFE9D5FF), size: 32)
+                      : null,
                 ),
                 const SizedBox(width: 16),
-                const Text(
-                  'FandomVerse',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 20,
-                    fontWeight: FontWeight.w900,
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Text(
+                        'FandomVerse',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 20,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        profile?.displayName ?? 'Explorer',
+                        style: const TextStyle(
+                          color: Color(0xFFC084FC),
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
                   ),
                 ),
               ],
             ),
           ),
           ListTile(
-            leading: const Icon(Icons.settings, color: Color(0xFFC084FC)),
-            title: const Text('Settings', style: TextStyle(color: Colors.white)),
-            onTap: () => Navigator.pop(context),
+            leading: const Icon(Icons.info_outline, color: Color(0xFFC084FC)),
+            title: const Text('About Us', style: TextStyle(color: Colors.white)),
+            onTap: () => _showDummyDialog(context, 'About Us'),
           ),
           ListTile(
-            leading: const Icon(Icons.help_outline, color: Color(0xFFC084FC)),
-            title: const Text('Help & Support', style: TextStyle(color: Colors.white)),
-            onTap: () => Navigator.pop(context),
+            leading: const Icon(Icons.mail_outline, color: Color(0xFFC084FC)),
+            title: const Text('Contact Us', style: TextStyle(color: Colors.white)),
+            onTap: () => _showDummyDialog(context, 'Contact Us'),
+          ),
+          ListTile(
+            leading: const Icon(Icons.privacy_tip_outlined, color: Color(0xFFC084FC)),
+            title: const Text('Privacy Policy', style: TextStyle(color: Colors.white)),
+            onTap: () => _showDummyDialog(context, 'Privacy Policy'),
+          ),
+          ListTile(
+            leading: const Icon(Icons.settings, color: Color(0xFFC084FC)),
+            title: const Text('Settings', style: TextStyle(color: Colors.white)),
+            onTap: () => _showDummyDialog(context, 'Settings'),
           ),
           const Spacer(),
           const Divider(color: Colors.white12),
