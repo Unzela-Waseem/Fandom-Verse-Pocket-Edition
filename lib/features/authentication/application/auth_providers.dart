@@ -11,26 +11,44 @@ final authStateProvider = StreamProvider<User?>((ref) {
   return ref.watch(authServiceProvider).authStateChanges;
 });
 
-final currentUserProfileProvider = StreamProvider.family<AppUser, String>((
+final currentUserProfileProvider =
+    StreamProvider.autoDispose.family<AppUser, String>((
   ref,
   uid,
 ) async* {
   final profile = FirebaseFirestore.instance.collection('users').doc(uid);
   final authService = ref.read(authServiceProvider);
   var repairAttempted = false;
+  var permissionRetries = 0;
 
-  await for (final snapshot in profile.snapshots()) {
-    if (!snapshot.exists) {
-      // Firebase Auth becomes available before the registration screen's
-      // Firestore write completes. Do not interpret that normal race as a
-      // denied account. The repair can only create the signed-in user's own
-      // unprivileged fan profile under the Firestore rules.
-      if (!repairAttempted) {
-        repairAttempted = true;
-        await authService.ensureFanProfile(uid);
+  while (true) {
+    try {
+      await for (final snapshot in profile.snapshots()) {
+        if (!snapshot.exists) {
+          // Firebase Auth becomes available before the registration screen's
+          // Firestore write completes. Do not interpret that normal race as a
+          // denied account. The repair can only create the signed-in user's own
+          // unprivileged fan profile under the Firestore rules.
+          if (!repairAttempted) {
+            repairAttempted = true;
+            await authService.ensureFanProfile(uid);
+          }
+          continue;
+        }
+        yield AppUser.fromFirestore(snapshot);
       }
-      continue;
+      return;
+    } on FirebaseException catch (error) {
+      // Immediately after admin -> fan (or fan -> admin) sign-out/sign-in,
+      // Firestore can briefly evaluate the new listener with the prior token.
+      // Refresh once or twice and reconnect rather than falsely blocking the
+      // correctly signed-in account.
+      if (error.code != 'permission-denied' || permissionRetries >= 2) {
+        rethrow;
+      }
+      permissionRetries++;
+      await authService.refreshSession(uid);
+      await Future<void>.delayed(const Duration(milliseconds: 350));
     }
-    yield AppUser.fromFirestore(snapshot);
   }
 });

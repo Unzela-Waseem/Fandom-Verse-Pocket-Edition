@@ -21,6 +21,18 @@ class AuthService {
 
   Stream<User?> get authStateChanges => _auth.authStateChanges();
 
+  /// Forces Firebase Auth to provide a fresh token after an account switch.
+  /// Firestore uses this token to evaluate the next user's profile rules.
+  Future<void> refreshSession(String uid) async {
+    final user = _auth.currentUser;
+    if (user == null || user.uid != uid) {
+      throw const FederatedSignInException(
+        'Your sign-in session has expired. Please sign in again.',
+      );
+    }
+    await user.getIdToken(true);
+  }
+
   Future<void> signIn({required String email, required String password}) async {
     await _auth.signInWithEmailAndPassword(
       email: email.trim(),
