@@ -14,10 +14,23 @@ final authStateProvider = StreamProvider<User?>((ref) {
 final currentUserProfileProvider = StreamProvider.family<AppUser, String>((
   ref,
   uid,
-) {
-  return FirebaseFirestore.instance
-      .collection('users')
-      .doc(uid)
-      .snapshots()
-      .map(AppUser.fromFirestore);
+) async* {
+  final profile = FirebaseFirestore.instance.collection('users').doc(uid);
+  final authService = ref.read(authServiceProvider);
+  var repairAttempted = false;
+
+  await for (final snapshot in profile.snapshots()) {
+    if (!snapshot.exists) {
+      // Firebase Auth becomes available before the registration screen's
+      // Firestore write completes. Do not interpret that normal race as a
+      // denied account. The repair can only create the signed-in user's own
+      // unprivileged fan profile under the Firestore rules.
+      if (!repairAttempted) {
+        repairAttempted = true;
+        await authService.ensureFanProfile(uid);
+      }
+      continue;
+    }
+    yield AppUser.fromFirestore(snapshot);
+  }
 });

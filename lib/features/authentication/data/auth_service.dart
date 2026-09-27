@@ -12,8 +12,8 @@ class FederatedSignInException implements Exception {
 
 class AuthService {
   AuthService({FirebaseAuth? auth, FirebaseFirestore? firestore})
-    : _auth = auth ?? FirebaseAuth.instance,
-      _firestore = firestore ?? FirebaseFirestore.instance;
+      : _auth = auth ?? FirebaseAuth.instance,
+        _firestore = firestore ?? FirebaseFirestore.instance;
 
   final FirebaseAuth _auth;
   final FirebaseFirestore _firestore;
@@ -97,7 +97,7 @@ class AuthService {
       ].where((s) => s != null && s.isNotEmpty).join(' ');
       if (displayName.trim().isEmpty) displayName = null;
     }
-    
+
     await _ensureFanProfile(
       credential,
       displayName: displayName,
@@ -129,8 +129,8 @@ class AuthService {
         'displayName': displayName?.trim().isNotEmpty == true
             ? displayName!.trim()
             : user.displayName?.trim().isNotEmpty == true
-            ? user.displayName!.trim()
-            : 'New Explorer',
+                ? user.displayName!.trim()
+                : 'New Explorer',
         'email': (user.email ?? '').trim().toLowerCase(),
         'bio': '',
         'avatarUrl': user.photoURL,
@@ -189,6 +189,44 @@ class AuthService {
     }
   }
 
+  /// Restores a missing profile for an authenticated account without granting
+  /// any privileged access. This covers the short interval between Firebase
+  /// Auth creating a user and Firestore receiving the profile write, as well
+  /// as accounts created before a profile could be saved.
+  Future<void> ensureFanProfile(String uid) async {
+    final user = _auth.currentUser;
+    if (user == null || user.uid != uid) {
+      throw const FederatedSignInException(
+        'Your sign-in session has expired. Please sign in again.',
+      );
+    }
+
+    final profile = _firestore.collection('users').doc(uid);
+    await _firestore.runTransaction((transaction) async {
+      final existing = await transaction.get(profile);
+      if (existing.exists) return;
+
+      transaction.set(profile, {
+        'uid': user.uid,
+        'displayName': user.displayName?.trim().isNotEmpty == true
+            ? user.displayName!.trim()
+            : 'New Explorer',
+        'email': (user.email ?? '').trim().toLowerCase(),
+        'bio': '',
+        'avatarUrl': user.photoURL,
+        'selectedFandoms': <String>[],
+        'badge': 'New Explorer',
+        // A repaired profile is deliberately always a fan. Admin access can
+        // only be assigned through the protected administrator workflow.
+        'role': 'fan',
+        'accountStatus': 'active',
+        'priceDropNotifications': false,
+        'createdAt': FieldValue.serverTimestamp(),
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+    });
+  }
+
   Future<void> sendPasswordReset(String email) =>
       _auth.sendPasswordResetEmail(email: email.trim());
 
@@ -202,7 +240,8 @@ String friendlyAuthError(Object error) {
       'invalid-email' => 'Enter a valid email address.',
       'invalid-credential' ||
       'user-not-found' ||
-      'wrong-password' => 'The email or password is incorrect.',
+      'wrong-password' =>
+        'The email or password is incorrect.',
       'email-already-in-use' => 'An account already uses this email.',
       'weak-password' => 'Choose a stronger password.',
       'user-disabled' => 'This account has been disabled.',
