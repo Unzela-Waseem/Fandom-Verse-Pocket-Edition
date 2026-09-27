@@ -27,7 +27,12 @@ service cloud.firestore {
     }
 
     match /users/{uid} {
-      allow read: if isOwner(uid) || isAdmin();
+      // Let a signed-in user read their own document even before it exists.
+      // This is required during the Auth-to-Firestore hand-off: the client can
+      // then create/repair its own Fan profile instead of receiving a false
+      // permission-denied error. It grants access to no other user document
+      // and does not grant any admin privilege.
+      allow read: if (authenticated() && request.auth.uid == uid) || isAdmin();
       // A newly authenticated user can create only their own Fan profile.
       allow create: if isAdmin() || (authenticated() && request.auth.uid == uid
         && request.resource.data.role == 'fan'
