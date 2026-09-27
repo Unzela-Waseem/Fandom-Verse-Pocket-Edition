@@ -230,12 +230,12 @@ class _WelcomePanel extends StatelessWidget {
       borderRadius: BorderRadius.circular(16),
       child: Image.asset(
         'assets/images/fandom_multiverse.png',
-        width: 184,
-        height: 116,
+        width: 128,
+        height: 80,
         fit: BoxFit.cover,
         errorBuilder: (_, __, ___) => Container(
-          width: 184,
-          height: 116,
+          width: 128,
+          height: 80,
           color: const Color(0x332F4F9B),
           child: const Icon(
             Icons.auto_awesome_rounded,
