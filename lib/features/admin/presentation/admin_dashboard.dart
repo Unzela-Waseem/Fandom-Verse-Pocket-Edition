@@ -226,25 +226,6 @@ class _WelcomePanel extends StatelessWidget {
         ),
       ],
     );
-    final artwork = ClipRRect(
-      borderRadius: BorderRadius.circular(16),
-      child: Image.asset(
-        'assets/images/fandom_multiverse.png',
-        width: 128,
-        height: 80,
-        fit: BoxFit.cover,
-        errorBuilder: (_, __, ___) => Container(
-          width: 128,
-          height: 80,
-          color: const Color(0x332F4F9B),
-          child: const Icon(
-            Icons.auto_awesome_rounded,
-            color: Colors.white54,
-            size: 38,
-          ),
-        ),
-      ),
-    );
     final action = FilledButton.icon(
       onPressed: () => Navigator.of(context).push(
         MaterialPageRoute<void>(builder: (_) => const AdminUsersScreen()),
@@ -276,8 +257,6 @@ class _WelcomePanel extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 copy,
-                const SizedBox(height: 20),
-                artwork,
                 const SizedBox(height: 18),
                 action,
               ],
@@ -287,10 +266,7 @@ class _WelcomePanel extends StatelessWidget {
             children: [
               Expanded(child: copy),
               const SizedBox(width: 24),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [artwork, const SizedBox(height: 12), action],
-              ),
+              action,
             ],
           );
         },
