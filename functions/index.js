@@ -25,19 +25,18 @@ const { onDocumentUpdated } = require('firebase-functions/v2/firestore');
 const { onCall, HttpsError } = require('firebase-functions/v2/https');
 const { defineSecret } = require('firebase-functions/params');
 const logger = require('firebase-functions/logger');
-const OpenAI = require('openai');
 
 const { isRealPriceDrop } = require('./price_drop');
 
 initializeApp();
 
-const OPENAI_API_KEY = defineSecret('OPENAI_API_KEY');
+const GEMINI_API_KEY = defineSecret('GEMINI_API_KEY');
 
 exports.askFanHelper = onCall(
   {
     region: 'asia-south1',
     enforceAppCheck: false,
-    secrets: [OPENAI_API_KEY],
+    secrets: [GEMINI_API_KEY],
   },
   async (request) => {
     if (!request.auth) {
@@ -52,28 +51,46 @@ exports.askFanHelper = onCall(
       throw new HttpsError('invalid-argument', 'Questions must be 2,000 characters or fewer.');
     }
 
-    const client = new OpenAI({ apiKey: OPENAI_API_KEY.value() });
     try {
-      const response = await client.responses.create({
-        model: 'gpt-5',
-        store: false,
-        max_output_tokens: 500,
-        instructions: [
-          'You are AI Fan Helper inside Fandom Verse Pocket Edition.',
-          'Answer the user helpfully and naturally in the language they use.',
-          'You can answer general questions as well as fandom, anime, games, cosplay, events, merchandise, and app questions.',
-          'Do not claim access to private account data, live event availability, or real-time information unless it is supplied in the conversation.',
-          'Keep answers concise and friendly. For medical, legal, financial, or safety emergencies, encourage appropriate professional or emergency help.',
-        ].join(' '),
-        input: message.trim(),
-      });
-      const answer = response.output_text?.trim();
+      const response = await fetch(
+        'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-goog-api-key': GEMINI_API_KEY.value(),
+          },
+          body: JSON.stringify({
+            system_instruction: {
+              parts: [{
+                text: [
+                  'You are AI Fan Helper inside Fandom Verse Pocket Edition.',
+                  'Answer the user helpfully and naturally in the language they use.',
+                  'You can answer general questions as well as fandom, anime, games, cosplay, events, merchandise, and app questions.',
+                  'Do not claim access to private account data, live event availability, or real-time information unless it is supplied in the conversation.',
+                  'Keep answers concise and friendly. For medical, legal, financial, or safety emergencies, encourage appropriate professional or emergency help.',
+                ].join(' '),
+              }],
+            },
+            contents: [{ parts: [{ text: message.trim() }] }],
+            generationConfig: { maxOutputTokens: 500 },
+          }),
+        },
+      );
+      const payload = await response.json();
+      if (!response.ok) {
+        throw new Error(`Gemini API error ${response.status}: ${payload.error?.message ?? 'Unknown error'}`);
+      }
+      const answer = payload.candidates?.[0]?.content?.parts
+        ?.map((part) => part.text ?? '')
+        .join('')
+        .trim();
       if (!answer) {
-        throw new Error('OpenAI returned no text output.');
+        throw new Error('Gemini returned no text output.');
       }
       return { answer };
     } catch (error) {
-      logger.error('askFanHelper failed', {
+      logger.error('askFanHelper Gemini request failed', {
         code: error?.code,
         status: error?.status,
         requestId: error?._request_id,

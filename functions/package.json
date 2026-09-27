@@ -8,7 +8,6 @@
   },
   "dependencies": {
     "firebase-admin": "^14.4.0",
-    "firebase-functions": "^7.4.0",
-    "openai": "^6.26.0"
+    "firebase-functions": "^7.4.0"
   }
 }
