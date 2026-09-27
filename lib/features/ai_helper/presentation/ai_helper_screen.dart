@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../data/ai_fan_helper_service.dart';
+
 class AiHelperScreen extends StatefulWidget {
   const AiHelperScreen({super.key});
 
@@ -17,6 +19,7 @@ class _Message {
 class _AiHelperScreenState extends State<AiHelperScreen> {
   final _controller = TextEditingController();
   final ScrollController _scrollController = ScrollController();
+  final AiFanHelperService _aiFanHelper = AiFanHelperService();
   final _messages = <_Message>[
     const _Message(
       'Welcome to Fandom AI Assistant v2.0! 🚀\n\nI can answer questions about Anime lore, Gaming speedruns, Cosplay tips, Conventions, Merchandise, App features, and Community guidelines. What would you like to explore today?',
@@ -66,10 +69,13 @@ class _AiHelperScreenState extends State<AiHelperScreen> {
     });
     _scrollToBottom();
 
-    await Future<void>.delayed(const Duration(milliseconds: 600));
+    String botAnswer;
+    try {
+      botAnswer = await _aiFanHelper.ask(question);
+    } catch (_) {
+      botAnswer = '${_answer(question)}\n\nAI service is unavailable right now, so this is an offline help answer.';
+    }
     if (!mounted) return;
-
-    final botAnswer = _answer(question);
     setState(() {
       _messages.add(
         _Message(
@@ -235,7 +241,7 @@ class _AiHelperScreenState extends State<AiHelperScreen> {
                   ),
                   const SizedBox(width: 8),
                   const Text(
-                    'Fandom AI Engine v2.0 · Online & Knowledge Base Active',
+                    'Secure AI service with offline help fallback',
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w600,

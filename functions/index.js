@@ -23,11 +23,68 @@ const { getAuth } = require('firebase-admin/auth');
 const { getMessaging } = require('firebase-admin/messaging');
 const { onDocumentUpdated } = require('firebase-functions/v2/firestore');
 const { onCall, HttpsError } = require('firebase-functions/v2/https');
+const { defineSecret } = require('firebase-functions/params');
 const logger = require('firebase-functions/logger');
+const OpenAI = require('openai');
 
 const { isRealPriceDrop } = require('./price_drop');
 
 initializeApp();
+
+const OPENAI_API_KEY = defineSecret('OPENAI_API_KEY');
+
+exports.askFanHelper = onCall(
+  {
+    region: 'asia-south1',
+    enforceAppCheck: false,
+    secrets: [OPENAI_API_KEY],
+  },
+  async (request) => {
+    if (!request.auth) {
+      throw new HttpsError('unauthenticated', 'Please sign in to use AI Fan Helper.');
+    }
+
+    const message = request.data?.message;
+    if (typeof message !== 'string' || message.trim().length === 0) {
+      throw new HttpsError('invalid-argument', 'A question is required.');
+    }
+    if (message.length > 2000) {
+      throw new HttpsError('invalid-argument', 'Questions must be 2,000 characters or fewer.');
+    }
+
+    const client = new OpenAI({ apiKey: OPENAI_API_KEY.value() });
+    try {
+      const response = await client.responses.create({
+        model: 'gpt-5',
+        store: false,
+        max_output_tokens: 500,
+        instructions: [
+          'You are AI Fan Helper inside Fandom Verse Pocket Edition.',
+          'Answer the user helpfully and naturally in the language they use.',
+          'You can answer general questions as well as fandom, anime, games, cosplay, events, merchandise, and app questions.',
+          'Do not claim access to private account data, live event availability, or real-time information unless it is supplied in the conversation.',
+          'Keep answers concise and friendly. For medical, legal, financial, or safety emergencies, encourage appropriate professional or emergency help.',
+        ].join(' '),
+        input: message.trim(),
+      });
+      const answer = response.output_text?.trim();
+      if (!answer) {
+        throw new Error('OpenAI returned no text output.');
+      }
+      return { answer };
+    } catch (error) {
+      logger.error('askFanHelper failed', {
+        code: error?.code,
+        status: error?.status,
+        requestId: error?._request_id,
+      });
+      throw new HttpsError(
+        'internal',
+        'AI Fan Helper is temporarily unavailable. Please try again shortly.',
+      );
+    }
+  },
+);
 
 // ─── Helper: assert caller is an authenticated Admin ──────────────────────────
 
