@@ -104,8 +104,10 @@ class _EventsScreenState extends ConsumerState<EventsScreen> {
       child: ListView(
         padding: const EdgeInsets.fromLTRB(20, 18, 20, 24),
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          Wrap(
+            spacing: 12,
+            runSpacing: 10,
+            crossAxisAlignment: WrapCrossAlignment.center,
             children: [
               const Text(
                 'Events',
@@ -182,7 +184,6 @@ class _EventsScreenState extends ConsumerState<EventsScreen> {
             onChanged: (value) => setState(() => _city = value ?? _city),
           ),
           const SizedBox(height: 18),
-
           if (_showMapView) ...[
             _InteractiveEventMapContainer(
               events: events,
@@ -195,7 +196,6 @@ class _EventsScreenState extends ConsumerState<EventsScreen> {
             ),
             const SizedBox(height: 20),
           ],
-
           Text(
             _showMapView
                 ? 'Upcoming Venues on Map (${events.length})'
@@ -210,7 +210,7 @@ class _EventsScreenState extends ConsumerState<EventsScreen> {
                 contentPadding: const EdgeInsets.all(14),
                 leading: Container(
                   width: 54,
-                  height: 58,
+                  height: 54,
                   decoration: BoxDecoration(
                     gradient: const LinearGradient(
                       begin: Alignment.topLeft,
@@ -225,26 +225,30 @@ class _EventsScreenState extends ConsumerState<EventsScreen> {
                       ),
                     ],
                   ),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        DateFormat('MMM').format(event.date).toUpperCase(),
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 10,
-                          fontWeight: FontWeight.w900,
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          DateFormat('MMM').format(event.date).toUpperCase(),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 10,
+                            fontWeight: FontWeight.w900,
+                          ),
                         ),
-                      ),
-                      Text(
-                        '${event.date.day}',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 20,
-                          fontWeight: FontWeight.w900,
+                        Text(
+                          '${event.date.day}',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 20,
+                            fontWeight: FontWeight.w900,
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
                 title: Text(
@@ -444,8 +448,7 @@ class _InteractiveEventMapContainer extends StatelessWidget {
                     final event = entry.value;
 
                     // Compute relative X/Y coordinate positions on screen based on index/location
-                    final posX =
-                        (constraints.maxWidth * 0.18) +
+                    final posX = (constraints.maxWidth * 0.18) +
                         ((idx % 3) * (constraints.maxWidth * 0.30));
                     final posY =
                         (constraints.maxHeight * 0.28) + ((idx ~/ 3) * 60.0);
@@ -469,11 +472,10 @@ class _InteractiveEventMapContainer extends StatelessWidget {
                                 shape: BoxShape.circle,
                                 boxShadow: [
                                   BoxShadow(
-                                    color:
-                                        (isSelected
-                                                ? const Color(0xFFD946EF)
-                                                : const Color(0xFFA855F7))
-                                            .withValues(alpha: 0.6),
+                                    color: (isSelected
+                                            ? const Color(0xFFD946EF)
+                                            : const Color(0xFFA855F7))
+                                        .withValues(alpha: 0.6),
                                     blurRadius: isSelected ? 14 : 6,
                                     spreadRadius: isSelected ? 3 : 1,
                                   ),
@@ -616,8 +618,7 @@ class EventDetailScreen extends ConsumerWidget {
     final saved = ref.watch(libraryProvider).savedEvents.contains(event.id);
     double? distKm;
     if (userPosition != null) {
-      distKm =
-          Geolocator.distanceBetween(
+      distKm = Geolocator.distanceBetween(
             userPosition!.latitude,
             userPosition!.longitude,
             event.latitude,

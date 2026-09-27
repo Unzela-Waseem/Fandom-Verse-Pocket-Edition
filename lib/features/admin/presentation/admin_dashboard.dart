@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -258,7 +259,7 @@ class _WelcomePanel extends StatelessWidget {
               children: [
                 copy,
                 const SizedBox(height: 18),
-                action,
+                SizedBox(width: double.infinity, child: action),
               ],
             );
           }
@@ -376,10 +377,14 @@ class _MetricCard extends StatelessWidget {
             borderRadius: BorderRadius.circular(18),
             border: Border.all(color: AdminDashboard.border)),
         child: FutureBuilder<AggregateQuerySnapshot>(
-          future: FirebaseFirestore.instance
-              .collection(metric.collection)
-              .count()
-              .get(),
+          // Firebase is intentionally optional for local previews and widget
+          // tests. The live app initializes it before this dashboard opens.
+          future: Firebase.apps.isEmpty
+              ? null
+              : FirebaseFirestore.instance
+                  .collection(metric.collection)
+                  .count()
+                  .get(),
           builder: (context, snapshot) {
             final count = snapshot.data?.count;
             return Column(
