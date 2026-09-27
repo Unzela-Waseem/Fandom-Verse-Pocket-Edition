@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:speech_to_text/speech_to_text.dart';
+
 import '../../../core/services/quote_recognizer_service.dart';
 
 class QuoteRecognizerSheet extends StatefulWidget {
-  final Function(String query) onMatchFound;
-
   const QuoteRecognizerSheet({super.key, required this.onMatchFound});
+
+  final ValueChanged<String> onMatchFound;
 
   @override
   State<QuoteRecognizerSheet> createState() => _QuoteRecognizerSheetState();
@@ -13,8 +14,11 @@ class QuoteRecognizerSheet extends StatefulWidget {
 
 class _QuoteRecognizerSheetState extends State<QuoteRecognizerSheet> {
   final SpeechToText _speechToText = SpeechToText();
+  final TextEditingController _quoteController = TextEditingController();
   bool _speechEnabled = false;
+  bool _isHandlingMatch = false;
   String _lastWords = '';
+  String? _message;
   FandomQuoteMatch? _currentMatch;
 
   @override
@@ -23,33 +27,36 @@ class _QuoteRecognizerSheetState extends State<QuoteRecognizerSheet> {
     _initSpeech();
   }
 
-  /// This has to happen only once per app
-  void _initSpeech() async {
-    _speechEnabled = await _speechToText.initialize(
-      onError: (val) => debugPrint('onSpeechError: $val'),
-      onStatus: (val) => debugPrint('onSpeechStatus: $val'),
+  Future<void> _initSpeech() async {
+    final enabled = await _speechToText.initialize(
+      onError: (error) {
+        if (!mounted) return;
+        setState(() => _message = 'Microphone error: ${error.errorMsg}');
+      },
+      onStatus: (_) {
+        if (mounted) setState(() {});
+      },
     );
-    setState(() {});
-    
-    // Auto start listening if enabled
-    if (_speechEnabled) {
-      _startListening();
-    }
+    if (!mounted) return;
+    setState(() {
+      _speechEnabled = enabled;
+      if (!enabled) {
+        _message =
+            'Microphone permission is unavailable. Type a quote instead.';
+      }
+    });
   }
 
-  void _startListening() async {
+  Future<void> _startListening() async {
+    if (!_speechEnabled) {
+      await _initSpeech();
+      return;
+    }
+    setState(() => _message = 'Listening for a supported quote…');
     await _speechToText.listen(
       onResult: (result) {
-        setState(() {
-          _lastWords = result.recognizedWords;
-          // Check for match
-          _currentMatch = QuoteRecognizerService.recognize(_lastWords);
-        });
-
-        // If a match is found, handle it immediately!
-        if (_currentMatch != null) {
-          _handleMatch();
-        }
+        if (!mounted) return;
+        _recognize(result.recognizedWords, autoOpen: true);
       },
       listenOptions: SpeechListenOptions(
         listenFor: const Duration(seconds: 10),
@@ -58,134 +65,178 @@ class _QuoteRecognizerSheetState extends State<QuoteRecognizerSheet> {
         listenMode: ListenMode.confirmation,
       ),
     );
-    setState(() {});
+    if (mounted) setState(() {});
   }
 
-  void _stopListening() async {
+  Future<void> _stopListening() async {
     await _speechToText.stop();
-    setState(() {});
+    if (mounted) setState(() {});
   }
-  
-  bool _isHandlingMatch = false;
 
-  void _handleMatch() async {
-    if (_currentMatch == null || _isHandlingMatch) return;
+  void _recognize(String words, {required bool autoOpen}) {
+    final match = QuoteRecognizerService.recognize(words);
+    setState(() {
+      _lastWords = words;
+      _quoteController.text = words;
+      _currentMatch = match;
+      _message = match == null
+          ? 'No local match yet. Try another quote or type it below.'
+          : 'Match found: ${match.character}.';
+    });
+    if (match != null && autoOpen) _handleMatch();
+  }
+
+  Future<void> _handleMatch() async {
+    final match = _currentMatch;
+    if (match == null || _isHandlingMatch) return;
     _isHandlingMatch = true;
-    
-    // Stop listening just in case
     await _speechToText.stop();
-    
-    // Give user a moment to see the success state
-    await Future.delayed(const Duration(seconds: 2));
-    
-    if (mounted) {
-      // Close the sheet
-      Navigator.pop(context);
-      // Fire callback to search
-      widget.onMatchFound(_currentMatch!.searchQuery);
-    }
+    if (!mounted) return;
+    Navigator.pop(context);
+    widget.onMatchFound(match.searchQuery);
   }
 
   @override
   void dispose() {
+    _quoteController.dispose();
     _speechToText.cancel();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: const BoxDecoration(
-        color: Color(0xFF09040E),
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const Text(
-            'Fandom AI Quote Recognizer',
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 12),
-          Text(
-            _speechToText.isListening
-                ? "Listening... Speak a famous quote!"
-                : _speechEnabled
-                    ? "Tap the mic to start listening..."
-                    : "Microphone permission denied.",
-            style: const TextStyle(color: Colors.white70),
-          ),
-          const SizedBox(height: 30),
-          GestureDetector(
-            onTap: _speechToText.isListening ? _stopListening : _startListening,
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 300),
-              width: _speechToText.isListening ? 90 : 70,
-              height: _speechToText.isListening ? 90 : 70,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: _currentMatch != null 
-                    ? Colors.green 
-                    : (_speechToText.isListening ? Colors.redAccent : const Color(0xFFE879F9)),
-                boxShadow: [
-                  if (_speechToText.isListening)
-                    BoxShadow(
-                      color: Colors.redAccent.withValues(alpha: 0.5),
-                      blurRadius: 20,
-                      spreadRadius: 5,
-                    ),
-                ],
-              ),
-              child: Icon(
-                _currentMatch != null 
-                    ? Icons.check
-                    : (_speechToText.isListening ? Icons.mic : Icons.mic_none),
-                size: 36,
-                color: Colors.white,
-              ),
+    final listening = _speechToText.isListening;
+    return SafeArea(
+      top: false,
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text(
+              'Quote Match',
+              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
             ),
-          ),
-          const SizedBox(height: 30),
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.05),
-              borderRadius: BorderRadius.circular(12),
+            const SizedBox(height: 8),
+            const Text(
+              'Private local matching — no API key required.',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: Colors.white70),
             ),
-            child: Column(
-              children: [
-                Text(
-                  _lastWords.isEmpty ? "..." : '"$_lastWords"',
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    fontStyle: FontStyle.italic,
-                    fontSize: 16,
-                  ),
+            const SizedBox(height: 22),
+            GestureDetector(
+              onTap: listening ? _stopListening : _startListening,
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 250),
+                width: listening ? 90 : 72,
+                height: listening ? 90 : 72,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: _currentMatch != null
+                      ? Colors.green
+                      : (listening
+                          ? Colors.redAccent
+                          : const Color(0xFFE879F9)),
+                  boxShadow: [
+                    if (listening)
+                      BoxShadow(
+                        color: Colors.redAccent.withValues(alpha: 0.5),
+                        blurRadius: 20,
+                        spreadRadius: 5,
+                      ),
+                  ],
                 ),
-                if (_currentMatch != null) ...[
-                  const SizedBox(height: 12),
-                  const Divider(color: Colors.white24),
-                  const SizedBox(height: 12),
-                  Text(
-                    'Matched: ${_currentMatch!.character} (${_currentMatch!.fandom})',
-                    style: const TextStyle(
-                      color: Colors.greenAccent,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                    ),
-                  ),
-                  const Text(
-                    'Searching merch...',
-                    style: TextStyle(color: Colors.white54, fontSize: 12),
-                  )
-                ]
-              ],
+                child: Icon(
+                  _currentMatch != null
+                      ? Icons.check
+                      : (listening ? Icons.mic : Icons.mic_none),
+                  size: 36,
+                  color: Colors.white,
+                ),
+              ),
             ),
-          ),
-          const SizedBox(height: 20),
-        ],
+            const SizedBox(height: 18),
+            Text(
+              listening
+                  ? 'Listening… say a supported quote.'
+                  : 'Tap the microphone or type a quote.',
+              textAlign: TextAlign.center,
+              style: const TextStyle(color: Colors.white70),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: _quoteController,
+              onSubmitted: (value) => _recognize(value, autoOpen: false),
+              textInputAction: TextInputAction.done,
+              decoration: const InputDecoration(
+                labelText: 'Type or paste a quote',
+                hintText: 'Example: Avengers assemble',
+                prefixIcon: Icon(Icons.format_quote),
+              ),
+            ),
+            const SizedBox(height: 10),
+            FilledButton.icon(
+              onPressed: () => _recognize(
+                _quoteController.text,
+                autoOpen: false,
+              ),
+              icon: const Icon(Icons.search),
+              label: const Text('Match quote'),
+            ),
+            if (_lastWords.isNotEmpty || _message != null) ...[
+              const SizedBox(height: 16),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.05),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Column(
+                  children: [
+                    if (_lastWords.isNotEmpty)
+                      Text(
+                        '“$_lastWords”',
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(fontStyle: FontStyle.italic),
+                      ),
+                    if (_message != null) ...[
+                      if (_lastWords.isNotEmpty) const SizedBox(height: 8),
+                      Text(
+                        _message!,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: _currentMatch == null
+                              ? Colors.orangeAccent
+                              : Colors.greenAccent,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ],
+                    if (_currentMatch != null) ...[
+                      const SizedBox(height: 10),
+                      Text(
+                        '${_currentMatch!.character} · ${_currentMatch!.fandom}',
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 8),
+                      FilledButton(
+                        onPressed: _handleMatch,
+                        child: const Text('Show matching merchandise'),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ],
+            const SizedBox(height: 14),
+            Text(
+              'Try: ${QuoteRecognizerService.supportedQuotes.take(3).join(' · ')}',
+              textAlign: TextAlign.center,
+              style: const TextStyle(color: Colors.white54, fontSize: 12),
+            ),
+          ],
+        ),
       ),
     );
   }

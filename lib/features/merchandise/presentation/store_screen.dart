@@ -42,19 +42,19 @@ class _StoreScreenState extends ConsumerState<StoreScreen> {
       ...{for (final product in catalog) product.category},
     ];
     final selectedCategory = categories.contains(_category) ? _category : 'All';
-    final products =
-        catalog.where((product) {
-          return (selectedCategory == 'All' ||
-                  product.category == selectedCategory) &&
-              (product.name.toLowerCase().contains(_query.toLowerCase()) ||
-                  product.description.toLowerCase().contains(
+    final products = catalog.where((product) {
+      return (selectedCategory == 'All' ||
+              product.category == selectedCategory) &&
+          (product.name.toLowerCase().contains(_query.toLowerCase()) ||
+              product.description.toLowerCase().contains(
                     _query.toLowerCase(),
                   ));
-        }).toList()..sort(
-          (a, b) => _lowestFirst
-              ? a.price.compareTo(b.price)
-              : b.price.compareTo(a.price),
-        );
+    }).toList()
+      ..sort(
+        (a, b) => _lowestFirst
+            ? a.price.compareTo(b.price)
+            : b.price.compareTo(a.price),
+      );
     final library = ref.watch(libraryProvider);
     final cartCount = library.cart.values.fold<int>(
       0,
@@ -80,7 +80,8 @@ class _StoreScreenState extends ConsumerState<StoreScreen> {
                 child: IconButton.filledTonal(
                   tooltip: 'Open wishlist',
                   onPressed: () => Navigator.of(context).push(
-                    MaterialPageRoute<void>(builder: (_) => const WishlistScreen()),
+                    MaterialPageRoute<void>(
+                        builder: (_) => const WishlistScreen()),
                   ),
                   icon: const Icon(Icons.favorite_outline),
                 ),
@@ -138,9 +139,8 @@ class _StoreScreenState extends ConsumerState<StoreScreen> {
               ),
               const SizedBox(width: 10),
               IconButton.filledTonal(
-                tooltip: _lowestFirst
-                    ? 'Lowest price first'
-                    : 'Highest price first',
+                tooltip:
+                    _lowestFirst ? 'Lowest price first' : 'Highest price first',
                 onPressed: () => setState(() => _lowestFirst = !_lowestFirst),
                 icon: Icon(
                   _lowestFirst ? Icons.arrow_upward : Icons.arrow_downward,
@@ -170,6 +170,7 @@ class _StoreScreenState extends ConsumerState<StoreScreen> {
             onPressed: () {
               showModalBottomSheet(
                 context: context,
+                isScrollControlled: true,
                 backgroundColor: Colors.transparent,
                 builder: (context) => QuoteRecognizerSheet(
                   onMatchFound: (query) {
@@ -263,8 +264,8 @@ class _ProductCard extends ConsumerWidget {
                         onPressed: product.stock == 0
                             ? null
                             : () => ref
-                                  .read(libraryProvider.notifier)
-                                  .addToCart(product.id, catalog: catalog),
+                                .read(libraryProvider.notifier)
+                                .addToCart(product.id, catalog: catalog),
                         icon: const Icon(Icons.add_shopping_cart, size: 16),
                         label: const Text('Add to cart'),
                       ),
