@@ -28,12 +28,16 @@ const logger = require('firebase-functions/logger');
 
 const { isRealPriceDrop } = require('./price_drop');
 
+// Stored in Firebase Secret Manager. Never add a Gemini key to the app or Git.
+const geminiApiKey = defineSecret('GEMINI_API_KEY');
+
 initializeApp();
 
 exports.askFanHelper = onCall(
   {
     region: 'asia-south1',
     enforceAppCheck: false,
+    secrets: [geminiApiKey],
   },
   async (request) => {
     if (!request.auth) {
@@ -55,7 +59,7 @@ exports.askFanHelper = onCall(
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'x-goog-api-key': process.env.GEMINI_API_KEY,
+            'x-goog-api-key': geminiApiKey.value(),
           },
           body: JSON.stringify({
             system_instruction: {

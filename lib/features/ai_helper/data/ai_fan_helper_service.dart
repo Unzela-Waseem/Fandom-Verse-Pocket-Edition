@@ -1,48 +1,42 @@
-import 'package:google_generative_ai/google_generative_ai.dart';
+import 'package:cloud_functions/cloud_functions.dart';
 
+/// Calls Gemini through the server-side Firebase function.
+///
+/// The Gemini key is deliberately never present in the Flutter application.
+/// That keeps it out of GitHub, compiled web bundles, Android APKs and iOS
+/// applications. The UI supplies its curated offline help when this call is
+/// unavailable.
 class AiFanHelperService {
-  AiFanHelperService();
+  AiFanHelperService({FirebaseFunctions? functions}) : _functions = functions;
 
-  // =====================================================================
-  // IMPORTANT: Apni Gemini API key yahan paste karein.
-  // Key lene ka tariqa: https://aistudio.google.com/apikey
-  // =====================================================================
-  static const _apiKey = 'YOUR_GEMINI_API_KEY_HERE';
+  final FirebaseFunctions? _functions;
+
+  FirebaseFunctions get _client =>
+      _functions ?? FirebaseFunctions.instanceFor(region: 'asia-south1');
 
   Future<String> ask(String question) async {
-    if (_apiKey == 'YOUR_GEMINI_API_KEY_HERE' || _apiKey.trim().isEmpty) {
+    final message = question.trim();
+    if (message.isEmpty) {
       throw const FormatException(
-        'Gemini API Key missing!\n\n'
-        'lib/features/ai_helper/data/ai_fan_helper_service.dart mein '
-        '_apiKey ki jagah apni Google AI Studio key paste karein.\n'
-        'Key lene k liye: https://aistudio.google.com/apikey',
-      );
+          'Please enter a question for the AI Fan Helper.');
     }
 
     try {
-      final model = GenerativeModel(
-        model: 'gemini-3.8-flash',
-        apiKey: _apiKey,
-        systemInstruction: Content.system(
-          'You are AI Fan Helper inside Fandom Verse Pocket Edition. '
-          'Answer the user helpfully and naturally in the language they use. '
-          'Keep answers concise and friendly.',
-        ),
-      );
-
-      final response = await model.generateContent([
-        Content.text(question.trim()),
-      ]);
-
-      final text = response.text;
-      if (text == null || text.trim().isEmpty) {
-        throw const FormatException('The AI service returned an empty response.');
+      final result = await _client
+          .httpsCallable('askFanHelper')
+          .call<Map<String, dynamic>>({'message': message});
+      final answer = result.data['answer'];
+      if (answer is! String || answer.trim().isEmpty) {
+        throw const FormatException(
+            'The AI service returned an empty response.');
       }
-      return text.trim();
-    } on GenerativeAIException catch (e) {
-      throw FormatException('AI Error: ${e.message}');
-    } catch (e) {
-      throw FormatException('Failed to connect to AI: $e');
+      return answer.trim();
+    } on FirebaseFunctionsException catch (error) {
+      throw FormatException(error.message ?? 'AI Fan Helper is unavailable.');
+    } on FormatException {
+      rethrow;
+    } catch (_) {
+      throw const FormatException('AI Fan Helper is unavailable.');
     }
   }
 }

@@ -42,6 +42,9 @@ admin-tools/node_modules/
 media-backend/node_modules/
 functions/node_modules/
 .env
+**/.env
+*.env
+!.env.example
 *-service-account.json
 
 # Android Studio will place build artifacts here
