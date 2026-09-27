@@ -25,6 +25,34 @@ void main() {
   );
 
   group('AR Preview Screen Tests', () {
+    test('selects the appropriate verified model URL', () {
+      expect(
+        resolveArModelUrl(testProduct, useTryOn: false),
+        testProduct.modelUrl,
+      );
+      expect(
+        resolveArModelUrl(testProduct, useTryOn: true),
+        testProduct.modelUrl,
+      );
+    });
+
+    test('uses a category fallback when a cloud model link is invalid', () {
+      const productWithInvalidModel = Product(
+        id: 'invalid-ar-model',
+        name: 'Fallback item',
+        description: 'Uses a curated fallback model.',
+        category: 'Apparel',
+        price: 100,
+        stock: 1,
+        modelUrl: 'not-a-url',
+      );
+
+      expect(
+        resolveArModelUrl(productWithInvalidModel, useTryOn: false),
+        'https://modelviewer.dev/shared-assets/models/Astronaut.glb',
+      );
+    });
+
     testWidgets('Renders AR Preview with badges and controls', (tester) async {
       tester.view.physicalSize = const Size(1080, 2400);
       tester.view.devicePixelRatio = 1.0;
@@ -40,6 +68,7 @@ void main() {
               productName: 'Nebula Explorer Hoodie',
               product: testProduct,
               catalog: productCatalog,
+              forceFallbackViewer: true,
             ),
           ),
         ),
@@ -81,6 +110,7 @@ void main() {
               productName: 'Nebula Explorer Hoodie',
               product: testProduct,
               catalog: productCatalog,
+              forceFallbackViewer: true,
             ),
           ),
         ),
@@ -94,8 +124,10 @@ void main() {
       // Check instructions content
       expect(find.text('How Augmented Reality Works'), findsOneWidget);
       expect(find.textContaining('Mobile AR (Android ARCore'), findsOneWidget);
-      expect(find.textContaining('360° Interactive Inspection'), findsOneWidget);
-      expect(find.textContaining('Product scale depends on its 3D model'), findsOneWidget);
+      expect(
+          find.textContaining('360° Interactive Inspection'), findsOneWidget);
+      expect(find.textContaining('Product scale depends on its 3D model'),
+          findsOneWidget);
 
       // Close modal
       await tester.tap(find.text('Got it!'));
@@ -104,7 +136,8 @@ void main() {
       expect(find.text('How Augmented Reality Works'), findsNothing);
     });
 
-    testWidgets('Add to cart from AR preview adds item to cart', (tester) async {
+    testWidgets('Add to cart from AR preview adds item to cart',
+        (tester) async {
       tester.view.physicalSize = const Size(1080, 2400);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(() {
@@ -123,6 +156,7 @@ void main() {
               productName: 'Nebula Explorer Hoodie',
               product: testProduct,
               catalog: productCatalog,
+              forceFallbackViewer: true,
             ),
           ),
         ),
@@ -130,7 +164,8 @@ void main() {
       await tester.pump();
 
       // Initially cart is empty
-      expect(container.read(libraryProvider).cart.containsKey(testProduct.id), isFalse);
+      expect(container.read(libraryProvider).cart.containsKey(testProduct.id),
+          isFalse);
 
       // Tap Add to Cart
       await tester.tap(find.text('Add to Cart'));
@@ -140,7 +175,8 @@ void main() {
       expect(container.read(libraryProvider).cart[testProduct.id], equals(1));
     });
 
-    testWidgets('Toggle auto-rotate and cycle lighting toolbar buttons', (tester) async {
+    testWidgets('Toggle auto-rotate and cycle lighting toolbar buttons',
+        (tester) async {
       tester.view.physicalSize = const Size(1080, 2400);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(() {
@@ -155,6 +191,7 @@ void main() {
               productName: 'Nebula Explorer Hoodie',
               product: testProduct,
               catalog: productCatalog,
+              forceFallbackViewer: true,
             ),
           ),
         ),

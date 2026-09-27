@@ -24,16 +24,47 @@ const Map<String, String> _fandom3DModels = {
       'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/BoomBox/glTF-Binary/BoomBox.glb',
 };
 
+/// Selects a safe remote 3D model for the currently selected merchandise.
+///
+/// Store data can be edited remotely, so an empty or malformed model URL must
+/// not leave the AR screen blank. In that case, a verified category fallback
+/// keeps the 3D/AR preview usable.
+@visibleForTesting
+String? resolveArModelUrl(Product? product, {required bool useTryOn}) {
+  final preferredUrl = useTryOn ? product?.tryOnModelUrl : product?.modelUrl;
+  if (_isUsableRemoteModelUrl(preferredUrl)) {
+    return preferredUrl!.trim();
+  }
+
+  final fallbackUrl =
+      product == null ? null : _fandom3DModels[product.category];
+  return _isUsableRemoteModelUrl(fallbackUrl) ? fallbackUrl!.trim() : null;
+}
+
+bool _isUsableRemoteModelUrl(String? value) {
+  final url = value?.trim();
+  if (url == null || url.isEmpty) return false;
+  final uri = Uri.tryParse(url);
+  return uri != null &&
+      uri.hasScheme &&
+      (uri.scheme == 'https' || uri.scheme == 'http');
+}
+
 class ARPreviewScreen extends ConsumerStatefulWidget {
   final String productName;
   final Product? product;
   final List<Product>? catalog;
+
+  /// Lets widget tests exercise the desktop-safe UI without a native WebView.
+  @visibleForTesting
+  final bool forceFallbackViewer;
 
   const ARPreviewScreen({
     super.key,
     required this.productName,
     this.product,
     this.catalog,
+    @visibleForTesting this.forceFallbackViewer = false,
   });
 
   @override
@@ -60,6 +91,7 @@ class _ARPreviewScreenState extends ConsumerState<ARPreviewScreen> {
   ];
 
   bool get _canRenderModelViewer {
+    if (widget.forceFallbackViewer) return false;
     if (_activeModelUrl == null) return false;
     if (kIsWeb) return true;
     return defaultTargetPlatform == TargetPlatform.android ||
@@ -94,8 +126,10 @@ class _ARPreviewScreenState extends ConsumerState<ARPreviewScreen> {
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                       colors: [
-                        const Color(0xFFE879F9).withValues(alpha: 0.25 * _exposure),
-                        const Color(0xFF9333EA).withValues(alpha: 0.15 * _exposure),
+                        const Color(0xFFE879F9)
+                            .withValues(alpha: 0.25 * _exposure),
+                        const Color(0xFF9333EA)
+                            .withValues(alpha: 0.15 * _exposure),
                         Colors.black54,
                       ],
                     ),
@@ -119,7 +153,8 @@ class _ARPreviewScreenState extends ConsumerState<ARPreviewScreen> {
                       if (_activeProduct?.imageUrl != null)
                         ClipRRect(
                           borderRadius: BorderRadius.circular(20),
-                          child: RemoteMediaImage(url: _activeProduct!.imageUrl!),
+                          child:
+                              RemoteMediaImage(url: _activeProduct!.imageUrl!),
                         )
                       else
                         const Icon(
@@ -138,7 +173,8 @@ class _ARPreviewScreenState extends ConsumerState<ARPreviewScreen> {
                           ),
                           child: const Text(
                             'Desktop preview • AR on supported phones',
-                            style: TextStyle(fontSize: 10, color: Colors.white70),
+                            style:
+                                TextStyle(fontSize: 10, color: Colors.white70),
                           ),
                         ),
                       ),
@@ -175,16 +211,7 @@ class _ARPreviewScreenState extends ConsumerState<ARPreviewScreen> {
   }
 
   String? _resolveModelUrl(Product? product) {
-    if (_isTryOnMode && product?.tryOnModelUrl != null && product!.tryOnModelUrl!.isNotEmpty) {
-      return product.tryOnModelUrl!;
-    }
-    if (product?.modelUrl != null && product!.modelUrl!.isNotEmpty) {
-      return product.modelUrl!;
-    }
-    if (product != null && _fandom3DModels.containsKey(product.category)) {
-      return _fandom3DModels[product.category]!;
-    }
-    return null;
+    return resolveArModelUrl(product, useTryOn: _isTryOnMode);
   }
 
   void _switchProduct(Product product) {
@@ -502,12 +529,19 @@ class _ARPreviewScreenState extends ConsumerState<ARPreviewScreen> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  if (_activeProduct?.tryOnModelUrl != null && _activeProduct!.tryOnModelUrl!.isNotEmpty) ...[
+                  if (_activeProduct?.tryOnModelUrl != null &&
+                      _activeProduct!.tryOnModelUrl!.isNotEmpty) ...[
                     IconButton(
-                      tooltip: _isTryOnMode ? 'View Product Model' : 'View Alternate Model',
+                      tooltip: _isTryOnMode
+                          ? 'View Product Model'
+                          : 'View Alternate Model',
                       icon: Icon(
-                        _isTryOnMode ? Icons.accessibility_new : Icons.checkroom,
-                        color: _isTryOnMode ? const Color(0xFF4ADE80) : Colors.white,
+                        _isTryOnMode
+                            ? Icons.accessibility_new
+                            : Icons.checkroom,
+                        color: _isTryOnMode
+                            ? const Color(0xFF4ADE80)
+                            : Colors.white,
                       ),
                       onPressed: _toggleTryOnMode,
                     ),
@@ -676,7 +710,8 @@ class _ARPreviewScreenState extends ConsumerState<ARPreviewScreen> {
                           },
                           icon: Icon(
                             wishlisted ? Icons.favorite : Icons.favorite_border,
-                            color: wishlisted ? Colors.pinkAccent : Colors.white70,
+                            color:
+                                wishlisted ? Colors.pinkAccent : Colors.white70,
                           ),
                         ),
                     ],
