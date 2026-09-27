@@ -56,6 +56,129 @@ template—do not put a real secret in it.
   the protected provisioning script. Do not create an admin by editing client
   code or Firestore from an untrusted account.
 
+## Run the project from a fresh clone
+
+### 1. Install prerequisites
+
+Install these tools before opening the project:
+
+| Tool | Required version / purpose |
+| --- | --- |
+| Flutter | Flutter 3.44.7 or a compatible Flutter 3.x release |
+| Dart | Included with Flutter (project currently uses Dart 3.12.2) |
+| Android Studio | Android SDK, platform tools, and Java/Gradle support for Android builds |
+| Google Chrome | Local Web development and testing |
+| Firebase CLI | Firebase rules, indexes, secrets, and function deployment |
+| Node.js 22+ | Only needed for `functions/`, `media-backend/`, and admin scripts |
+
+Verify the local toolchain:
+
+```bash
+flutter doctor
+flutter --version
+firebase --version
+node --version
+```
+
+### 2. Clone and install packages
+
+```bash
+git clone https://github.com/Unzela-Waseem/Fandom-Verse-Pocket-Edition.git
+cd Fandom-Verse-Pocket-Edition
+flutter pub get
+```
+
+Do **not** copy another person's `.env`, Cloudinary secret, Firebase service
+account, or Gemini key into Git. Create your own local private environment
+files from `.env.example` where needed.
+
+### 3. Confirm Firebase configuration
+
+The Android, iOS, and Web Firebase applications are already registered for
+`fandom-verse-pocket-unzela`.
+
+```bash
+firebase login
+firebase use fandom-verse-pocket-unzela
+firebase deploy --only firestore:rules,firestore:indexes \
+  --project fandom-verse-pocket-unzela
+```
+
+In the Firebase console, ensure these sign-in providers are enabled:
+
+- Email/Password — required for Fan registration.
+- Google — required only when Google sign-in is used.
+- Apple — requires an Apple Developer account and Firebase Apple provider
+  configuration before it can work on Apple devices.
+
+### 4. Run in Chrome (Web)
+
+```bash
+flutter run -d chrome
+```
+
+For a stable local Web URL:
+
+```bash
+flutter run -d chrome --web-port=7357
+```
+
+If Google Web sign-in is enabled, add the local host (for example,
+`localhost`) to Firebase Authentication → Settings → Authorized domains.
+
+### 5. Run on Android / Redmi
+
+1. Enable **Developer options** and **USB debugging** on the Android phone.
+2. Connect it using a USB data cable and accept the debugging prompt.
+3. Check that Flutter can see it:
+
+```bash
+flutter devices
+```
+
+4. Run the app using the Android device ID shown by the previous command:
+
+```bash
+flutter run -d <ANDROID_DEVICE_ID>
+```
+
+### 6. Use the prebuilt release APK
+
+The latest locally generated APK is:
+
+`build/app/outputs/flutter-apk/app-release.apk`
+
+Copy it to the Redmi, open it from the phone's file manager, allow installs
+from that source if Android asks, and select **Install**. If Android refuses
+an update because a previously installed version was signed with a different
+certificate, uninstall that old app first, then install the new APK.
+
+## Testing and quality checks
+
+Run focused tests while developing a feature:
+
+```bash
+flutter test test/auth_error_test.dart test/registration_screen_test.dart
+flutter test test/ar_preview_test.dart
+flutter test test/quote_recognizer_service_test.dart
+```
+
+Run static analysis:
+
+```bash
+flutter analyze
+```
+
+Run all tests:
+
+```bash
+flutter test
+```
+
+Some legacy layout tests currently require cleanup because their fixture does
+not initialize Firebase and some assertions reference older bundled sample
+content. Do not treat a passing build alone as device-level verification.
+
 ## Key project commands
 
 ```bash
@@ -74,6 +197,106 @@ firebase functions:secrets:set GEMINI_API_KEY
 firebase deploy --only functions:askFanHelper \
   --project fandom-verse-pocket-unzela
 ```
+
+## Build a release APK safely on a low-memory laptop
+
+The project already limits Gradle to one worker and a restricted heap in
+`android/gradle.properties`. Keep other heavy applications closed during the
+build, then run:
+
+```bash
+flutter build apk --release
+```
+
+The APK output is written to:
+
+```text
+build/app/outputs/flutter-apk/app-release.apk
+```
+
+Do not rename or move an older APK over a new build. The filename stays
+`app-release.apk`, so every new release build overwrites the previous output.
+
+## Firebase data and roles
+
+| Area | Collection / location | Who can manage it |
+| --- | --- | --- |
+| User profiles | `users/{uid}` | The owner may edit permitted profile fields; admin has protected access |
+| Content | `content` | Admin |
+| Events | `events` | Admin |
+| Merchandise | `merchandise` | Admin |
+| Discussions | `discussions` | Signed-in fans create their own; admin moderates |
+| Inquiries | `users/{uid}/inquiries` | Fan creates own inquiry; admin triages |
+| Audit log | `audit_logs` | Admin only |
+
+The Firestore rules source is `firebase/firestore.rules`. After changing it,
+deploy it using the Firebase command above. Never relax rules merely to make a
+client-side error disappear.
+
+## Cloudinary media setup
+
+The app is configured to use Cloudinary cloud `dc1w5stzg` for images and
+videos. The Flutter client never contains the Cloudinary API secret.
+
+1. Open the Cloudinary dashboard and create signed upload presets for avatars,
+   images, and videos.
+2. On a trusted HTTPS Node.js host, deploy `media-backend/`.
+3. Set private backend variables: `CLOUDINARY_URL`, the upload-preset names,
+   Firebase service-account/ADC access, and exact `ALLOWED_WEB_ORIGINS`.
+4. Configure the app's media-backend URL in its private local environment.
+5. Test an admin image/video upload and a fan avatar upload. Confirm returned
+   media uses `https://res.cloudinary.com/dc1w5stzg/`.
+
+Detailed instructions are in `docs/CLOUDINARY_SPARK.md`.
+
+## AI Fan Helper setup
+
+1. Create a Gemini API key in Google AI Studio.
+2. Store it as a Firebase secret; never put it in Flutter code:
+
+```bash
+firebase functions:secrets:set GEMINI_API_KEY
+```
+
+3. Deploy the callable function (requires Firebase plan/features available for
+   Functions in the project):
+
+```bash
+firebase deploy --only functions:askFanHelper \
+  --project fandom-verse-pocket-unzela
+```
+
+Without the deployed server function, the app safely uses its curated offline
+AI-helper fallback instead of exposing a Gemini key.
+
+## Feature-specific test notes
+
+- **Authentication:** create a Fan account, sign out, sign in as Admin, sign
+  out, and sign in again as the Fan. The Fan dashboard should load after a
+  short spinner.
+- **AR / 3D:** choose a Store item with **View AR**. First confirm the 3D
+  model appears and rotates. Real camera AR requires an ARCore-supported
+  Android device, Google Play Services, camera permission, and a well-lit
+  flat surface. Chrome only tests the 3D preview, not camera placement.
+- **Quote Match:** type a supported quote or character name. Matching happens
+  locally and needs no AI key. The Store must contain related product keywords
+  for a matching product search to show useful results.
+- **Checkout:** it is simulated only; no card or payment details are collected.
+- **Price-drop alerts:** on the Spark plan, the app can show local in-app
+  alerts while it is running; background cloud push delivery needs paid/cloud
+  infrastructure.
+
+## Troubleshooting
+
+| Problem | What to do |
+| --- | --- |
+| App shows old code in Chrome | In the `flutter run` terminal press `R` for hot restart, or stop and rerun `flutter run -d chrome`. |
+| Fan profile access error after account switch | Sign out, hot restart, then sign in again. Confirm deployed Firestore rules match `firebase/firestore.rules`. |
+| Android 3D model does not load | Confirm the product has a valid HTTPS `.glb` model URL and install the latest APK. |
+| Camera AR option does not appear | Update Google Play Services for AR; the phone may not be ARCore compatible. 3D preview can still work. |
+| Google sign-in fails on Web | Enable Google provider and add the actual local/production domain in Firebase authorized domains. |
+| Cloudinary upload fails | Check the deployed media backend, signed preset, HTTPS URL, server secret, and allowed Web origin. |
+| AI Helper only gives offline replies | Configure the Gemini secret and deploy the `askFanHelper` function. |
 
 ## Related setup guides
 
