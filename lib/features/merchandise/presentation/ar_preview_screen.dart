@@ -1,3 +1,4 @@
+import 'package:android_intent_plus/android_intent.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -80,6 +81,45 @@ class _ARPreviewScreenState extends ConsumerState<ARPreviewScreen> {
   Product? _activeProduct;
   int _viewerKeyCounter = 0;
   bool _isTryOnMode = false;
+
+  /// Starts Google's native Scene Viewer.  The embedded 3D controls are for
+  /// rotating/lighting the model; this explicit action is the real camera AR
+  /// entry point on Android.
+  Future<void> _openAndroidAR() async {
+    final modelUrl = _activeModelUrl;
+    if (modelUrl == null ||
+        kIsWeb ||
+        defaultTargetPlatform != TargetPlatform.android) {
+      return;
+    }
+
+    try {
+      final sceneViewerUri = Uri(
+        scheme: 'https',
+        host: 'arvr.google.com',
+        path: '/scene-viewer/1.0',
+        queryParameters: {
+          'file': modelUrl,
+          'mode': 'ar_preferred',
+          'title': _activeProductName,
+        },
+      );
+      await AndroidIntent(
+        action: 'android.intent.action.VIEW',
+        data: sceneViewerUri.toString(),
+        package: 'com.google.android.googlequicksearchbox',
+      ).launch();
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Camera AR needs Google Play Services for AR. Install or update it from Play Store, then try again.',
+          ),
+        ),
+      );
+    }
+  }
 
   double _orbitX = 0.0;
   double _orbitY = 0.0;
@@ -789,6 +829,23 @@ class _ARPreviewScreenState extends ConsumerState<ARPreviewScreen> {
                                     fontWeight: FontWeight.bold),
                               ),
                             );
+                      final arButton = (!kIsWeb &&
+                              defaultTargetPlatform == TargetPlatform.android)
+                          ? FilledButton.icon(
+                              key: const Key('open_camera_ar_button'),
+                              onPressed: _activeModelUrl == null
+                                  ? null
+                                  : _openAndroidAR,
+                              style: FilledButton.styleFrom(
+                                backgroundColor: const Color(0xFF6D28D9),
+                                foregroundColor: Colors.white,
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 12),
+                              ),
+                              icon: const Icon(Icons.view_in_ar_outlined),
+                              label: const Text('Open Camera AR'),
+                            )
+                          : null;
                       final stackActions = constraints.maxWidth < 420 ||
                           MediaQuery.textScalerOf(context).textScaleFactor >
                               1.25;
@@ -797,6 +854,10 @@ class _ARPreviewScreenState extends ConsumerState<ARPreviewScreen> {
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
                             helpButton,
+                            if (arButton != null) ...[
+                              const SizedBox(height: 8),
+                              arButton,
+                            ],
                             if (cartButton != null) ...[
                               const SizedBox(height: 8),
                               cartButton,
@@ -807,6 +868,10 @@ class _ARPreviewScreenState extends ConsumerState<ARPreviewScreen> {
                       return Row(
                         children: [
                           Expanded(child: helpButton),
+                          if (arButton != null) ...[
+                            const SizedBox(width: 10),
+                            Expanded(child: arButton),
+                          ],
                           if (cartButton != null) ...[
                             const SizedBox(width: 10),
                             Expanded(flex: 2, child: cartButton),

@@ -48,6 +48,9 @@ dependencies:
   path_provider: ^2.1.5
   flutter_local_notifications: ^17.2.3
   model_viewer_plus: ^1.8.0
+  # Opens Google's native Scene Viewer directly instead of depending on a
+  # WebView-provided AR control being shown.
+  android_intent_plus: ^5.3.1
   speech_to_text: ^7.0.0
   google_generative_ai: ^0.4.6
 
