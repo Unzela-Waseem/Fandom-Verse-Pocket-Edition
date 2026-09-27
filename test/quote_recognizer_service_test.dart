@@ -20,6 +20,10 @@ void main() {
     );
   });
 
+  test('accepts a supported character name as a merchandise shortcut', () {
+    expect(QuoteRecognizerService.recognize('Iron Man')?.character, 'Iron Man');
+  });
+
   test('exposes a non-empty local supported quote list', () {
     expect(QuoteRecognizerService.supportedQuotes, isNotEmpty);
   });

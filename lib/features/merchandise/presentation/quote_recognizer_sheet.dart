@@ -106,136 +106,142 @@ class _QuoteRecognizerSheetState extends State<QuoteRecognizerSheet> {
   @override
   Widget build(BuildContext context) {
     final listening = _speechToText.isListening;
-    return SafeArea(
-      top: false,
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text(
-              'Quote Match',
-              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 8),
-            const Text(
-              'Private local matching — no API key required.',
-              textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.white70),
-            ),
-            const SizedBox(height: 22),
-            GestureDetector(
-              onTap: listening ? _stopListening : _startListening,
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 250),
-                width: listening ? 90 : 72,
-                height: listening ? 90 : 72,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: _currentMatch != null
-                      ? Colors.green
-                      : (listening
-                          ? Colors.redAccent
-                          : const Color(0xFFE879F9)),
-                  boxShadow: [
-                    if (listening)
-                      BoxShadow(
-                        color: Colors.redAccent.withValues(alpha: 0.5),
-                        blurRadius: 20,
-                        spreadRadius: 5,
-                      ),
-                  ],
-                ),
-                child: Icon(
-                  _currentMatch != null
-                      ? Icons.check
-                      : (listening ? Icons.mic : Icons.mic_none),
-                  size: 36,
-                  color: Colors.white,
-                ),
+    return Container(
+      decoration: const BoxDecoration(
+        color: Color(0xFF140924),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+      ),
+      child: SafeArea(
+        top: false,
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                'Quote Match',
+                style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
               ),
-            ),
-            const SizedBox(height: 18),
-            Text(
-              listening
-                  ? 'Listening… say a supported quote.'
-                  : 'Tap the microphone or type a quote.',
-              textAlign: TextAlign.center,
-              style: const TextStyle(color: Colors.white70),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: _quoteController,
-              onSubmitted: (value) => _recognize(value, autoOpen: false),
-              textInputAction: TextInputAction.done,
-              decoration: const InputDecoration(
-                labelText: 'Type or paste a quote',
-                hintText: 'Example: Avengers assemble',
-                prefixIcon: Icon(Icons.format_quote),
+              const SizedBox(height: 8),
+              const Text(
+                'Private local matching — no API key required.',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.white70),
               ),
-            ),
-            const SizedBox(height: 10),
-            FilledButton.icon(
-              onPressed: () => _recognize(
-                _quoteController.text,
-                autoOpen: false,
-              ),
-              icon: const Icon(Icons.search),
-              label: const Text('Match quote'),
-            ),
-            if (_lastWords.isNotEmpty || _message != null) ...[
-              const SizedBox(height: 16),
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(14),
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.05),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Column(
-                  children: [
-                    if (_lastWords.isNotEmpty)
-                      Text(
-                        '“$_lastWords”',
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(fontStyle: FontStyle.italic),
-                      ),
-                    if (_message != null) ...[
-                      if (_lastWords.isNotEmpty) const SizedBox(height: 8),
-                      Text(
-                        _message!,
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          color: _currentMatch == null
-                              ? Colors.orangeAccent
-                              : Colors.greenAccent,
-                          fontWeight: FontWeight.w700,
+              const SizedBox(height: 22),
+              GestureDetector(
+                onTap: listening ? _stopListening : _startListening,
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 250),
+                  width: listening ? 90 : 72,
+                  height: listening ? 90 : 72,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: _currentMatch != null
+                        ? Colors.green
+                        : (listening
+                            ? Colors.redAccent
+                            : const Color(0xFFE879F9)),
+                    boxShadow: [
+                      if (listening)
+                        BoxShadow(
+                          color: Colors.redAccent.withValues(alpha: 0.5),
+                          blurRadius: 20,
+                          spreadRadius: 5,
                         ),
-                      ),
                     ],
-                    if (_currentMatch != null) ...[
-                      const SizedBox(height: 10),
-                      Text(
-                        '${_currentMatch!.character} · ${_currentMatch!.fandom}',
-                        style: const TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 8),
-                      FilledButton(
-                        onPressed: _handleMatch,
-                        child: const Text('Show matching merchandise'),
-                      ),
-                    ],
-                  ],
+                  ),
+                  child: Icon(
+                    _currentMatch != null
+                        ? Icons.check
+                        : (listening ? Icons.mic : Icons.mic_none),
+                    size: 36,
+                    color: Colors.white,
+                  ),
                 ),
+              ),
+              const SizedBox(height: 18),
+              Text(
+                listening
+                    ? 'Listening… say a supported quote.'
+                    : 'Tap the microphone or type a quote.',
+                textAlign: TextAlign.center,
+                style: const TextStyle(color: Colors.white70),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: _quoteController,
+                onSubmitted: (value) => _recognize(value, autoOpen: false),
+                textInputAction: TextInputAction.done,
+                decoration: const InputDecoration(
+                  labelText: 'Type or paste a quote',
+                  hintText: 'Example: Avengers assemble',
+                  prefixIcon: Icon(Icons.format_quote),
+                ),
+              ),
+              const SizedBox(height: 10),
+              FilledButton.icon(
+                onPressed: () => _recognize(
+                  _quoteController.text,
+                  autoOpen: false,
+                ),
+                icon: const Icon(Icons.search),
+                label: const Text('Match quote'),
+              ),
+              if (_lastWords.isNotEmpty || _message != null) ...[
+                const SizedBox(height: 16),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.05),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Column(
+                    children: [
+                      if (_lastWords.isNotEmpty)
+                        Text(
+                          '“$_lastWords”',
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(fontStyle: FontStyle.italic),
+                        ),
+                      if (_message != null) ...[
+                        if (_lastWords.isNotEmpty) const SizedBox(height: 8),
+                        Text(
+                          _message!,
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            color: _currentMatch == null
+                                ? Colors.orangeAccent
+                                : Colors.greenAccent,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ],
+                      if (_currentMatch != null) ...[
+                        const SizedBox(height: 10),
+                        Text(
+                          '${_currentMatch!.character} · ${_currentMatch!.fandom}',
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        const SizedBox(height: 8),
+                        FilledButton(
+                          onPressed: _handleMatch,
+                          child: const Text('Show matching merchandise'),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              ],
+              const SizedBox(height: 14),
+              Text(
+                'Try: ${QuoteRecognizerService.supportedQuotes.take(3).join(' · ')}',
+                textAlign: TextAlign.center,
+                style: const TextStyle(color: Colors.white54, fontSize: 12),
               ),
             ],
-            const SizedBox(height: 14),
-            Text(
-              'Try: ${QuoteRecognizerService.supportedQuotes.take(3).join(' · ')}',
-              textAlign: TextAlign.center,
-              style: const TextStyle(color: Colors.white54, fontSize: 12),
-            ),
-          ],
+          ),
         ),
       ),
     );

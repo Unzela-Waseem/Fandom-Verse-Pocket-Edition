@@ -29,7 +29,7 @@ class _QuoteRule {
 class QuoteRecognizerService {
   static const List<_QuoteRule> _rules = [
     _QuoteRule(
-      ['i am iron man', 'im iron man'],
+      ['i am iron man', 'im iron man', 'iron man'],
       FandomQuoteMatch(
         fandom: 'Marvel',
         character: 'Iron Man',
@@ -38,7 +38,7 @@ class QuoteRecognizerService {
       ),
     ),
     _QuoteRule(
-      ['avengers assemble'],
+      ['avengers assemble', 'captain america'],
       FandomQuoteMatch(
         fandom: 'Marvel',
         character: 'Captain America',
@@ -47,7 +47,7 @@ class QuoteRecognizerService {
       ),
     ),
     _QuoteRule(
-      ['dattebayo', 'believe it'],
+      ['dattebayo', 'believe it', 'naruto'],
       FandomQuoteMatch(
         fandom: 'Naruto',
         character: 'Naruto Uzumaki',
@@ -56,7 +56,7 @@ class QuoteRecognizerService {
       ),
     ),
     _QuoteRule(
-      ['may the force be with you'],
+      ['may the force be with you', 'star wars'],
       FandomQuoteMatch(
         fandom: 'Star Wars',
         character: 'Jedi',
@@ -65,7 +65,7 @@ class QuoteRecognizerService {
       ),
     ),
     _QuoteRule(
-      ['no i am your father', 'i am your father'],
+      ['no i am your father', 'i am your father', 'darth vader'],
       FandomQuoteMatch(
         fandom: 'Star Wars',
         character: 'Darth Vader',
@@ -74,7 +74,7 @@ class QuoteRecognizerService {
       ),
     ),
     _QuoteRule(
-      ['expecto patronum'],
+      ['expecto patronum', 'harry potter'],
       FandomQuoteMatch(
         fandom: 'Harry Potter',
         character: 'Harry Potter',
@@ -83,7 +83,7 @@ class QuoteRecognizerService {
       ),
     ),
     _QuoteRule(
-      ['you are a wizard harry', 'you are a wizard'],
+      ['you are a wizard harry', 'you are a wizard', 'hagrid'],
       FandomQuoteMatch(
         fandom: 'Harry Potter',
         character: 'Hagrid',
@@ -92,7 +92,7 @@ class QuoteRecognizerService {
       ),
     ),
     _QuoteRule(
-      ['bazinga'],
+      ['bazinga', 'sheldon cooper'],
       FandomQuoteMatch(
         fandom: 'The Big Bang Theory',
         character: 'Sheldon Cooper',
@@ -101,7 +101,7 @@ class QuoteRecognizerService {
       ),
     ),
     _QuoteRule(
-      ['i am batman', 'im batman'],
+      ['i am batman', 'im batman', 'batman'],
       FandomQuoteMatch(
         fandom: 'DC',
         character: 'Batman',
