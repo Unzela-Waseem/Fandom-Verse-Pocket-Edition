@@ -142,7 +142,7 @@ class RemoteMediaVideo extends StatefulWidget {
 }
 
 class _RemoteMediaVideoState extends State<RemoteMediaVideo> {
-  late VideoPlayerController _controller;
+  VideoPlayerController? _controller;
   late Future<void> _initialization;
   bool _isMuted = false;
   bool _showControls = true;
@@ -157,7 +157,7 @@ class _RemoteMediaVideoState extends State<RemoteMediaVideo> {
   void didUpdateWidget(covariant RemoteMediaVideo oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.url != widget.url) {
-      _controller.dispose();
+      _controller?.dispose();
       _initialize();
     }
   }
@@ -178,14 +178,14 @@ class _RemoteMediaVideoState extends State<RemoteMediaVideo> {
       );
     }
     try {
-      await _controller.initialize();
+      await _controller!.initialize();
     } catch (_) {}
     if (mounted) setState(() {});
   }
 
   @override
   void dispose() {
-    _controller.dispose();
+    _controller?.dispose();
     super.dispose();
   }
 
@@ -278,8 +278,8 @@ class _RemoteMediaVideoState extends State<RemoteMediaVideo> {
               );
             }
 
-            final aspectRatio = _controller.value.aspectRatio > 0
-                ? _controller.value.aspectRatio
+            final aspectRatio = _controller!.value.aspectRatio > 0
+                ? _controller!.value.aspectRatio
                 : 16 / 9;
 
             return GestureDetector(
@@ -289,10 +289,10 @@ class _RemoteMediaVideoState extends State<RemoteMediaVideo> {
                 child: Stack(
                   alignment: Alignment.bottomCenter,
                   children: [
-                    VideoPlayer(_controller),
+                    VideoPlayer(_controller!),
                     // Centered Play/Pause Button
                     ValueListenableBuilder<VideoPlayerValue>(
-                      valueListenable: _controller,
+                      valueListenable: _controller!,
                       builder: (context, value, _) {
                         if (!_showControls && value.isPlaying) {
                           return const SizedBox.shrink();
@@ -311,8 +311,8 @@ class _RemoteMediaVideoState extends State<RemoteMediaVideo> {
                               ),
                               onPressed: () {
                                 value.isPlaying
-                                    ? _controller.pause()
-                                    : _controller.play();
+                                    ? _controller!.pause()
+                                    : _controller!.play();
                               },
                             ),
                           ),
@@ -321,7 +321,7 @@ class _RemoteMediaVideoState extends State<RemoteMediaVideo> {
                     ),
                     // Bottom Control Bar
                     ValueListenableBuilder<VideoPlayerValue>(
-                      valueListenable: _controller,
+                      valueListenable: _controller!,
                       builder: (context, value, _) {
                         if (!_showControls && value.isPlaying) {
                           return const SizedBox.shrink();
@@ -342,7 +342,7 @@ class _RemoteMediaVideoState extends State<RemoteMediaVideo> {
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               VideoProgressIndicator(
-                                _controller,
+                                _controller!,
                                 allowScrubbing: true,
                                 colors: const VideoProgressColors(
                                   playedColor: Color(0xFFFFD740),
@@ -372,7 +372,7 @@ class _RemoteMediaVideoState extends State<RemoteMediaVideo> {
                                     onPressed: () {
                                       setState(() {
                                         _isMuted = !_isMuted;
-                                        _controller.setVolume(
+                                        _controller!.setVolume(
                                           _isMuted ? 0.0 : 1.0,
                                         );
                                       });

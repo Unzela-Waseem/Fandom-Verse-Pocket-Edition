@@ -49,6 +49,7 @@ dependencies:
   flutter_local_notifications: ^17.2.3
   model_viewer_plus: ^1.8.0
   speech_to_text: ^7.0.0
+  google_generative_ai: ^0.4.6
 
 dev_dependencies:
   flutter_test:

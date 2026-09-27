@@ -137,21 +137,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
         children: [
           // Anime character background
           Image.asset('assets/auth_bg.jpg', fit: BoxFit.cover),
-          // Dark gradient overlay
-          Container(
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  Color(0x2206040F),
-                  Color(0xAA06040F),
-                  Color(0xFF06040F),
-                ],
-                stops: [0.0, 0.45, 0.75],
-              ),
-            ),
-          ),
+
           // Scrollable content
           SafeArea(
             child: Center(
