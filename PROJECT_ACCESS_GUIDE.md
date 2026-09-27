@@ -23,7 +23,11 @@ account JSON files, or private keys in this document or in Git.**
 | Firebase project ID | `fandom-verse-pocket-unzela` |
 | Firebase plan | Spark (free) |
 | Cloudinary cloud name | `dc1w5stzg` |
-| Android application ID | `com.fandomverse.fandomVersePocket` |
+| Flutter application version | `1.0.0+1` |
+| Android application ID / namespace | `com.fandomverse.fandom_verse_pocket` |
+| Android minimum SDK | 24 (Android 7.0) |
+| Android compile / target SDK | 36 |
+| Android Java / JVM target | Java 17 |
 | Android Firebase app ID | `1:477827303954:android:4652141a5302461dcc26cb` |
 | iOS Firebase app ID | `1:477827303954:ios:f3f08ccadd961be5cc26cb` |
 | Web Firebase app ID | `1:477827303954:web:d31180872a196600cc26cb` |
@@ -55,6 +59,35 @@ template—do not put a real secret in it.
   An admin must have both the Firebase custom claim and Firestore role set by
   the protected provisioning script. Do not create an admin by editing client
   code or Firestore from an untrusted account.
+
+### Admin sign-in details
+
+There is no safe universal live Admin password to publish. A real Admin account
+is created privately by the project owner. Save its login in a password manager,
+not in this repository.
+
+| Field | Where to get or set it |
+| --- | --- |
+| Admin email | Private project-owner record or the `FANDOM_ADMIN_EMAIL` value used during provisioning |
+| Admin password | Private password manager or local ignored environment only; never put it in Markdown/GitHub |
+| Admin display name | Optional `FANDOM_ADMIN_NAME` value during provisioning |
+| Admin role | Created by `admin-tools/provision-admin.mjs`; it writes the Firestore `role: admin` and trusted Firebase custom claim |
+
+For a new administrator, an owner with Firebase Admin access runs this from a
+private terminal:
+
+```bash
+cd admin-tools
+npm ci
+FANDOM_ADMIN_EMAIL='admin@example.com' \
+FANDOM_ADMIN_PASSWORD='use-a-private-12-plus-character-password' \
+FANDOM_ADMIN_NAME='Fandom Verse Admin' \
+npm run provision-admin
+```
+
+The values above are examples only. Replace them locally; do not copy a real
+password into this file. A sample evaluation identity may be documented in the
+repository README, but it must not be used as a real production administrator.
 
 ## Run the project from a fresh clone
 
@@ -216,6 +249,11 @@ build/app/outputs/flutter-apk/app-release.apk
 
 Do not rename or move an older APK over a new build. The filename stays
 `app-release.apk`, so every new release build overwrites the previous output.
+
+> The current Android release configuration uses the debug signing key for
+> local/sideloaded testing. Before Google Play publishing, create a private
+> upload/signing key and configure the release signing process. Never commit a
+> keystore or its passwords.
 
 ## Firebase data and roles
 
