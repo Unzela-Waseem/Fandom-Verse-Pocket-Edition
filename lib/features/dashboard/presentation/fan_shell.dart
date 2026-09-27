@@ -23,27 +23,35 @@ import '../../library/presentation/explore_screen.dart';
 import '../../merchandise/presentation/store_screen.dart';
 import '../../notifications/presentation/notifications_screen.dart';
 import '../../notifications/data/notification_device_service.dart';
+import '../../notifications/data/price_drop_alert_service.dart';
 import '../../profile/presentation/profile_screen.dart';
 import 'about_us_screen.dart';
 import 'contact_us_screen.dart';
 import 'privacy_policy_screen.dart';
 
-class FanShell extends StatefulWidget {
+class FanShell extends ConsumerStatefulWidget {
   const FanShell({super.key, this.profile});
 
   final AppUser? profile;
 
   @override
-  State<FanShell> createState() => _FanShellState();
+  ConsumerState<FanShell> createState() => _FanShellState();
 }
 
-class _FanShellState extends State<FanShell> {
+class _FanShellState extends ConsumerState<FanShell> {
   int _index = 0;
   StreamSubscription<String>? _tokenSubscription;
+  ProviderSubscription<AsyncValue<List<Product>>>? _catalogSubscription;
 
   @override
   void initState() {
     super.initState();
+    _catalogSubscription = ref.listenManual(productCatalogProvider, (
+      previous,
+      next,
+    ) {
+      next.whenData((products) => _checkPriceDrops(products));
+    }, fireImmediately: true);
     if (widget.profile != null && !kIsWeb && Firebase.apps.isNotEmpty) {
       _tokenSubscription = FirebaseMessaging.instance.onTokenRefresh.listen((
         token,
@@ -71,7 +79,22 @@ class _FanShellState extends State<FanShell> {
         oldWidget.profile?.priceDropNotifications != true &&
         widget.profile?.priceDropNotifications == true) {
       unawaited(_registerIfPermitted());
+      final products = ref.read(productCatalogProvider).asData?.value;
+      if (products != null) _checkPriceDrops(products);
     }
+  }
+
+  void _checkPriceDrops(List<Product> products) {
+    final profile = widget.profile;
+    if (profile?.priceDropNotifications != true) return;
+    final wishlist = ref.read(libraryProvider).wishlist;
+    unawaited(
+      PriceDropAlertService.checkForDrops(
+        userId: profile!.uid,
+        wishlist: wishlist,
+        products: products,
+      ).catchError((Object _) {}),
+    );
   }
 
   Future<void> _registerIfPermitted() async {
@@ -95,6 +118,7 @@ class _FanShellState extends State<FanShell> {
   @override
   void dispose() {
     unawaited(_tokenSubscription?.cancel());
+    _catalogSubscription?.close();
     super.dispose();
   }
 

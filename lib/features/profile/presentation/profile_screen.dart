@@ -54,9 +54,8 @@ class ProfileScreen extends ConsumerWidget {
               child: CircleAvatar(
                 radius: 42,
                 backgroundColor: const Color(0xFF160B28),
-                backgroundImage: validAvatarUrl
-                    ? NetworkImage(avatarUrl)
-                    : null,
+                backgroundImage:
+                    validAvatarUrl ? NetworkImage(avatarUrl) : null,
                 child: !validAvatarUrl
                     ? const Icon(
                         Icons.person,
@@ -228,25 +227,26 @@ class _CountCard extends StatelessWidget {
   final int value;
   @override
   Widget build(BuildContext context) => Expanded(
-    child: Card(
-      margin: const EdgeInsets.symmetric(horizontal: 4),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 14),
-        child: Column(
-          children: [
-            Text(
-              '$value',
-              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900),
+        child: Card(
+          margin: const EdgeInsets.symmetric(horizontal: 4),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 14),
+            child: Column(
+              children: [
+                Text(
+                  '$value',
+                  style: const TextStyle(
+                      fontSize: 20, fontWeight: FontWeight.w900),
+                ),
+                Text(
+                  label,
+                  style: const TextStyle(fontSize: 11, color: Colors.white54),
+                ),
+              ],
             ),
-            Text(
-              label,
-              style: const TextStyle(fontSize: 11, color: Colors.white54),
-            ),
-          ],
+          ),
         ),
-      ),
-    ),
-  );
+      );
 }
 
 class _ProfileTile extends StatelessWidget {
@@ -262,14 +262,15 @@ class _ProfileTile extends StatelessWidget {
   final VoidCallback onTap;
   @override
   Widget build(BuildContext context) => Card(
-    child: ListTile(
-      leading: Icon(icon),
-      title: Text(title, style: const TextStyle(fontWeight: FontWeight.w800)),
-      subtitle: Text(subtitle),
-      trailing: const Icon(Icons.chevron_right),
-      onTap: onTap,
-    ),
-  );
+        child: ListTile(
+          leading: Icon(icon),
+          title:
+              Text(title, style: const TextStyle(fontWeight: FontWeight.w800)),
+          subtitle: Text(subtitle),
+          trailing: const Icon(Icons.chevron_right),
+          onTap: onTap,
+        ),
+      );
 }
 
 class _NotificationPreferenceTile extends StatefulWidget {
@@ -321,18 +322,18 @@ class _NotificationPreferenceTileState
 
   @override
   Widget build(BuildContext context) => Card(
-    child: SwitchListTile(
-      secondary: const Icon(Icons.notifications_outlined),
-      title: const Text('Price-drop alerts'),
-      subtitle: Text(
-        kIsWeb
-            ? 'In-app alerts only; browser push is not configured'
-            : 'Only for merchandise on your wishlist',
-      ),
-      value: widget.profile.priceDropNotifications,
-      onChanged: _busy ? null : _change,
-    ),
-  );
+        child: SwitchListTile(
+          secondary: const Icon(Icons.notifications_outlined),
+          title: const Text('Price-drop alerts'),
+          subtitle: Text(
+            kIsWeb
+                ? 'Checked while this app is open; browser push is not configured'
+                : 'Checked while the app is open for items on your wishlist',
+          ),
+          value: widget.profile.priceDropNotifications,
+          onChanged: _busy ? null : _change,
+        ),
+      );
 }
 
 class _SavedScreen extends ConsumerWidget {
@@ -355,9 +356,8 @@ class _SavedScreen extends ConsumerWidget {
     final content = state.bookmarkedContent
         .map((id) => contentById[id])
         .whereType<ContentItem>();
-    final events = state.savedEvents
-        .map((id) => eventsById[id])
-        .whereType<FandomEvent>();
+    final events =
+        state.savedEvents.map((id) => eventsById[id]).whereType<FandomEvent>();
     return Scaffold(
       appBar: AppBar(title: const Text('Saved & offline')),
       body: ListView(
@@ -466,7 +466,8 @@ class _AboutScreen extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Container(
-                  width: 58, height: 58,
+                  width: 58,
+                  height: 58,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     gradient: const LinearGradient(
@@ -475,35 +476,43 @@ class _AboutScreen extends StatelessWidget {
                     boxShadow: [
                       BoxShadow(
                         color: const Color(0xFF7B2FBE).withValues(alpha: 0.4),
-                        blurRadius: 16, spreadRadius: 1,
+                        blurRadius: 16,
+                        spreadRadius: 1,
                       ),
                     ],
                   ),
-                  child: const Icon(Icons.auto_awesome, size: 28, color: Colors.white),
+                  child: const Icon(Icons.auto_awesome,
+                      size: 28, color: Colors.white),
                 ),
                 const SizedBox(height: 8),
                 const Text(
                   'Fandom Verse',
                   style: TextStyle(
-                    fontSize: 22, fontWeight: FontWeight.w900,
-                    color: Colors.white, letterSpacing: 0.5,
+                    fontSize: 22,
+                    fontWeight: FontWeight.w900,
+                    color: Colors.white,
+                    letterSpacing: 0.5,
                   ),
                 ),
                 const SizedBox(height: 2),
                 const Text(
                   'POCKET EDITION',
                   style: TextStyle(
-                    fontSize: 11, letterSpacing: 3,
-                    color: Color(0xFF00E5FF), fontWeight: FontWeight.w600,
+                    fontSize: 11,
+                    letterSpacing: 3,
+                    color: Color(0xFF00E5FF),
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
                 const SizedBox(height: 6),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(20),
                     color: const Color(0xFF2979FF).withValues(alpha: 0.2),
-                    border: Border.all(color: const Color(0xFF2979FF).withValues(alpha: 0.4)),
+                    border: Border.all(
+                        color: const Color(0xFF2979FF).withValues(alpha: 0.4)),
                   ),
                   child: const Text(
                     'TechWiz World Tech Championship',
@@ -518,7 +527,8 @@ class _AboutScreen extends StatelessWidget {
           // ── About the App ──────────────────────────────────
           const Text(
             '📱 About the App',
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: Colors.white),
+            style: TextStyle(
+                fontSize: 16, fontWeight: FontWeight.w800, color: Colors.white),
           ),
           const SizedBox(height: 10),
           Container(
@@ -530,7 +540,8 @@ class _AboutScreen extends StatelessWidget {
             ),
             child: const Text(
               'Fandom Verse Pocket Edition is a cross-platform mobile app that connects fans from Anime, Gaming, Comics, Sci-Fi, K-Pop, and Cosplay communities. It provides fandom stories, lore exploration, nearby events, fan merchandise, and an AI-powered helper — all in one app.',
-              style: TextStyle(color: Colors.white70, height: 1.6, fontSize: 13.5),
+              style:
+                  TextStyle(color: Colors.white70, height: 1.6, fontSize: 13.5),
             ),
           ),
           const SizedBox(height: 24),
@@ -538,7 +549,8 @@ class _AboutScreen extends StatelessWidget {
           // ── Developer ──────────────────────────────────────
           const Text(
             '👩‍💻 Developer',
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: Colors.white),
+            style: TextStyle(
+                fontSize: 16, fontWeight: FontWeight.w800, color: Colors.white),
           ),
           const SizedBox(height: 10),
           Container(
@@ -551,28 +563,37 @@ class _AboutScreen extends StatelessWidget {
                   const Color(0xFF7B2FBE).withValues(alpha: 0.05),
                 ],
               ),
-              border: Border.all(color: const Color(0xFF7B2FBE).withValues(alpha: 0.3)),
+              border: Border.all(
+                  color: const Color(0xFF7B2FBE).withValues(alpha: 0.3)),
             ),
             child: Row(
               children: [
                 Container(
-                  width: 48, height: 48,
+                  width: 48,
+                  height: 48,
                   decoration: const BoxDecoration(
                     shape: BoxShape.circle,
                     gradient: LinearGradient(
                       colors: [Color(0xFF7B2FBE), Color(0xFF9C4DCC)],
                     ),
                   ),
-                  child: const Icon(Icons.person_rounded, color: Colors.white, size: 24),
+                  child: const Icon(Icons.person_rounded,
+                      color: Colors.white, size: 24),
                 ),
                 const SizedBox(width: 14),
                 const Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Unzela Waseem', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 15)),
+                    Text('Unzela Waseem',
+                        style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 15)),
                     SizedBox(height: 3),
-                    Text('Lead Developer & Project Owner', style: TextStyle(color: Colors.white54, fontSize: 12)),
-                    Text('Aptech North Karachi', style: TextStyle(color: Colors.white38, fontSize: 11)),
+                    Text('Lead Developer & Project Owner',
+                        style: TextStyle(color: Colors.white54, fontSize: 12)),
+                    Text('Aptech North Karachi',
+                        style: TextStyle(color: Colors.white38, fontSize: 11)),
                   ],
                 ),
               ],
@@ -583,21 +604,29 @@ class _AboutScreen extends StatelessWidget {
           // ── Key Features ───────────────────────────────────
           const Text(
             '✨ Key Features',
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: Colors.white),
+            style: TextStyle(
+                fontSize: 16, fontWeight: FontWeight.w800, color: Colors.white),
           ),
           const SizedBox(height: 10),
-          _featureItem('⛩️ Fandom Lore & Glossary', 'Explore stories, glossary terms, and deep dive trivia across multiple fandoms.'),
-          _featureItem('📍 Events & Conventions', 'Discover nearby fan events with GPS-based location sorting and offline agenda.'),
-          _featureItem('🛍️ Fan Merchandise Store', 'Browse, wishlist, and checkout official fandom merchandise.'),
-          _featureItem('🤖 AI Fan Helper', 'Get instant answers about fandoms, app features, and cosplay tips.'),
-          _featureItem('🔔 Price Drop Alerts', 'Get notified when a wishlisted product goes on sale.'),
-          _featureItem('📶 Offline Mode', 'Save articles, events, and stories for offline reading.'),
+          _featureItem('⛩️ Fandom Lore & Glossary',
+              'Explore stories, glossary terms, and deep dive trivia across multiple fandoms.'),
+          _featureItem('📍 Events & Conventions',
+              'Discover nearby fan events with GPS-based location sorting and offline agenda.'),
+          _featureItem('🛍️ Fan Merchandise Store',
+              'Browse, wishlist, and checkout official fandom merchandise.'),
+          _featureItem('🤖 AI Fan Helper',
+              'Get instant answers about fandoms, app features, and cosplay tips.'),
+          _featureItem('🔔 Price Drop Alerts',
+              'Get notified when a wishlisted product goes on sale.'),
+          _featureItem('📶 Offline Mode',
+              'Save articles, events, and stories for offline reading.'),
           const SizedBox(height: 24),
 
           // ── Contact ────────────────────────────────────────
           const Text(
             '📬 Contact',
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: Colors.white),
+            style: TextStyle(
+                fontSize: 16, fontWeight: FontWeight.w800, color: Colors.white),
           ),
           const SizedBox(height: 10),
           Container(
@@ -609,11 +638,16 @@ class _AboutScreen extends StatelessWidget {
             ),
             child: const Column(
               children: [
-                _ContactRow(icon: Icons.email_outlined, label: 'unzelawaseem3@gmail.com'),
+                _ContactRow(
+                    icon: Icons.email_outlined,
+                    label: 'unzelawaseem3@gmail.com'),
                 SizedBox(height: 8),
-                _ContactRow(icon: Icons.phone_outlined, label: '+92 316 2705226'),
+                _ContactRow(
+                    icon: Icons.phone_outlined, label: '+92 316 2705226'),
                 SizedBox(height: 8),
-                _ContactRow(icon: Icons.location_on_outlined, label: 'North Karachi, Pakistan'),
+                _ContactRow(
+                    icon: Icons.location_on_outlined,
+                    label: 'North Karachi, Pakistan'),
               ],
             ),
           ),
@@ -629,14 +663,22 @@ class _AboutScreen extends StatelessWidget {
             ),
             child: Column(
               children: [
-                const Icon(Icons.verified_rounded, color: Color(0xFF00E5FF), size: 24),
+                const Icon(Icons.verified_rounded,
+                    color: Color(0xFF00E5FF), size: 24),
                 const SizedBox(height: 6),
-                const Text('Version 1.0.0', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
+                const Text('Version 1.0.0',
+                    style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 13)),
                 const SizedBox(height: 4),
                 Text(
                   '© 2024 Fandom Verse Pocket Edition\nAll content is original and created for this project.',
                   textAlign: TextAlign.center,
-                  style: TextStyle(color: Colors.white.withValues(alpha: 0.35), fontSize: 11, height: 1.5),
+                  style: TextStyle(
+                      color: Colors.white.withValues(alpha: 0.35),
+                      fontSize: 11,
+                      height: 1.5),
                 ),
               ],
             ),
@@ -648,33 +690,41 @@ class _AboutScreen extends StatelessWidget {
   }
 
   Widget _featureItem(String title, String desc) => Padding(
-    padding: const EdgeInsets.only(bottom: 8),
-    child: Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12),
-        color: Colors.white.withValues(alpha: 0.04),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.07)),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(title.substring(0, 2), style: const TextStyle(fontSize: 20)),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(title.substring(3), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 13)),
-                const SizedBox(height: 2),
-                Text(desc, style: const TextStyle(color: Colors.white54, fontSize: 11.5, height: 1.4)),
-              ],
-            ),
+        padding: const EdgeInsets.only(bottom: 8),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            color: Colors.white.withValues(alpha: 0.04),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.07)),
           ),
-        ],
-      ),
-    ),
-  );
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(title.substring(0, 2), style: const TextStyle(fontSize: 20)),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(title.substring(3),
+                        style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 13)),
+                    const SizedBox(height: 2),
+                    Text(desc,
+                        style: const TextStyle(
+                            color: Colors.white54,
+                            fontSize: 11.5,
+                            height: 1.4)),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
 }
 
 class _ContactRow extends StatelessWidget {
@@ -684,11 +734,12 @@ class _ContactRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Row(
-    children: [
-      Icon(icon, size: 18, color: const Color(0xFF00E5FF)),
-      const SizedBox(width: 10),
-      Expanded(child: Text(label, style: const TextStyle(color: Colors.white70, fontSize: 13))),
-    ],
-  );
+        children: [
+          Icon(icon, size: 18, color: const Color(0xFF00E5FF)),
+          const SizedBox(width: 10),
+          Expanded(
+              child: Text(label,
+                  style: const TextStyle(color: Colors.white70, fontSize: 13))),
+        ],
+      );
 }
-

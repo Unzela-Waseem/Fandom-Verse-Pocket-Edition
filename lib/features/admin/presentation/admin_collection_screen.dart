@@ -285,7 +285,8 @@ class _AdminCollectionScreenState extends State<AdminCollectionScreen> {
                   Padding(
                     padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
                     child: TextField(
-                      onChanged: (value) => setState(() => _query = value.trim()),
+                      onChanged: (value) =>
+                          setState(() => _query = value.trim()),
                       decoration: const InputDecoration(
                         prefixIcon: Icon(Icons.search),
                         labelText: 'Search',
@@ -296,153 +297,172 @@ class _AdminCollectionScreenState extends State<AdminCollectionScreen> {
                     child: _loading && _records.isEmpty
                         ? const Center(child: CircularProgressIndicator())
                         : filtered.isEmpty
-                  ? const Center(child: Text('No matching records.'))
-                  : ListView.builder(
-                      padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
-                      itemCount: filtered.length + (_hasMore ? 1 : 0),
-                      itemBuilder: (context, index) {
-                        if (index == filtered.length) {
-                          return Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                            child: TextButton.icon(
-                              onPressed: _loading ? null : _loadPage,
-                              icon: _loading
-                                  ? const SizedBox.square(
-                                      dimension: 16,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2,
+                            ? const Center(child: Text('No matching records.'))
+                            : ListView.builder(
+                                padding:
+                                    const EdgeInsets.fromLTRB(16, 8, 16, 100),
+                                itemCount: filtered.length + (_hasMore ? 1 : 0),
+                                itemBuilder: (context, index) {
+                                  if (index == filtered.length) {
+                                    return Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                          vertical: 12),
+                                      child: TextButton.icon(
+                                        onPressed: _loading ? null : _loadPage,
+                                        icon: _loading
+                                            ? const SizedBox.square(
+                                                dimension: 16,
+                                                child:
+                                                    CircularProgressIndicator(
+                                                  strokeWidth: 2,
+                                                ),
+                                              )
+                                            : const Icon(Icons.expand_more),
+                                        label: const Text('Load more'),
                                       ),
-                                    )
-                                  : const Icon(Icons.expand_more),
-                              label: const Text('Load more'),
-                            ),
-                          );
-                        }
-                        final record = filtered[index];
-                        final data = record.data();
-                        final imageUrl = data['imageUrl'] as String?;
-                        final videoUrl = data['videoUrl'] as String?;
-                        final hasMedia =
-                            isHttpsMediaUrl(imageUrl) ||
-                            isHttpsMediaUrl(videoUrl);
+                                    );
+                                  }
+                                  final record = filtered[index];
+                                  final data = record.data();
+                                  final imageUrl = data['imageUrl'] as String?;
+                                  final videoUrl = data['videoUrl'] as String?;
+                                  final hasMedia = isHttpsMediaUrl(imageUrl) ||
+                                      isHttpsMediaUrl(videoUrl);
 
-                        return Card(
-                          margin: const EdgeInsets.only(bottom: 8),
-                          child: ListTile(
-                            leading: hasMedia
-                                ? ClipRRect(
-                                    borderRadius: BorderRadius.circular(8),
-                                    child: SizedBox(
-                                      width: 48,
-                                      height: 48,
-                                      child: Stack(
-                                        fit: StackFit.expand,
-                                        children: [
-                                          RemoteMediaImage(
-                                            url: imageUrl,
-                                            videoUrlForPoster: videoUrl,
-                                          ),
-                                          if (isHttpsMediaUrl(videoUrl))
-                                            const Center(
-                                              child: CircleAvatar(
-                                                radius: 10,
-                                                backgroundColor: Colors.black54,
-                                                child: Icon(
-                                                  Icons.play_arrow,
-                                                  size: 14,
-                                                  color: Colors.white,
+                                  return Card(
+                                    margin: const EdgeInsets.only(bottom: 8),
+                                    child: ListTile(
+                                      leading: hasMedia
+                                          ? ClipRRect(
+                                              borderRadius:
+                                                  BorderRadius.circular(8),
+                                              child: SizedBox(
+                                                width: 48,
+                                                height: 48,
+                                                child: Stack(
+                                                  fit: StackFit.expand,
+                                                  children: [
+                                                    RemoteMediaImage(
+                                                      url: imageUrl,
+                                                      videoUrlForPoster:
+                                                          videoUrl,
+                                                    ),
+                                                    if (isHttpsMediaUrl(
+                                                        videoUrl))
+                                                      const Center(
+                                                        child: CircleAvatar(
+                                                          radius: 10,
+                                                          backgroundColor:
+                                                              Colors.black54,
+                                                          child: Icon(
+                                                            Icons.play_arrow,
+                                                            size: 14,
+                                                            color: Colors.white,
+                                                          ),
+                                                        ),
+                                                      ),
+                                                  ],
                                                 ),
                                               ),
+                                            )
+                                          : CircleAvatar(
+                                              backgroundColor: Theme.of(
+                                                context,
+                                              ).colorScheme.primaryContainer,
+                                              child: Icon(
+                                                widget.config.collection ==
+                                                        'content'
+                                                    ? Icons.article_outlined
+                                                    : widget.config
+                                                                .collection ==
+                                                            'events'
+                                                        ? Icons.event_outlined
+                                                        : widget.config
+                                                                    .collection ==
+                                                                'merchandise'
+                                                            ? Icons
+                                                                .shopping_bag_outlined
+                                                            : Icons
+                                                                .category_outlined,
+                                                color: Theme.of(
+                                                  context,
+                                                ).colorScheme.primary,
+                                                size: 20,
+                                              ),
+                                            ),
+                                      title: Text(
+                                        data[widget.config.primaryField]
+                                                ?.toString() ??
+                                            'Untitled',
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.w800,
+                                        ),
+                                      ),
+                                      subtitle: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            record.id,
+                                            style:
+                                                const TextStyle(fontSize: 11),
+                                          ),
+                                          if (data['updatedAt'] is Timestamp)
+                                            Text(
+                                              _formatTs(data['updatedAt']
+                                                  as Timestamp),
+                                              style:
+                                                  const TextStyle(fontSize: 11),
                                             ),
                                         ],
                                       ),
+                                      isThreeLine: true,
+                                      onTap: () async {
+                                        await _openEditor(record);
+                                        await _refresh();
+                                      },
+                                      trailing: PopupMenuButton<String>(
+                                        onSelected: (action) async {
+                                          if (action == 'edit') {
+                                            await _openEditor(record);
+                                            await _refresh();
+                                          }
+                                          if (action == 'delete') {
+                                            await _delete(record);
+                                            await _refresh();
+                                          }
+                                        },
+                                        itemBuilder: (_) => const [
+                                          PopupMenuItem(
+                                            value: 'edit',
+                                            child: ListTile(
+                                              leading:
+                                                  Icon(Icons.edit_outlined),
+                                              title: Text('Edit'),
+                                              dense: true,
+                                              contentPadding: EdgeInsets.zero,
+                                            ),
+                                          ),
+                                          PopupMenuItem(
+                                            value: 'delete',
+                                            child: ListTile(
+                                              leading:
+                                                  Icon(Icons.delete_outline),
+                                              title: Text('Delete'),
+                                              dense: true,
+                                              contentPadding: EdgeInsets.zero,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
                                     ),
-                                  )
-                                : CircleAvatar(
-                                    backgroundColor: Theme.of(
-                                      context,
-                                    ).colorScheme.primaryContainer,
-                                    child: Icon(
-                                      widget.config.collection == 'content'
-                                          ? Icons.article_outlined
-                                          : widget.config.collection == 'events'
-                                          ? Icons.event_outlined
-                                          : widget.config.collection ==
-                                                'merchandise'
-                                          ? Icons.shopping_bag_outlined
-                                          : Icons.category_outlined,
-                                      color: Theme.of(
-                                        context,
-                                      ).colorScheme.primary,
-                                      size: 20,
-                                    ),
-                                  ),
-                            title: Text(
-                              data[widget.config.primaryField]?.toString() ??
-                                  'Untitled',
-                              style: const TextStyle(
-                                fontWeight: FontWeight.w800,
+                                  );
+                                },
                               ),
-                            ),
-                            subtitle: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  record.id,
-                                  style: const TextStyle(fontSize: 11),
-                                ),
-                                if (data['updatedAt'] is Timestamp)
-                                  Text(
-                                    _formatTs(data['updatedAt'] as Timestamp),
-                                    style: const TextStyle(fontSize: 11),
-                                  ),
-                              ],
-                            ),
-                            isThreeLine: true,
-                            onTap: () async {
-                              await _openEditor(record);
-                              await _refresh();
-                            },
-                            trailing: PopupMenuButton<String>(
-                              onSelected: (action) async {
-                                if (action == 'edit') {
-                                  await _openEditor(record);
-                                  await _refresh();
-                                }
-                                if (action == 'delete') {
-                                  await _delete(record);
-                                  await _refresh();
-                                }
-                              },
-                              itemBuilder: (_) => const [
-                                PopupMenuItem(
-                                  value: 'edit',
-                                  child: ListTile(
-                                    leading: Icon(Icons.edit_outlined),
-                                    title: Text('Edit'),
-                                    dense: true,
-                                    contentPadding: EdgeInsets.zero,
-                                  ),
-                                ),
-                                PopupMenuItem(
-                                  value: 'delete',
-                                  child: ListTile(
-                                    leading: Icon(Icons.delete_outline),
-                                    title: Text('Delete'),
-                                    dense: true,
-                                    contentPadding: EdgeInsets.zero,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        );
-                      },
-                    ),
+                  ),
+                ],
+              ),
             ),
-          ],
-        ),
-      ),
           ),
         ],
       ),
@@ -796,10 +816,20 @@ class _AdminRecordEditorState extends State<_AdminRecordEditor> {
       data['updatedAt'] = FieldValue.serverTimestamp();
       data['updatedBy'] = user.uid;
 
-      final reference =
-          widget.reference ??
+      final reference = widget.reference ??
           FirebaseFirestore.instance.collection(widget.config.collection).doc();
       final isCreate = widget.reference == null;
+      final newPrice = data['price'] as num?;
+      final priceDropped = widget.config.enablePriceDropTrigger &&
+          !isCreate &&
+          newPrice != null &&
+          _oldPrice != null &&
+          newPrice < _oldPrice!;
+      if (priceDropped) {
+        // Persist this on the merchandise record so a fan who opens the app
+        // after the admin edit can still see a Spark-plan local alert.
+        data['previousPrice'] = _oldPrice;
+      }
       if (isCreate) {
         data['createdAt'] = FieldValue.serverTimestamp();
         data['createdBy'] = user.uid;
@@ -814,30 +844,14 @@ class _AdminRecordEditorState extends State<_AdminRecordEditor> {
         recordId: reference.id,
       );
 
-      // Price-drop: if price decreased, write a price_drop_events record so
-      // Cloud Functions / manual notification flow can pick it up.
-      if (widget.config.enablePriceDropTrigger && !isCreate) {
-        final newPrice = data['price'] as num?;
-        if (newPrice != null && _oldPrice != null && newPrice < _oldPrice!) {
-          final dropRef = FirebaseFirestore.instance
-              .collection('price_drop_events')
-              .doc();
-          batch.set(dropRef, {
-            'productId': reference.id,
-            'oldPrice': _oldPrice,
-            'newPrice': newPrice,
-            'triggeredBy': user.uid,
-            'createdAt': FieldValue.serverTimestamp(),
-            'notified': false,
-          });
-          addAdminAudit(
-            batch,
-            action:
-                'price-drop:${_oldPrice!.toStringAsFixed(2)}->${newPrice.toStringAsFixed(2)}',
-            collection: 'merchandise',
-            recordId: reference.id,
-          );
-        }
+      if (priceDropped) {
+        addAdminAudit(
+          batch,
+          action:
+              'price-drop:${_oldPrice!.toStringAsFixed(2)}->${newPrice.toStringAsFixed(2)}',
+          collection: 'merchandise',
+          recordId: reference.id,
+        );
       }
 
       await batch.commit();
@@ -964,12 +978,10 @@ class _AdminRecordEditorState extends State<_AdminRecordEditor> {
                                 decimal: true,
                               )
                             : null,
-                        minLines: field.type == AdminFieldType.multiline
-                            ? 3
-                            : 1,
-                        maxLines: field.type == AdminFieldType.multiline
-                            ? 6
-                            : 1,
+                        minLines:
+                            field.type == AdminFieldType.multiline ? 3 : 1,
+                        maxLines:
+                            field.type == AdminFieldType.multiline ? 6 : 1,
                         decoration: InputDecoration(labelText: field.label),
                         validator: (value) {
                           final text = value?.trim() ?? '';

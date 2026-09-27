@@ -4,16 +4,12 @@ import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../library/data/demo_catalog.dart';
 import '../../library/domain/library_models.dart';
 import '../../../core/media/offline_media_service.dart';
-import '../../../app/app.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart';
 
 class LibraryState {
   const LibraryState({
@@ -71,7 +67,7 @@ class LibraryController extends Notifier<LibraryState> {
   String _scope = 'preview';
   Future<void> _lastPersist = Future<void>.value();
   final List<StreamSubscription<QuerySnapshot<Map<String, dynamic>>>>
-  _cloudSubscriptions = [];
+      _cloudSubscriptions = [];
   bool _disposed = false;
   bool get _mounted => !_disposed;
 
@@ -187,26 +183,25 @@ class LibraryController extends Notifier<LibraryState> {
       'orders': snapshot.orders.map((order) => order.toJson()).toList(),
       'updatedAt': DateTime.now().toIso8601String(),
     });
-    _lastPersist = _lastPersist
-        .then((_) async {
-          final preferences = await SharedPreferences.getInstance();
-          await preferences.setString(_storageKey(scope), encoded);
-        })
-        .catchError((Object _) {
-          if (_mounted && scope == _scope) {
-            state = state.copyWith(syncFailed: true);
-          }
-        });
+    _lastPersist = _lastPersist.then((_) async {
+      final preferences = await SharedPreferences.getInstance();
+      await preferences.setString(_storageKey(scope), encoded);
+    }).catchError((Object _) {
+      if (_mounted && scope == _scope) {
+        state = state.copyWith(syncFailed: true);
+      }
+    });
     return _lastPersist;
   }
 
   CollectionReference<Map<String, dynamic>> _userCollection(
     String scope,
     String name,
-  ) => FirebaseFirestore.instance
-      .collection('users')
-      .doc(scope)
-      .collection(name);
+  ) =>
+      FirebaseFirestore.instance
+          .collection('users')
+          .doc(scope)
+          .collection(name);
 
   Future<void> _migrateLocalToCloud(String scope) async {
     final preferences = await SharedPreferences.getInstance();
@@ -414,25 +409,29 @@ class LibraryController extends Notifier<LibraryState> {
     final next = {...state.bookmarkedContent};
     final details = {...state.savedContent};
     final isAdding = !next.contains(id);
-    
+
     if (isAdding) {
       next.add(id);
       if (item != null) details[id] = item;
-      
+
       // Download media for offline use
       final offlineMedia = ref.read(offlineMediaServiceProvider);
-      if (item?.videoUrl != null) unawaited(offlineMedia.downloadMedia(item!.videoUrl));
-      if (item?.imageUrl != null) unawaited(offlineMedia.downloadMedia(item!.imageUrl));
+      if (item?.videoUrl != null)
+        unawaited(offlineMedia.downloadMedia(item!.videoUrl));
+      if (item?.imageUrl != null)
+        unawaited(offlineMedia.downloadMedia(item!.imageUrl));
     } else {
       next.remove(id);
       details.remove(id);
-      
+
       // Remove cached media to free storage
       final offlineMedia = ref.read(offlineMediaServiceProvider);
-      if (item?.videoUrl != null) unawaited(offlineMedia.removeMedia(item!.videoUrl));
-      if (item?.imageUrl != null) unawaited(offlineMedia.removeMedia(item!.imageUrl));
+      if (item?.videoUrl != null)
+        unawaited(offlineMedia.removeMedia(item!.videoUrl));
+      if (item?.imageUrl != null)
+        unawaited(offlineMedia.removeMedia(item!.imageUrl));
     }
-    
+
     state = state.copyWith(bookmarkedContent: next, savedContent: details);
     unawaited(_persist());
     _writeCloud(
@@ -472,50 +471,12 @@ class LibraryController extends Notifier<LibraryState> {
 
   void toggleWishlist(String id) {
     final next = {...state.wishlist};
-    final isAdding = !next.contains(id);
-    
-    if (isAdding) {
+    if (!next.contains(id)) {
       next.add(id);
-      // SIMULATE END-TO-END VERIFICATION: 
-      // Instead of relying on a real backend, simulate the price drop push 
-      // locally so it can be verified per SRS constraints.
-      Future.delayed(const Duration(seconds: 5), () async {
-        if (!state.wishlist.contains(id)) return;
-        
-        if (kIsWeb) {
-          scaffoldMessengerKey.currentState?.showSnackBar(
-            const SnackBar(
-              content: Text('🔔 Price Drop Alert! 🎉\nAn item in your wishlist just went on sale!'),
-              duration: Duration(seconds: 5),
-              backgroundColor: Color(0xFF26123D),
-            ),
-          );
-        } else {
-          final flnp = FlutterLocalNotificationsPlugin();
-          await flnp.show(
-            id.hashCode,
-            'Price Drop Alert! 🎉',
-            'An item in your wishlist just went on sale!',
-            const NotificationDetails(
-              android: AndroidNotificationDetails(
-                'fandomverse_channel',
-                'FandomVerse Notifications',
-                importance: Importance.max,
-                priority: Priority.high,
-              ),
-              iOS: DarwinNotificationDetails(
-                presentAlert: true,
-                presentBadge: true,
-                presentSound: true,
-              ),
-            ),
-          );
-        }
-      });
     } else {
       next.remove(id);
     }
-    
+
     state = state.copyWith(wishlist: next);
     unawaited(_persist());
     _writeCloud(
