@@ -459,7 +459,11 @@ class _ARPreviewScreenState extends ConsumerState<ARPreviewScreen> {
             top: 12,
             left: 16,
             right: 16,
-            child: Row(
+            child: Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              alignment: WrapAlignment.spaceBetween,
+              crossAxisAlignment: WrapCrossAlignment.center,
               children: [
                 Container(
                   padding: const EdgeInsets.symmetric(
@@ -485,9 +489,12 @@ class _ARPreviewScreenState extends ConsumerState<ARPreviewScreen> {
                         ),
                       ),
                       const SizedBox(width: 8),
-                      const Text(
-                        'AR available - scale may vary',
-                        style: TextStyle(
+                      Text(
+                        MediaQuery.textScalerOf(context).textScaleFactor > 1.2
+                            ? 'AR ready'
+                            : 'AR available - scale may vary',
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
                           color: Colors.white,
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
@@ -496,7 +503,6 @@ class _ARPreviewScreenState extends ConsumerState<ARPreviewScreen> {
                     ],
                   ),
                 ),
-                const Spacer(),
                 Container(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 10,
@@ -717,74 +723,97 @@ class _ARPreviewScreenState extends ConsumerState<ARPreviewScreen> {
                     ],
                   ),
                   const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: OutlinedButton.icon(
-                          onPressed: _showARHelpSheet,
-                          style: OutlinedButton.styleFrom(
-                            side: const BorderSide(color: Colors.white24),
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                          ),
-                          icon: const Icon(Icons.info_outline, size: 16),
-                          label: const Text('AR Instructions'),
+                  LayoutBuilder(
+                    builder: (context, constraints) {
+                      final helpButton = OutlinedButton.icon(
+                        onPressed: _showARHelpSheet,
+                        style: OutlinedButton.styleFrom(
+                          side: const BorderSide(color: Colors.white24),
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 12),
                         ),
-                      ),
-                      const SizedBox(width: 10),
-                      if (_activeProduct != null)
-                        Expanded(
-                          flex: 2,
-                          child: FilledButton.icon(
-                            onPressed: _activeProduct!.stock == 0
-                                ? null
-                                : () {
-                                    ref
-                                        .read(libraryProvider.notifier)
-                                        .addToCart(
-                                          _activeProduct!.id,
-                                          catalog: widget.catalog ??
-                                              [_activeProduct!],
-                                        );
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                        content: Text(
-                                          'Added ${_activeProduct!.name} to cart!',
+                        icon: const Icon(Icons.info_outline, size: 16),
+                        label: const Text('AR Instructions'),
+                      );
+                      final product = _activeProduct;
+                      final cartButton = product == null
+                          ? null
+                          : FilledButton.icon(
+                              onPressed: _activeProduct!.stock == 0
+                                  ? null
+                                  : () {
+                                      ref
+                                          .read(libraryProvider.notifier)
+                                          .addToCart(
+                                            _activeProduct!.id,
+                                            catalog: widget.catalog ??
+                                                [_activeProduct!],
+                                          );
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
+                                        SnackBar(
+                                          content: Text(
+                                            'Added ${_activeProduct!.name} to cart!',
+                                          ),
+                                          duration: const Duration(seconds: 2),
+                                          backgroundColor:
+                                              const Color(0xFF9333EA),
+                                          action: SnackBarAction(
+                                            label: 'View Cart',
+                                            textColor: Colors.white,
+                                            onPressed: () {
+                                              Navigator.of(context).push(
+                                                MaterialPageRoute<void>(
+                                                  builder: (_) =>
+                                                      const CartScreen(),
+                                                ),
+                                              );
+                                            },
+                                          ),
                                         ),
-                                        duration: const Duration(seconds: 2),
-                                        backgroundColor:
-                                            const Color(0xFF9333EA),
-                                        action: SnackBarAction(
-                                          label: 'View Cart',
-                                          textColor: Colors.white,
-                                          onPressed: () {
-                                            Navigator.of(context).push(
-                                              MaterialPageRoute<void>(
-                                                builder: (_) =>
-                                                    const CartScreen(),
-                                              ),
-                                            );
-                                          },
-                                        ),
-                                      ),
-                                    );
-                                  },
-                            style: FilledButton.styleFrom(
-                              backgroundColor: const Color(0xFFE879F9),
-                              foregroundColor: Colors.white,
-                              padding: const EdgeInsets.symmetric(vertical: 12),
-                            ),
-                            icon: const Icon(Icons.add_shopping_cart, size: 16),
-                            label: Text(
-                              _activeProduct!.stock == 0
-                                  ? 'Out of Stock'
-                                  : 'Add to Cart',
-                              style:
-                                  const TextStyle(fontWeight: FontWeight.bold),
-                            ),
-                          ),
-                        ),
-                    ],
+                                      );
+                                    },
+                              style: FilledButton.styleFrom(
+                                backgroundColor: const Color(0xFFE879F9),
+                                foregroundColor: Colors.white,
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 12),
+                              ),
+                              icon:
+                                  const Icon(Icons.add_shopping_cart, size: 16),
+                              label: Text(
+                                _activeProduct!.stock == 0
+                                    ? 'Out of Stock'
+                                    : 'Add to Cart',
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.bold),
+                              ),
+                            );
+                      final stackActions = constraints.maxWidth < 420 ||
+                          MediaQuery.textScalerOf(context).textScaleFactor >
+                              1.25;
+                      if (stackActions) {
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            helpButton,
+                            if (cartButton != null) ...[
+                              const SizedBox(height: 8),
+                              cartButton,
+                            ],
+                          ],
+                        );
+                      }
+                      return Row(
+                        children: [
+                          Expanded(child: helpButton),
+                          if (cartButton != null) ...[
+                            const SizedBox(width: 10),
+                            Expanded(flex: 2, child: cartButton),
+                          ],
+                        ],
+                      );
+                    },
                   ),
                 ],
               ),

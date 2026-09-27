@@ -79,8 +79,8 @@ class _FanShellState extends State<FanShell> {
     final profile = widget.profile;
     if (profile?.priceDropNotifications != true) return;
     try {
-      final settings = await FirebaseMessaging.instance
-          .getNotificationSettings();
+      final settings =
+          await FirebaseMessaging.instance.getNotificationSettings();
       if (settings.authorizationStatus == AuthorizationStatus.authorized ||
           settings.authorizationStatus == AuthorizationStatus.provisional) {
         if (FirebaseAuth.instance.currentUser?.uid == profile?.uid) {
@@ -223,21 +223,23 @@ class _HomeTab extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final catalog =
         ref.watch(contentCatalogProvider).asData?.value ?? contentCatalog;
-    final featured = catalog.where((item) => item.trending).toList().reversed.toList();
-    if (featured.isEmpty) featured.addAll(catalog.take(4).toList().reversed.toList());
+    final featured =
+        catalog.where((item) => item.trending).toList().reversed.toList();
+    if (featured.isEmpty)
+      featured.addAll(catalog.take(4).toList().reversed.toList());
     final categories = catalog.map((item) => item.category).toSet().toList();
 
     // Personalized fandom items based on profile.selectedFandoms
     final userFandoms = profile?.selectedFandoms ?? const [];
     final personalized = userFandoms.isNotEmpty
         ? catalog
-              .where(
-                (item) => userFandoms.any(
-                  (f) => f.toLowerCase() == item.category.toLowerCase(),
-                ),
-              )
-              .take(4)
-              .toList()
+            .where(
+              (item) => userFandoms.any(
+                (f) => f.toLowerCase() == item.category.toLowerCase(),
+              ),
+            )
+            .take(4)
+            .toList()
         : <ContentItem>[];
 
     return SafeArea(
@@ -287,7 +289,8 @@ class _HomeTab extends ConsumerWidget {
                   children: [
                     _TopBar(profile: profile, openExplore: openExplore),
                     const SizedBox(height: 18),
-                    _CharacterCarousel(featured: featured, openExplore: openExplore),
+                    _CharacterCarousel(
+                        featured: featured, openExplore: openExplore),
                     const SizedBox(height: 24),
                     _SectionTitle(
                       title: 'Explore fandoms',
@@ -376,12 +379,15 @@ class _FanDrawer extends StatelessWidget {
                 CircleAvatar(
                   radius: 30,
                   backgroundColor: const Color(0xFF180A2E),
-                  backgroundImage: profile?.avatarUrl != null && profile!.avatarUrl!.isNotEmpty
+                  backgroundImage: profile?.avatarUrl != null &&
+                          profile!.avatarUrl!.isNotEmpty
                       ? NetworkImage(profile!.avatarUrl!)
                       : null,
-                  child: profile?.avatarUrl == null || profile!.avatarUrl!.isEmpty
-                      ? const Icon(Icons.person, color: Color(0xFFE9D5FF), size: 32)
-                      : null,
+                  child:
+                      profile?.avatarUrl == null || profile!.avatarUrl!.isEmpty
+                          ? const Icon(Icons.person,
+                              color: Color(0xFFE9D5FF), size: 32)
+                          : null,
                 ),
                 const SizedBox(width: 16),
                 Expanded(
@@ -416,31 +422,39 @@ class _FanDrawer extends StatelessWidget {
           ),
           ListTile(
             leading: const Icon(Icons.info_outline, color: Color(0xFFC084FC)),
-            title: const Text('About Us', style: TextStyle(color: Colors.white)),
+            title:
+                const Text('About Us', style: TextStyle(color: Colors.white)),
             onTap: () {
               Navigator.pop(context);
-              Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const AboutUsScreen()));
+              Navigator.of(context).push(MaterialPageRoute<void>(
+                  builder: (_) => const AboutUsScreen()));
             },
           ),
           ListTile(
             leading: const Icon(Icons.mail_outline, color: Color(0xFFC084FC)),
-            title: const Text('Contact Us', style: TextStyle(color: Colors.white)),
+            title:
+                const Text('Contact Us', style: TextStyle(color: Colors.white)),
             onTap: () {
               Navigator.pop(context);
-              Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const ContactUsScreen()));
+              Navigator.of(context).push(MaterialPageRoute<void>(
+                  builder: (_) => const ContactUsScreen()));
             },
           ),
           ListTile(
-            leading: const Icon(Icons.privacy_tip_outlined, color: Color(0xFFC084FC)),
-            title: const Text('Privacy Policy', style: TextStyle(color: Colors.white)),
+            leading: const Icon(Icons.privacy_tip_outlined,
+                color: Color(0xFFC084FC)),
+            title: const Text('Privacy Policy',
+                style: TextStyle(color: Colors.white)),
             onTap: () {
               Navigator.pop(context);
-              Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const PrivacyPolicyScreen()));
+              Navigator.of(context).push(MaterialPageRoute<void>(
+                  builder: (_) => const PrivacyPolicyScreen()));
             },
           ),
           ListTile(
             leading: const Icon(Icons.settings, color: Color(0xFFC084FC)),
-            title: const Text('Settings', style: TextStyle(color: Colors.white)),
+            title:
+                const Text('Settings', style: TextStyle(color: Colors.white)),
             onTap: () {
               // TODO: Settings screen
               Navigator.pop(context);
@@ -450,7 +464,8 @@ class _FanDrawer extends StatelessWidget {
           const Divider(color: Colors.white12),
           ListTile(
             leading: const Icon(Icons.logout, color: Colors.redAccent),
-            title: const Text('Sign Out', style: TextStyle(color: Colors.redAccent)),
+            title: const Text('Sign Out',
+                style: TextStyle(color: Colors.redAccent)),
             onTap: () async {
               Navigator.pop(context);
               await FirebaseAuth.instance.signOut();
@@ -471,113 +486,129 @@ class _TopBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Row(
-    children: [
-      Builder(
-        builder: (context) => GestureDetector(
-          onTap: () => Scaffold.of(context).openDrawer(),
-          child: Container(
-            width: 44,
-            height: 44,
-            padding: const EdgeInsets.all(2),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(14),
-              gradient: const LinearGradient(
-                colors: [Color(0xFFA855F7), Color(0xFFD946EF)],
+        children: [
+          Builder(
+            builder: (context) => GestureDetector(
+              onTap: () => Scaffold.of(context).openDrawer(),
+              child: Container(
+                width: 44,
+                height: 44,
+                padding: const EdgeInsets.all(2),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(14),
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFFA855F7), Color(0xFFD946EF)],
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFFA855F7).withOpacity(0.4),
+                      blurRadius: 10,
+                      spreadRadius: 1,
+                    ),
+                  ],
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: Image.asset(
+                    'assets/images/logo.jpg',
+                    width: 40,
+                    height: 40,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) => const Icon(
+                      Icons.star_rounded,
+                      color: Colors.white,
+                      size: 24,
+                    ),
+                  ),
+                ),
               ),
-              boxShadow: [
-                BoxShadow(
-                  color: const Color(0xFFA855F7).withOpacity(0.4),
-                  blurRadius: 10,
-                  spreadRadius: 1,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Welcome back',
+                  style: TextStyle(
+                    color: Color(0xFFC084FC),
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                Text(
+                  profile?.displayName ?? 'Fandom Explorer',
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w900,
+                    fontSize: 17,
+                    color: Colors.white,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ],
             ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(12),
-              child: Image.asset(
-                'assets/images/logo.jpg',
-                width: 40,
-                height: 40,
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) => const Icon(
-                  Icons.star_rounded,
-                  color: Colors.white,
-                  size: 24,
+          ),
+          Container(
+            decoration: BoxDecoration(
+              color: const Color(0xFF1C0D38),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(
+                color: const Color(0xFFA855F7).withValues(alpha: 0.3),
+              ),
+            ),
+            child: PopupMenuButton<int>(
+              icon: const Icon(Icons.more_vert, color: Color(0xFFE9D5FF)),
+              color: const Color(0xFF1C0D38),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(14),
+                side: BorderSide(
+                    color: const Color(0xFFA855F7).withValues(alpha: 0.3)),
+              ),
+              offset: const Offset(0, 48),
+              onSelected: (value) {
+                if (value == 0) openExplore();
+                if (value == 1) {
+                  Navigator.of(context).push(MaterialPageRoute<void>(
+                      builder: (_) => const NotificationsScreen()));
+                }
+                if (value == 2) {
+                  Navigator.of(context).push(MaterialPageRoute<void>(
+                      builder: (_) => AiHelperScreen()));
+                }
+              },
+              itemBuilder: (context) => [
+                const PopupMenuItem(
+                  value: 0,
+                  child: Row(children: [
+                    Icon(Icons.search, color: Color(0xFFE9D5FF)),
+                    SizedBox(width: 12),
+                    Text('Explore & Search',
+                        style: TextStyle(color: Colors.white))
+                  ]),
                 ),
-              ),
+                const PopupMenuItem(
+                  value: 1,
+                  child: Row(children: [
+                    Icon(Icons.notifications_none, color: Color(0xFFE9D5FF)),
+                    SizedBox(width: 12),
+                    Text('Notifications', style: TextStyle(color: Colors.white))
+                  ]),
+                ),
+                const PopupMenuItem(
+                  value: 2,
+                  child: Row(children: [
+                    Icon(Icons.smart_toy_outlined, color: Color(0xFFE9D5FF)),
+                    SizedBox(width: 12),
+                    Text('AI Fan Helper', style: TextStyle(color: Colors.white))
+                  ]),
+                ),
+              ],
             ),
           ),
-        ),
-      ),
-      const SizedBox(width: 12),
-      Expanded(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Welcome back',
-              style: TextStyle(
-                color: Color(0xFFC084FC),
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            Text(
-              profile?.displayName ?? 'Fandom Explorer',
-              style: const TextStyle(
-                fontWeight: FontWeight.w900,
-                fontSize: 17,
-                color: Colors.white,
-              ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ],
-        ),
-      ),
-      Container(
-        decoration: BoxDecoration(
-          color: const Color(0xFF1C0D38),
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(
-            color: const Color(0xFFA855F7).withValues(alpha: 0.3),
-          ),
-        ),
-        child: PopupMenuButton<int>(
-          icon: const Icon(Icons.more_vert, color: Color(0xFFE9D5FF)),
-          color: const Color(0xFF1C0D38),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(14),
-            side: BorderSide(color: const Color(0xFFA855F7).withValues(alpha: 0.3)),
-          ),
-          offset: const Offset(0, 48),
-          onSelected: (value) {
-            if (value == 0) openExplore();
-            if (value == 1) {
-              Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const NotificationsScreen()));
-            }
-            if (value == 2) {
-              Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => AiHelperScreen()));
-            }
-          },
-          itemBuilder: (context) => [
-            const PopupMenuItem(
-              value: 0,
-              child: Row(children: [Icon(Icons.search, color: Color(0xFFE9D5FF)), SizedBox(width: 12), Text('Explore & Search', style: TextStyle(color: Colors.white))]),
-            ),
-            const PopupMenuItem(
-              value: 1,
-              child: Row(children: [Icon(Icons.notifications_none, color: Color(0xFFE9D5FF)), SizedBox(width: 12), Text('Notifications', style: TextStyle(color: Colors.white))]),
-            ),
-            const PopupMenuItem(
-              value: 2,
-              child: Row(children: [Icon(Icons.smart_toy_outlined, color: Color(0xFFE9D5FF)), SizedBox(width: 12), Text('AI Fan Helper', style: TextStyle(color: Colors.white))]),
-            ),
-          ],
-        ),
-      ),
-    ],
-  );
+        ],
+      );
 }
 
 class _StatsSection extends StatelessWidget {
@@ -760,11 +791,15 @@ class _CharacterCarouselState extends State<_CharacterCarousel> {
                             mainAxisAlignment: MainAxisAlignment.end,
                             children: [
                               Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 10, vertical: 5),
                                 decoration: BoxDecoration(
-                                  color: const Color(0xFFD946EF).withValues(alpha: 0.2),
+                                  color: const Color(0xFFD946EF)
+                                      .withValues(alpha: 0.2),
                                   borderRadius: BorderRadius.circular(8),
-                                  border: Border.all(color: const Color(0xFFD946EF).withValues(alpha: 0.5)),
+                                  border: Border.all(
+                                      color: const Color(0xFFD946EF)
+                                          .withValues(alpha: 0.5)),
                                 ),
                                 child: Text(
                                   item['category']!,
@@ -829,29 +864,29 @@ class _Pill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-    decoration: BoxDecoration(
-      gradient: const LinearGradient(
-        colors: [Color(0xFFA855F7), Color(0xFF7E22CE)],
-      ),
-      borderRadius: BorderRadius.circular(99),
-      boxShadow: [
-        BoxShadow(
-          color: const Color(0xFFA855F7).withValues(alpha: 0.4),
-          blurRadius: 8,
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            colors: [Color(0xFFA855F7), Color(0xFF7E22CE)],
+          ),
+          borderRadius: BorderRadius.circular(99),
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFFA855F7).withValues(alpha: 0.4),
+              blurRadius: 8,
+            ),
+          ],
         ),
-      ],
-    ),
-    child: Text(
-      label,
-      style: const TextStyle(
-        color: Colors.white,
-        fontWeight: FontWeight.w900,
-        fontSize: 10,
-        letterSpacing: 0.6,
-      ),
-    ),
-  );
+        child: Text(
+          label,
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.w900,
+            fontSize: 10,
+            letterSpacing: 0.6,
+          ),
+        ),
+      );
 }
 
 class _SectionTitle extends StatelessWidget {
@@ -898,13 +933,20 @@ class _CategoryAvatar extends StatelessWidget {
 
   IconData _getIcon(String cat) {
     switch (cat.toLowerCase()) {
-      case 'anime': return Icons.bolt;
-      case 'gaming': return Icons.sports_esports;
-      case 'sci-fi': return Icons.rocket_launch;
-      case 'comics': return Icons.auto_awesome;
-      case 'fantasy': return Icons.castle;
-      case 'art': return Icons.palette;
-      default: return Icons.auto_stories_outlined;
+      case 'anime':
+        return Icons.bolt;
+      case 'gaming':
+        return Icons.sports_esports;
+      case 'sci-fi':
+        return Icons.rocket_launch;
+      case 'comics':
+        return Icons.auto_awesome;
+      case 'fantasy':
+        return Icons.castle;
+      case 'art':
+        return Icons.palette;
+      default:
+        return Icons.auto_stories_outlined;
     }
   }
 
@@ -1061,10 +1103,8 @@ class _StoryCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final bookmarked = ref
-        .watch(libraryProvider)
-        .bookmarkedContent
-        .contains(item.id);
+    final bookmarked =
+        ref.watch(libraryProvider).bookmarkedContent.contains(item.id);
 
     final theme = _getThemeForItem(item);
     final List<Color> colors = theme['gradient'] as List<Color>;
@@ -1133,58 +1173,77 @@ class _StoryCard extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 7,
-                          vertical: 3,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.black.withValues(alpha: 0.7),
-                          borderRadius: BorderRadius.circular(6),
-                          border: Border.all(
-                            color: accent.withValues(alpha: 0.5),
-                          ),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(typeIcon, size: 11, color: accent),
-                            const SizedBox(width: 4),
-                            Text(
-                              item.type.name.toUpperCase(),
-                              style: TextStyle(
-                                color: accent,
-                                fontSize: 9,
-                                fontWeight: FontWeight.w900,
+                  SizedBox(
+                    height: 32,
+                    child: Stack(
+                      children: [
+                        Positioned(
+                          top: 0,
+                          left: 0,
+                          right: 40,
+                          child: Align(
+                            alignment: Alignment.topLeft,
+                            child: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              alignment: Alignment.topLeft,
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 7,
+                                  vertical: 3,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.black.withValues(alpha: 0.7),
+                                  borderRadius: BorderRadius.circular(6),
+                                  border: Border.all(
+                                    color: accent.withValues(alpha: 0.5),
+                                  ),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(typeIcon, size: 11, color: accent),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      item.type.name.toUpperCase(),
+                                      style: TextStyle(
+                                        color: accent,
+                                        fontSize: 9,
+                                        fontWeight: FontWeight.w900,
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
-                          ],
+                          ),
                         ),
-                      ),
-                      IconButton.filledTonal(
-                        constraints: const BoxConstraints(
-                          minWidth: 32,
-                          minHeight: 32,
+                        Positioned(
+                          top: 0,
+                          right: 0,
+                          child: IconButton.filledTonal(
+                            constraints: const BoxConstraints(
+                              minWidth: 32,
+                              minHeight: 32,
+                            ),
+                            padding: EdgeInsets.zero,
+                            tooltip:
+                                bookmarked ? 'Remove bookmark' : 'Save offline',
+                            onPressed: () => ref
+                                .read(libraryProvider.notifier)
+                                .toggleBookmark(item.id, item: item),
+                            icon: Icon(
+                              bookmarked
+                                  ? Icons.bookmark
+                                  : Icons.bookmark_border,
+                              size: 17,
+                              color: bookmarked
+                                  ? const Color(0xFFE879F9)
+                                  : Colors.white70,
+                            ),
+                          ),
                         ),
-                        padding: EdgeInsets.zero,
-                        tooltip: bookmarked
-                            ? 'Remove bookmark'
-                            : 'Save offline',
-                        onPressed: () => ref
-                            .read(libraryProvider.notifier)
-                            .toggleBookmark(item.id, item: item),
-                        icon: Icon(
-                          bookmarked ? Icons.bookmark : Icons.bookmark_border,
-                          size: 17,
-                          color: bookmarked
-                              ? const Color(0xFFE879F9)
-                              : Colors.white70,
-                        ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                   const Spacer(),
                   Text(
@@ -1331,7 +1390,10 @@ class _TrendingFandomCarouselState extends State<_TrendingFandomCarousel> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // Section header
-        Row(
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          crossAxisAlignment: WrapCrossAlignment.center,
           children: [
             Container(
               padding: const EdgeInsets.all(6),
@@ -1354,13 +1416,13 @@ class _TrendingFandomCarouselState extends State<_TrendingFandomCarousel> {
                 color: Colors.white,
               ),
             ),
-            const Spacer(),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
               decoration: BoxDecoration(
                 color: const Color(0xFFD946EF).withValues(alpha: 0.12),
                 borderRadius: BorderRadius.circular(99),
-                border: Border.all(color: const Color(0xFFD946EF).withValues(alpha: 0.3)),
+                border: Border.all(
+                    color: const Color(0xFFD946EF).withValues(alpha: 0.3)),
               ),
               child: const Text(
                 'LIVE',
@@ -1377,7 +1439,9 @@ class _TrendingFandomCarouselState extends State<_TrendingFandomCarousel> {
         const SizedBox(height: 14),
         // Carousel
         SizedBox(
-          height: 220,
+          // The card header can wrap on narrow displays, so reserve enough
+          // vertical space rather than clipping the final content row.
+          height: 242,
           child: PageView.builder(
             controller: _controller,
             itemCount: _trendingCards.length,
@@ -1425,7 +1489,9 @@ class _TrendingFandomCarouselState extends State<_TrendingFandomCarousel> {
                             alignment: Alignment.center,
                             errorBuilder: (_, __, ___) => Container(
                               color: const Color(0xFF1A0B2E),
-                              child: Icon(icon, size: 80, color: accent.withValues(alpha: 0.2)),
+                              child: Icon(icon,
+                                  size: 80,
+                                  color: accent.withValues(alpha: 0.2)),
                             ),
                           ),
                           // Premium Glassmorphic Gradient overlay
@@ -1437,7 +1503,11 @@ class _TrendingFandomCarouselState extends State<_TrendingFandomCarousel> {
                                 child: Container(
                                   height: 115,
                                   decoration: BoxDecoration(
-                                    border: Border(top: BorderSide(color: accent.withValues(alpha: 0.3), width: 1)),
+                                    border: Border(
+                                        top: BorderSide(
+                                            color:
+                                                accent.withValues(alpha: 0.3),
+                                            width: 1)),
                                     gradient: LinearGradient(
                                       begin: Alignment.topCenter,
                                       end: Alignment.bottomCenter,
@@ -1460,7 +1530,10 @@ class _TrendingFandomCarouselState extends State<_TrendingFandomCarousel> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 // Top row: tag + icon
-                                Row(
+                                Wrap(
+                                  spacing: 8,
+                                  runSpacing: 6,
+                                  crossAxisAlignment: WrapCrossAlignment.center,
                                   children: [
                                     Container(
                                       padding: const EdgeInsets.symmetric(
@@ -1468,7 +1541,8 @@ class _TrendingFandomCarouselState extends State<_TrendingFandomCarousel> {
                                         vertical: 5,
                                       ),
                                       decoration: BoxDecoration(
-                                        color: Colors.black.withValues(alpha: 0.55),
+                                        color: Colors.black
+                                            .withValues(alpha: 0.55),
                                         borderRadius: BorderRadius.circular(99),
                                         border: Border.all(
                                           color: accent.withValues(alpha: 0.7),
@@ -1478,7 +1552,8 @@ class _TrendingFandomCarouselState extends State<_TrendingFandomCarousel> {
                                       child: Row(
                                         mainAxisSize: MainAxisSize.min,
                                         children: [
-                                          Icon(Icons.local_fire_department, color: accent, size: 11),
+                                          Icon(Icons.local_fire_department,
+                                              color: accent, size: 11),
                                           const SizedBox(width: 4),
                                           Text(
                                             card['tag'] as String,
@@ -1492,19 +1567,22 @@ class _TrendingFandomCarouselState extends State<_TrendingFandomCarousel> {
                                         ],
                                       ),
                                     ),
-                                    const Spacer(),
                                     // Members badge
                                     Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 8, vertical: 4),
                                       decoration: BoxDecoration(
-                                        color: Colors.black.withValues(alpha: 0.6),
+                                        color:
+                                            Colors.black.withValues(alpha: 0.6),
                                         borderRadius: BorderRadius.circular(99),
-                                        border: Border.all(color: Colors.white24),
+                                        border:
+                                            Border.all(color: Colors.white24),
                                       ),
                                       child: Row(
                                         mainAxisSize: MainAxisSize.min,
                                         children: [
-                                          const Icon(Icons.people, color: Colors.white70, size: 11),
+                                          const Icon(Icons.people,
+                                              color: Colors.white70, size: 11),
                                           const SizedBox(width: 4),
                                           Text(
                                             card['members'] as String,
@@ -1546,7 +1624,8 @@ class _TrendingFandomCarouselState extends State<_TrendingFandomCarousel> {
                                     color: Colors.white,
                                     height: 1.15,
                                     shadows: [
-                                      Shadow(color: Colors.black87, blurRadius: 8),
+                                      Shadow(
+                                          color: Colors.black87, blurRadius: 8),
                                     ],
                                   ),
                                 ),
@@ -1567,15 +1646,20 @@ class _TrendingFandomCarouselState extends State<_TrendingFandomCarousel> {
                                 Row(
                                   children: [
                                     Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 12, vertical: 6),
                                       decoration: BoxDecoration(
                                         gradient: LinearGradient(
-                                          colors: [accent, accent.withValues(alpha: 0.6)],
+                                          colors: [
+                                            accent,
+                                            accent.withValues(alpha: 0.6)
+                                          ],
                                         ),
                                         borderRadius: BorderRadius.circular(99),
                                         boxShadow: [
                                           BoxShadow(
-                                            color: accent.withValues(alpha: 0.4),
+                                            color:
+                                                accent.withValues(alpha: 0.4),
                                             blurRadius: 10,
                                           ),
                                         ],
@@ -1592,7 +1676,8 @@ class _TrendingFandomCarouselState extends State<_TrendingFandomCarousel> {
                                             ),
                                           ),
                                           SizedBox(width: 4),
-                                          Icon(Icons.arrow_forward, color: Colors.white, size: 12),
+                                          Icon(Icons.arrow_forward,
+                                              color: Colors.white, size: 12),
                                         ],
                                       ),
                                     ),
@@ -1686,7 +1771,8 @@ class _HubQuickCards extends StatelessWidget {
                   Positioned(
                     right: -15,
                     bottom: -15,
-                    child: Icon(Icons.eco, size: 90, color: Colors.white.withValues(alpha: 0.04)),
+                    child: Icon(Icons.eco,
+                        size: 90, color: Colors.white.withValues(alpha: 0.04)),
                   ),
                   Padding(
                     padding: const EdgeInsets.all(16),
@@ -1712,7 +1798,8 @@ class _HubQuickCards extends StatelessWidget {
                         SizedBox(height: 4),
                         Text(
                           'Terminology glossary & stories for new fans.',
-                          style: TextStyle(fontSize: 11, color: Colors.white70, height: 1.3),
+                          style: TextStyle(
+                              fontSize: 11, color: Colors.white70, height: 1.3),
                         ),
                       ],
                     ),
@@ -1755,7 +1842,8 @@ class _HubQuickCards extends StatelessWidget {
                   Positioned(
                     right: -15,
                     bottom: -15,
-                    child: Icon(Icons.psychology, size: 90, color: Colors.white.withValues(alpha: 0.04)),
+                    child: Icon(Icons.psychology,
+                        size: 90, color: Colors.white.withValues(alpha: 0.04)),
                   ),
                   Padding(
                     padding: const EdgeInsets.all(16),
@@ -1781,7 +1869,8 @@ class _HubQuickCards extends StatelessWidget {
                         SizedBox(height: 4),
                         Text(
                           'Hidden trivia, advanced lore & creator interviews.',
-                          style: TextStyle(fontSize: 11, color: Colors.white70, height: 1.3),
+                          style: TextStyle(
+                              fontSize: 11, color: Colors.white70, height: 1.3),
                         ),
                       ],
                     ),
