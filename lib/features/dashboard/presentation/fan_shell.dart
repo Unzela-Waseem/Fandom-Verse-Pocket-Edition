@@ -955,78 +955,71 @@ class _CategoryAvatar extends StatelessWidget {
   final String category;
   final VoidCallback onTap;
 
-  IconData _getIcon(String cat) {
+  Map<String, dynamic> _getCategoryStyle(String cat) {
     switch (cat.toLowerCase()) {
       case 'anime':
-        return Icons.bolt;
+        return {'icon': Icons.bolt, 'color': const Color(0xFFFF9800), 'bg': const Color(0xFF2E1A0A)};
       case 'gaming':
-        return Icons.sports_esports;
+        return {'icon': Icons.sports_esports, 'color': const Color(0xFFAB47BC), 'bg': const Color(0xFF24132B)};
       case 'sci-fi':
-        return Icons.rocket_launch;
+        return {'icon': Icons.rocket_launch, 'color': const Color(0xFF29B6F6), 'bg': const Color(0xFF0C2133)};
       case 'comics':
-        return Icons.auto_awesome;
+        return {'icon': Icons.auto_awesome, 'color': const Color(0xFFEF5350), 'bg': const Color(0xFF331212)};
       case 'fantasy':
-        return Icons.castle;
+        return {'icon': Icons.castle, 'color': const Color(0xFFFFD54F), 'bg': const Color(0xFF332A0C)};
       case 'art':
-        return Icons.palette;
+        return {'icon': Icons.palette, 'color': const Color(0xFF26A69A), 'bg': const Color(0xFF0A2B27)};
       default:
-        return Icons.auto_stories_outlined;
+        return {'icon': Icons.auto_stories_outlined, 'color': const Color(0xFFFFD740), 'bg': const Color(0xFF24232B)};
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final icon = _getIcon(category);
-    return GestureDetector(
+    final style = _getCategoryStyle(category);
+    final IconData icon = style['icon'] as IconData;
+    final Color color = style['color'] as Color;
+    final Color bg = style['bg'] as Color;
+
+    return InkWell(
       onTap: onTap,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 60,
-            height: 60,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              gradient: const LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [Color(0xBB9333EA), Color(0x446B21A8)],
+      borderRadius: BorderRadius.circular(40),
+      child: SizedBox(
+        width: 76,
+        child: Column(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(2.5),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(color: color, width: 2),
+                boxShadow: [
+                  BoxShadow(
+                    color: color.withValues(alpha: 0.25),
+                    blurRadius: 8,
+                    spreadRadius: 1,
+                  ),
+                ],
               ),
-              boxShadow: [
-                BoxShadow(
-                  color: const Color(0xFFA855F7).withValues(alpha: 0.35),
-                  blurRadius: 18,
-                  offset: const Offset(0, 6),
+              child: CircleAvatar(
+                radius: 27,
+                backgroundColor: bg,
+                child: Icon(
+                  icon,
+                  color: color,
+                  size: 26,
                 ),
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.5),
-                  blurRadius: 12,
-                  offset: const Offset(0, 0),
-                  blurStyle: BlurStyle.inner,
-                ),
-              ],
-              border: Border.all(
-                color: const Color(0xFFE879F9).withValues(alpha: 0.8),
-                width: 2,
               ),
             ),
-            child: Center(
-              child: Icon(icon, color: Colors.white, size: 26),
+            const SizedBox(height: 6),
+            Text(
+              category.toUpperCase(),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w900, letterSpacing: 1.2),
             ),
-          ),
-          const SizedBox(height: 10),
-          Text(
-            category.toUpperCase(),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
-              fontSize: 10,
-              fontWeight: FontWeight.w900,
-              color: Colors.white,
-              letterSpacing: 1.2,
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -1042,38 +1035,38 @@ class _StoryCard extends ConsumerWidget {
       case 'anime':
         return {
           'icon': Icons.bolt,
-          'gradient': [const Color(0xFF2A1005), const Color(0xFF120602)],
-          'accent': const Color(0xFFFFB74D),
+          'gradient': [const Color(0xFFD84315), const Color(0xFF1B0B07)],
+          'accent': const Color(0xFFFF8A65),
         };
       case 'gaming':
         return {
           'icon': Icons.sports_esports,
-          'gradient': [const Color(0xFF2B0936), const Color(0xFF12031A)],
-          'accent': const Color(0xFFE879F9),
+          'gradient': [const Color(0xFF6A1B9A), const Color(0xFF160A21)],
+          'accent': const Color(0xFFCE93D8),
         };
       case 'sci-fi':
         return {
           'icon': Icons.rocket_launch,
-          'gradient': [const Color(0xFF091E36), const Color(0xFF030D1A)],
-          'accent': const Color(0xFF38BDF8),
+          'gradient': [const Color(0xFF1565C0), const Color(0xFF071224)],
+          'accent': const Color(0xFF90CAF9),
         };
       case 'comics':
         return {
           'icon': Icons.auto_awesome,
-          'gradient': [const Color(0xFF330914), const Color(0xFF1A030A)],
-          'accent': const Color(0xFFF43F5E),
+          'gradient': [const Color(0xFFC62828), const Color(0xFF210909)],
+          'accent': const Color(0xFFEF9A9A),
         };
       case 'fantasy':
         return {
           'icon': Icons.castle,
-          'gradient': [const Color(0xFF2D1E04), const Color(0xFF140D01)],
-          'accent': const Color(0xFFFACC15),
+          'gradient': [const Color(0xFF4A148C), const Color(0xFF19072E)],
+          'accent': const Color(0xFFFFD54F),
         };
       case 'art':
         return {
           'icon': Icons.palette,
-          'gradient': [const Color(0xFF072924), const Color(0xFF021210)],
-          'accent': const Color(0xFF2DD4BF),
+          'gradient': [const Color(0xFF00695C), const Color(0xFF041A18)],
+          'accent': const Color(0xFF80CBC4),
         };
       default:
         return {
