@@ -63,7 +63,7 @@ class _StoreScreenState extends ConsumerState<StoreScreen> {
 
     final content = SafeArea(
       child: ListView(
-        padding: const EdgeInsets.fromLTRB(20, 18, 20, 24),
+        padding: const EdgeInsets.fromLTRB(20, 18, 20, 96),
         children: [
           Row(
             children: [
