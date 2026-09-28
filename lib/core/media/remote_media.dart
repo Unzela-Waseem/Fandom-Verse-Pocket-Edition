@@ -18,6 +18,17 @@ bool isHttpsMediaUrl(String? value) {
       uri.userInfo.isEmpty;
 }
 
+/// Bundled media is intentionally supported alongside Cloudinary HTTPS URLs.
+/// It lets core demo content work after installation without a network request.
+bool isAssetMediaUrl(String? value) {
+  final clean = value?.trim();
+  return clean != null && clean.startsWith('assets/');
+}
+
+bool isPlayableMediaUrl(String? value) {
+  return isHttpsMediaUrl(value) || isAssetMediaUrl(value);
+}
+
 String? getPosterUrlFromVideo(String? videoUrl) {
   if (videoUrl == null || !isHttpsMediaUrl(videoUrl)) return null;
   final clean = videoUrl.trim();
@@ -80,13 +91,23 @@ class _RemoteMediaImageState extends State<RemoteMediaImage> {
 
   @override
   Widget build(BuildContext context) {
+    final localAsset = isAssetMediaUrl(widget.url) ? widget.url!.trim() : null;
     final effectiveUrl = isHttpsMediaUrl(widget.url)
         ? widget.url!.trim()
         : getPosterUrlFromVideo(widget.videoUrlForPoster);
 
     final isTest = WidgetsBinding.instance.runtimeType.toString().contains(
-      'Test',
-    );
+          'Test',
+        );
+
+    if (localAsset != null) {
+      return Image.asset(
+        localAsset,
+        fit: widget.fit,
+        errorBuilder: (context, error, stackTrace) =>
+            Image.asset(AppAssets.multiverse, fit: widget.fit),
+      );
+    }
 
     if (isTest || effectiveUrl == null || !isHttpsMediaUrl(effectiveUrl)) {
       return Image.asset(AppAssets.multiverse, fit: widget.fit);
@@ -167,6 +188,15 @@ class _RemoteMediaVideoState extends State<RemoteMediaVideo> {
   }
 
   Future<void> _setupController() async {
+    if (isAssetMediaUrl(widget.url)) {
+      _controller = VideoPlayerController.asset(widget.url.trim());
+      try {
+        await _controller!.initialize();
+      } catch (_) {}
+      if (mounted) setState(() {});
+      return;
+    }
+
     final localPath = await OfflineMediaService().getLocalPath(widget.url);
     if (!mounted) return;
 
@@ -190,6 +220,7 @@ class _RemoteMediaVideoState extends State<RemoteMediaVideo> {
   }
 
   Future<void> _launchExternal() async {
+    if (isAssetMediaUrl(widget.url)) return;
     final uri = Uri.tryParse(widget.url.trim());
     if (uri != null && await canLaunchUrl(uri)) {
       await launchUrl(uri, mode: LaunchMode.externalApplication);

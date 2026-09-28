@@ -10,6 +10,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../library/data/demo_catalog.dart';
 import '../../library/domain/library_models.dart';
 import '../../../core/media/offline_media_service.dart';
+import '../../../core/media/remote_media.dart';
 
 class LibraryState {
   const LibraryState({
@@ -416,20 +417,24 @@ class LibraryController extends Notifier<LibraryState> {
 
       // Download media for offline use
       final offlineMedia = ref.read(offlineMediaServiceProvider);
-      if (item?.videoUrl != null)
+      if (isHttpsMediaUrl(item?.videoUrl)) {
         unawaited(offlineMedia.downloadMedia(item!.videoUrl));
-      if (item?.imageUrl != null)
+      }
+      if (isHttpsMediaUrl(item?.imageUrl)) {
         unawaited(offlineMedia.downloadMedia(item!.imageUrl));
+      }
     } else {
       next.remove(id);
       details.remove(id);
 
       // Remove cached media to free storage
       final offlineMedia = ref.read(offlineMediaServiceProvider);
-      if (item?.videoUrl != null)
+      if (isHttpsMediaUrl(item?.videoUrl)) {
         unawaited(offlineMedia.removeMedia(item!.videoUrl));
-      if (item?.imageUrl != null)
+      }
+      if (isHttpsMediaUrl(item?.imageUrl)) {
         unawaited(offlineMedia.removeMedia(item!.imageUrl));
+      }
     }
 
     state = state.copyWith(bookmarkedContent: next, savedContent: details);

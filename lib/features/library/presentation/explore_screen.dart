@@ -89,39 +89,34 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
       ...{for (final item in catalog) item.creator},
     ];
 
-    final results = catalog
-        .where((item) {
-          final query = _query.toLowerCase().trim();
-          final matchesQuery =
-              query.isEmpty ||
-              item.title.toLowerCase().contains(query) ||
-              item.summary.toLowerCase().contains(query) ||
-              item.body.toLowerCase().contains(query) ||
-              item.creator.toLowerCase().contains(query) ||
-              item.tags.any((tag) => tag.toLowerCase().contains(query));
+    final results = catalog.where((item) {
+      final query = _query.toLowerCase().trim();
+      final matchesQuery = query.isEmpty ||
+          item.title.toLowerCase().contains(query) ||
+          item.summary.toLowerCase().contains(query) ||
+          item.body.toLowerCase().contains(query) ||
+          item.creator.toLowerCase().contains(query) ||
+          item.tags.any((tag) => tag.toLowerCase().contains(query));
 
-          final matchesCategory =
-              _category == 'All' || item.category == _category;
+      final matchesCategory = _category == 'All' || item.category == _category;
 
-          final expectedType = _mapResourceNameToType(_resourceType);
-          final matchesType = expectedType == null || item.type == expectedType;
+      final expectedType = _mapResourceNameToType(_resourceType);
+      final matchesType = expectedType == null || item.type == expectedType;
 
-          final matchesCreator =
-              _selectedCreator == 'All' || item.creator == _selectedCreator;
+      final matchesCreator =
+          _selectedCreator == 'All' || item.creator == _selectedCreator;
 
-          final matchesTag =
-              _selectedTag == null ||
-              item.tags.any(
-                (tag) => tag.toLowerCase() == _selectedTag!.toLowerCase(),
-              );
+      final matchesTag = _selectedTag == null ||
+          item.tags.any(
+            (tag) => tag.toLowerCase() == _selectedTag!.toLowerCase(),
+          );
 
-          return matchesQuery &&
-              matchesCategory &&
-              matchesType &&
-              matchesCreator &&
-              matchesTag;
-        })
-        .toList(growable: false);
+      return matchesQuery &&
+          matchesCategory &&
+          matchesType &&
+          matchesCreator &&
+          matchesTag;
+    }).toList(growable: false);
 
     final library = ref.watch(libraryProvider);
 
@@ -642,8 +637,8 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
                               IconButton(
                                 tooltip:
                                     library.bookmarkedContent.contains(item.id)
-                                    ? 'Remove offline bookmark'
-                                    : 'Save offline',
+                                        ? 'Remove offline bookmark'
+                                        : 'Save offline',
                                 onPressed: () => ref
                                     .read(libraryProvider.notifier)
                                     .toggleBookmark(item.id, item: item),
@@ -651,10 +646,9 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
                                   library.bookmarkedContent.contains(item.id)
                                       ? Icons.bookmark
                                       : Icons.bookmark_border,
-                                  color:
-                                      library.bookmarkedContent.contains(
-                                        item.id,
-                                      )
+                                  color: library.bookmarkedContent.contains(
+                                    item.id,
+                                  )
                                       ? const Color(0xFFFFD740)
                                       : null,
                                 ),
@@ -753,19 +747,16 @@ class ContentDetailScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final saved = ref
-        .watch(libraryProvider)
-        .bookmarkedContent
-        .contains(item.id);
+    final saved =
+        ref.watch(libraryProvider).bookmarkedContent.contains(item.id);
 
     return Scaffold(
       appBar: AppBar(
         title: Text(item.category),
         actions: [
           IconButton(
-            tooltip: saved
-                ? 'Remove offline bookmark'
-                : 'Save for offline access',
+            tooltip:
+                saved ? 'Remove offline bookmark' : 'Save for offline access',
             onPressed: () => ref
                 .read(libraryProvider.notifier)
                 .toggleBookmark(item.id, item: item),
@@ -783,10 +774,10 @@ class ContentDetailScreen extends ConsumerWidget {
           GestureDetector(
             onTap: item.type == ContentType.gallery
                 ? () => _openFullScreenViewer(
-                    context,
-                    item.imageUrl ?? '',
-                    item.title,
-                  )
+                      context,
+                      item.imageUrl ?? '',
+                      item.title,
+                    )
                 : null,
             child: ClipRRect(
               borderRadius: BorderRadius.circular(24),
@@ -921,7 +912,7 @@ class ContentDetailScreen extends ConsumerWidget {
           ],
 
           // If Video: Render video player
-          if (isHttpsMediaUrl(item.videoUrl)) ...[
+          if (isPlayableMediaUrl(item.videoUrl)) ...[
             const SizedBox(height: 20),
             RemoteMediaVideo(url: item.videoUrl!),
           ] else if (item.type == ContentType.video) ...[
@@ -951,9 +942,8 @@ class ContentDetailScreen extends ConsumerWidget {
           const SizedBox(height: 22),
           Wrap(
             spacing: 8,
-            children: item.tags
-                .map((tag) => Chip(label: Text('#$tag')))
-                .toList(),
+            children:
+                item.tags.map((tag) => Chip(label: Text('#$tag'))).toList(),
           ),
 
           if (saved) ...[
@@ -1128,11 +1118,24 @@ class _GalleryGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final images = [
-      {'title': 'Primary Visual / Hero Poster', 'url': item.imageUrl ?? ''},
-      {'title': 'Character Concept Art', 'url': ''},
-      {'title': 'Environment Background Matte', 'url': ''},
-      {'title': 'Action Scene Keyframe', 'url': ''},
+    const galleryFallbacks = [
+      'assets/trending_anime.jpg',
+      'assets/trending_gaming.jpg',
+      'assets/trending_comics.jpg',
+      'assets/trending_scifi.jpg',
+      'assets/slide3_ai.jpg',
+      'assets/premium_bg.jpg',
+    ];
+    final uniqueUrls = <String>{
+      if (item.imageUrl != null && item.imageUrl!.trim().isNotEmpty)
+        item.imageUrl!.trim(),
+      ...galleryFallbacks.where((url) => url != item.imageUrl),
+    }.take(4).toList(growable: false);
+    const captions = [
+      'Primary Visual / Hero Poster',
+      'Character Concept Art',
+      'Environment Background Matte',
+      'Action Scene Keyframe',
     ];
 
     return GridView.builder(
@@ -1144,18 +1147,19 @@ class _GalleryGrid extends StatelessWidget {
         mainAxisSpacing: 10,
         childAspectRatio: 1.1,
       ),
-      itemCount: images.length,
+      itemCount: uniqueUrls.length,
       itemBuilder: (context, index) {
-        final img = images[index];
+        final url = uniqueUrls[index];
+        final caption = captions[index];
         return InkWell(
           borderRadius: BorderRadius.circular(14),
-          onTap: () => onImageTap(img['url']!, img['title']!),
+          onTap: () => onImageTap(url, caption),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(14),
             child: Stack(
               fit: StackFit.expand,
               children: [
-                RemoteMediaImage(url: img['url']),
+                RemoteMediaImage(url: url),
                 DecoratedBox(
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
@@ -1171,7 +1175,7 @@ class _GalleryGrid extends StatelessWidget {
                   right: 8,
                   bottom: 8,
                   child: Text(
-                    img['title']!,
+                    caption,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
@@ -1197,28 +1201,28 @@ class _EmptyResults extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.symmetric(vertical: 48),
-    child: Column(
-      children: [
-        const Icon(Icons.search_off, size: 54, color: Colors.white38),
-        const SizedBox(height: 12),
-        const Text(
-          'No content matches these filters.',
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+        padding: const EdgeInsets.symmetric(vertical: 48),
+        child: Column(
+          children: [
+            const Icon(Icons.search_off, size: 54, color: Colors.white38),
+            const SizedBox(height: 12),
+            const Text(
+              'No content matches these filters.',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+            ),
+            const SizedBox(height: 6),
+            const Text(
+              'Try clearing search keywords or choosing "All" categories.',
+              style: TextStyle(color: Colors.white54, fontSize: 13),
+            ),
+            if (onReset != null) ...[
+              const SizedBox(height: 16),
+              FilledButton.tonal(
+                onPressed: onReset,
+                child: const Text('Reset all filters'),
+              ),
+            ],
+          ],
         ),
-        const SizedBox(height: 6),
-        const Text(
-          'Try clearing search keywords or choosing "All" categories.',
-          style: TextStyle(color: Colors.white54, fontSize: 13),
-        ),
-        if (onReset != null) ...[
-          const SizedBox(height: 16),
-          FilledButton.tonal(
-            onPressed: onReset,
-            child: const Text('Reset all filters'),
-          ),
-        ],
-      ],
-    ),
-  );
+      );
 }
