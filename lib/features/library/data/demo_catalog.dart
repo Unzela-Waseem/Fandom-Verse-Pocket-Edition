@@ -373,7 +373,7 @@ final eventCatalog = [
     longitude: 73.0479,
     ticketUrl: '',
     isDemo: true,
-    imageUrl: 'assets/pc.jpeg',
+    imageUrl: 'assets/gaming.jpg',
   ),
 ];
 
