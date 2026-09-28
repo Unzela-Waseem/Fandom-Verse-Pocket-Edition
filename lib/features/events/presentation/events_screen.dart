@@ -655,7 +655,7 @@ class EventDetailScreen extends ConsumerWidget {
       body: ListView(
         padding: const EdgeInsets.all(20),
         children: [
-          if (event.imageUrl.isNotEmpty) ...[
+          if (event.imageUrl != null && event.imageUrl!.isNotEmpty) ...[
             ClipRRect(
               borderRadius: BorderRadius.circular(20),
               child: AspectRatio(
