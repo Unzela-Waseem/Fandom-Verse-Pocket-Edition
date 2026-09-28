@@ -248,8 +248,21 @@ class _WelcomePanel extends StatelessWidget {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
+        image: const DecorationImage(
+          image: AssetImage('assets/images/fandom_multiverse.png'),
+          fit: BoxFit.cover,
+          opacity: 0.12,
+          alignment: Alignment.centerRight,
+        ),
         borderRadius: BorderRadius.circular(24),
         border: Border.all(color: const Color(0xFF3D5EAF)),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x33101A3A),
+            blurRadius: 28,
+            offset: Offset(0, 14),
+          ),
+        ],
       ),
       child: LayoutBuilder(
         builder: (context, constraints) {
