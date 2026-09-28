@@ -352,84 +352,107 @@ class _ExploreContentCard extends ConsumerWidget {
 
     return Card(
       clipBehavior: Clip.antiAlias,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: InkWell(
         onTap: () => Navigator.of(context).push(
           MaterialPageRoute<void>(
             builder: (_) => ContentDetailScreen(item: item),
           ),
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        child: Stack(
+          fit: StackFit.expand,
           children: [
-            Expanded(
-              child: Stack(
-                fit: StackFit.expand,
-                children: [
-                  RemoteMediaImage(url: item.imageUrl, fit: BoxFit.cover),
-                  Positioned(
-                    top: 8,
-                    left: 8,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 6,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.black.withValues(alpha: 0.8),
-                        borderRadius: BorderRadius.circular(6),
-                        border: Border.all(
-                          color: const Color(0xFFFFD740),
-                          width: 0.8,
-                        ),
-                      ),
-                      child: Text(
-                        _ExploreScreenState._resourceBadgeText(item.type),
-                        style: const TextStyle(
-                          color: Color(0xFFFFD740),
-                          fontSize: 8,
-                          fontWeight: FontWeight.w900,
-                        ),
-                      ),
-                    ),
+            RemoteMediaImage(url: item.imageUrl, fit: BoxFit.cover),
+            Positioned.fill(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      Colors.transparent,
+                      Colors.black.withValues(alpha: 0.9),
+                    ],
+                    begin: Alignment.center,
+                    end: Alignment.bottomCenter,
                   ),
-                  Positioned(
-                    top: 2,
-                    right: 2,
-                    child: IconButton(
-                      iconSize: 20,
-                      padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(),
-                      tooltip: isBookmarked ? 'Remove offline bookmark' : 'Save offline',
-                      onPressed: () => ref
-                          .read(libraryProvider.notifier)
-                          .toggleBookmark(item.id, item: item),
-                      icon: Icon(
-                        isBookmarked ? Icons.bookmark : Icons.bookmark_border,
-                        color: isBookmarked ? const Color(0xFFFFD740) : Colors.white70,
-                      ),
-                    ),
-                  ),
-                  if (item.type == ContentType.video)
-                    const Center(
-                      child: CircleAvatar(
-                        radius: 18,
-                        backgroundColor: Colors.black54,
-                        child: Icon(Icons.play_arrow, color: Colors.white, size: 24),
-                      ),
-                    ),
-                ],
+                ),
               ),
             ),
-            Padding(
-              padding: const EdgeInsets.all(10),
+            Positioned(
+              top: 10,
+              left: 10,
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 8,
+                  vertical: 4,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.black.withValues(alpha: 0.6),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      _getBadgeIcon(item.type),
+                      size: 10,
+                      color: const Color(0xFFB388FF),
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      item.type.name.toUpperCase(),
+                      style: const TextStyle(
+                        color: Color(0xFFB388FF),
+                        fontSize: 9,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            Positioned(
+              top: 6,
+              right: 6,
+              child: CircleAvatar(
+                radius: 16,
+                backgroundColor: Colors.black.withValues(alpha: 0.5),
+                child: IconButton(
+                  iconSize: 16,
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
+                  tooltip: isBookmarked ? 'Remove offline bookmark' : 'Save offline',
+                  onPressed: () => ref
+                      .read(libraryProvider.notifier)
+                      .toggleBookmark(item.id, item: item),
+                  icon: Icon(
+                    isBookmarked ? Icons.bookmark : Icons.bookmark_border,
+                    color: isBookmarked ? const Color(0xFFB388FF) : Colors.white,
+                  ),
+                ),
+              ),
+            ),
+            if (item.type == ContentType.video)
+              const Center(
+                child: CircleAvatar(
+                  radius: 20,
+                  backgroundColor: Colors.black54,
+                  child: Icon(Icons.play_arrow, color: Colors.white, size: 28),
+                ),
+              ),
+            Positioned(
+              left: 12,
+              right: 12,
+              bottom: 12,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
                     item.category.toUpperCase(),
                     style: const TextStyle(
-                      color: Color(0xFFFFD740),
-                      fontSize: 9,
+                      color: Color(0xFFB388FF),
+                      fontSize: 10,
                       fontWeight: FontWeight.w900,
                     ),
                   ),
@@ -440,19 +463,31 @@ class _ExploreContentCard extends ConsumerWidget {
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
                       fontSize: 14,
-                      fontWeight: FontWeight.w800,
+                      fontWeight: FontWeight.w900,
                       height: 1.2,
                     ),
                   ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'By ${item.creator}',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      fontSize: 10,
-                      color: Colors.white54,
-                    ),
+                  const SizedBox(height: 6),
+                  Row(
+                    children: [
+                      const Icon(
+                        Icons.account_circle,
+                        size: 12,
+                        color: Colors.white70,
+                      ),
+                      const SizedBox(width: 4),
+                      Expanded(
+                        child: Text(
+                          item.creator,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontSize: 11,
+                            color: Colors.white70,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -461,6 +496,20 @@ class _ExploreContentCard extends ConsumerWidget {
         ),
       ),
     );
+  }
+
+  IconData _getBadgeIcon(ContentType type) {
+    return switch (type) {
+      ContentType.news => Icons.article,
+      ContentType.gallery => Icons.photo_library,
+      ContentType.video => Icons.play_circle,
+      ContentType.podcast => Icons.podcasts,
+      ContentType.story => Icons.book,
+      ContentType.glossary => Icons.menu_book,
+      ContentType.deepDive => Icons.psychology,
+      ContentType.profile => Icons.person,
+      ContentType.beginnerGuide => Icons.school,
+    };
   }
 }
 
