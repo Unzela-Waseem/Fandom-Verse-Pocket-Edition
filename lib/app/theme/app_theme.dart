@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 abstract final class AppTheme {
   static const _seed = Color(0xFFA855F7);
@@ -34,6 +35,9 @@ abstract final class AppTheme {
     return ThemeData(
       useMaterial3: true,
       colorScheme: scheme,
+      textTheme: GoogleFonts.outfitTextTheme(
+        ThemeData(brightness: brightness).textTheme,
+      ),
       scaffoldBackgroundColor: isDark ? scaffoldBg : const Color(0xFFF8F5FF),
       appBarTheme: AppBarTheme(
         backgroundColor: isDark ? scaffoldBg : Colors.white,
@@ -41,7 +45,7 @@ abstract final class AppTheme {
         scrolledUnderElevation: 0,
         centerTitle: false,
         iconTheme: IconThemeData(color: isDark ? Colors.white : Colors.black),
-        titleTextStyle: TextStyle(
+        titleTextStyle: GoogleFonts.outfit(
           color: isDark ? Colors.white : Colors.black,
           fontSize: 20,
           fontWeight: FontWeight.w900,
@@ -77,7 +81,8 @@ abstract final class AppTheme {
         ),
       ),
       cardTheme: CardThemeData(
-        elevation: 0,
+        elevation: 2,
+        shadowColor: Colors.black.withValues(alpha: 0.2),
         color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.white,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(24),

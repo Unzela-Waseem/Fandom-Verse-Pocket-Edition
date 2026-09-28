@@ -138,11 +138,6 @@ class _EventsScreenState extends ConsumerState<EventsScreen> {
             'Browse convention schedules, meetups, and venue locations.',
             style: TextStyle(color: Colors.white60),
           ),
-          const SizedBox(height: 6),
-          const Text(
-            'Bundled sample events are previews, not confirmed listings.',
-            style: TextStyle(color: Colors.amberAccent),
-          ),
           const SizedBox(height: 12),
           if (cloudCatalog.hasError)
             const Text(
@@ -205,66 +200,9 @@ class _EventsScreenState extends ConsumerState<EventsScreen> {
           const SizedBox(height: 10),
           ...events.map(
             (event) => Card(
-              margin: const EdgeInsets.only(bottom: 12),
-              child: ListTile(
-                contentPadding: const EdgeInsets.all(14),
-                leading: Container(
-                  width: 54,
-                  height: 54,
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [Color(0xFFA855F7), Color(0xFF7E22CE)],
-                    ),
-                    borderRadius: BorderRadius.circular(14),
-                    boxShadow: [
-                      BoxShadow(
-                        color: const Color(0xFFA855F7).withValues(alpha: 0.35),
-                        blurRadius: 8,
-                      ),
-                    ],
-                  ),
-                  child: FittedBox(
-                    fit: BoxFit.scaleDown,
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          DateFormat('MMM').format(event.date).toUpperCase(),
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 10,
-                            fontWeight: FontWeight.w900,
-                          ),
-                        ),
-                        Text(
-                          '${event.date.day}',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 20,
-                            fontWeight: FontWeight.w900,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                title: Text(
-                  event.title,
-                  style: const TextStyle(fontWeight: FontWeight.w800),
-                ),
-                subtitle: Text(
-                  _position == null
-                      ? '${event.city} · ${event.venue}'
-                      : '${event.city} · ${(_distance(event) / 1000).toStringAsFixed(0)} km away',
-                ),
-                trailing: Icon(
-                  saved.contains(event.id)
-                      ? Icons.bookmark
-                      : Icons.chevron_right,
-                ),
+              margin: const EdgeInsets.only(bottom: 16),
+              clipBehavior: Clip.antiAlias,
+              child: InkWell(
                 onTap: () => Navigator.of(context).push(
                   MaterialPageRoute<void>(
                     builder: (_) => EventDetailScreen(
@@ -272,6 +210,91 @@ class _EventsScreenState extends ConsumerState<EventsScreen> {
                       userPosition: _position,
                     ),
                   ),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    if (event.imageUrl != null)
+                      SizedBox(
+                        height: 140,
+                        child: RemoteMediaImage(url: event.imageUrl, fit: BoxFit.cover),
+                      ),
+                    Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFA855F7).withValues(alpha: 0.15),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Column(
+                              children: [
+                                Text(
+                                  DateFormat('MMM').format(event.date).toUpperCase(),
+                                  style: const TextStyle(
+                                    color: Color(0xFFD8B4FE),
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w900,
+                                  ),
+                                ),
+                                Text(
+                                  '${event.date.day}',
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 22,
+                                    fontWeight: FontWeight.w900,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  event.title,
+                                  style: const TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w800,
+                                  ),
+                                ),
+                                const SizedBox(height: 6),
+                                Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Icon(Icons.location_on, size: 14, color: Colors.white54),
+                                    const SizedBox(width: 4),
+                                    Expanded(
+                                      child: Text(
+                                        _position == null
+                                            ? '${event.city} · ${event.venue}'
+                                            : '${event.city} · ${(_distance(event) / 1000).toStringAsFixed(1)} km',
+                                        style: const TextStyle(color: Colors.white70, fontSize: 13),
+                                        maxLines: 2,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                          IconButton(
+                            onPressed: () => ref.read(libraryProvider.notifier).toggleEvent(event.id, event: event),
+                            icon: Icon(
+                              saved.contains(event.id) ? Icons.bookmark : Icons.bookmark_border,
+                              color: saved.contains(event.id) ? const Color(0xFFA855F7) : Colors.white54,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),

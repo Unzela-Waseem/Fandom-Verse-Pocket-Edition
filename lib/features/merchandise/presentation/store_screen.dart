@@ -149,12 +149,26 @@ class _StoreScreenState extends ConsumerState<StoreScreen> {
             ],
           ),
           const SizedBox(height: 16),
-          ...products.map(
-            (product) => _ProductCard(
-              product: product,
-              wishlisted: library.wishlist.contains(product.id),
-              catalog: catalog,
+          if (products.isEmpty)
+             const Center(child: Text('No products found.')),
+          GridView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              mainAxisSpacing: 16,
+              crossAxisSpacing: 16,
+              mainAxisExtent: 280,
             ),
+            itemCount: products.length,
+            itemBuilder: (context, index) {
+              final product = products[index];
+              return _ProductCard(
+                product: product,
+                wishlisted: library.wishlist.contains(product.id),
+                catalog: catalog,
+              );
+            },
           ),
         ],
       ),
@@ -207,97 +221,125 @@ class _ProductCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Card(
-      margin: const EdgeInsets.only(bottom: 12),
-      child: Padding(
-        padding: const EdgeInsets.all(14),
-        child: Row(
-          children: [
-            SizedBox(
-              width: 70,
-              height: 82,
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(16),
-                child: RemoteMediaImage(url: product.imageUrl),
-              ),
+      margin: EdgeInsets.zero,
+      clipBehavior: Clip.antiAlias,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Expanded(
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                RemoteMediaImage(url: product.imageUrl, fit: BoxFit.cover),
+                Positioned(
+                  top: 8,
+                  right: 8,
+                  child: Container(
+                    decoration: const BoxDecoration(
+                      color: Colors.black45,
+                      shape: BoxShape.circle,
+                    ),
+                    child: IconButton(
+                      tooltip: wishlisted ? 'Remove from wishlist' : 'Add to wishlist',
+                      onPressed: () => ref.read(libraryProvider.notifier).toggleWishlist(product.id),
+                      icon: Icon(
+                        wishlisted ? Icons.favorite : Icons.favorite_border,
+                        color: wishlisted ? Colors.pinkAccent : Colors.white,
+                        size: 20,
+                      ),
+                      constraints: const BoxConstraints(),
+                      padding: const EdgeInsets.all(6),
+                    ),
+                  ),
+                ),
+                Positioned(
+                  bottom: 8,
+                  left: 8,
+                  child: Container(
+                    decoration: const BoxDecoration(
+                      color: Colors.black45,
+                      shape: BoxShape.circle,
+                    ),
+                    child: IconButton(
+                      tooltip: 'View AR',
+                      onPressed: () => Navigator.of(context).push(
+                        MaterialPageRoute<void>(
+                          builder: (_) => ARPreviewScreen(
+                            productName: product.name,
+                            product: product,
+                            catalog: catalog,
+                          ),
+                        ),
+                      ),
+                      icon: const Icon(Icons.view_in_ar, color: Colors.white, size: 18),
+                      constraints: const BoxConstraints(),
+                      padding: const EdgeInsets.all(6),
+                    ),
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    product.category.toUpperCase(),
-                    style: const TextStyle(fontSize: 10, color: Colors.white54),
-                  ),
-                  Text(
-                    product.name,
-                    style: const TextStyle(fontWeight: FontWeight.w900),
-                  ),
-                  const SizedBox(height: 5),
-                  Row(
-                    children: [
+          ),
+          Padding(
+            padding: const EdgeInsets.all(12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  product.category.toUpperCase(),
+                  style: const TextStyle(fontSize: 10, color: Colors.white54, fontWeight: FontWeight.bold),
+                ),
+                Text(
+                  product.name,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 14),
+                ),
+                const SizedBox(height: 4),
+                Row(
+                  children: [
+                    Text(
+                      _currency.format(product.price),
+                      style: const TextStyle(
+                        color: Color(0xFFE879F9),
+                        fontWeight: FontWeight.w800,
+                        fontSize: 13,
+                      ),
+                    ),
+                    if (product.previousPrice != null) ...[
+                      const SizedBox(width: 6),
                       Text(
-                        _currency.format(product.price),
+                        _currency.format(product.previousPrice),
                         style: const TextStyle(
-                          color: Color(0xFFE879F9),
-                          fontWeight: FontWeight.w800,
+                          color: Colors.white38,
+                          decoration: TextDecoration.lineThrough,
+                          fontSize: 11,
                         ),
-                      ),
-                      if (product.previousPrice != null) ...[
-                        const SizedBox(width: 8),
-                        Text(
-                          _currency.format(product.previousPrice),
-                          style: const TextStyle(
-                            color: Colors.white38,
-                            decoration: TextDecoration.lineThrough,
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: [
-                      FilledButton.tonalIcon(
-                        onPressed: product.stock == 0
-                            ? null
-                            : () => ref
-                                .read(libraryProvider.notifier)
-                                .addToCart(product.id, catalog: catalog),
-                        icon: const Icon(Icons.add_shopping_cart, size: 16),
-                        label: const Text('Add to cart'),
-                      ),
-                      OutlinedButton.icon(
-                        onPressed: () => Navigator.of(context).push(
-                          MaterialPageRoute<void>(
-                            builder: (_) => ARPreviewScreen(
-                              productName: product.name,
-                              product: product,
-                              catalog: catalog,
-                            ),
-                          ),
-                        ),
-                        icon: const Icon(Icons.view_in_ar, size: 16),
-                        label: const Text('View AR'),
                       ),
                     ],
+                  ],
+                ),
+                const SizedBox(height: 10),
+                SizedBox(
+                  height: 36,
+                  width: double.infinity,
+                  child: FilledButton(
+                    onPressed: product.stock == 0
+                        ? null
+                        : () => ref
+                            .read(libraryProvider.notifier)
+                            .addToCart(product.id, catalog: catalog),
+                    style: FilledButton.styleFrom(
+                      padding: EdgeInsets.zero,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    ),
+                    child: const Text('Add to cart', style: TextStyle(fontSize: 12)),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
-            IconButton(
-              tooltip: wishlisted ? 'Remove from wishlist' : 'Add to wishlist',
-              onPressed: () =>
-                  ref.read(libraryProvider.notifier).toggleWishlist(product.id),
-              icon: Icon(
-                wishlisted ? Icons.favorite : Icons.favorite_border,
-                color: wishlisted ? Colors.pinkAccent : null,
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
