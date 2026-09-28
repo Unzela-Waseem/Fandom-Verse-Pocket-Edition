@@ -153,34 +153,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                         children: [
                           const SizedBox(height: 40),
                           // Logo / badge
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 16, vertical: 8),
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(99),
-                              border: Border.all(
-                                  color: const Color(0xFFA855F7)
-                                      .withValues(alpha: 0.5)),
-                              color: const Color(0xFFA855F7)
-                                  .withValues(alpha: 0.12),
-                            ),
-                            child: const Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(Icons.auto_awesome,
-                                    color: Color(0xFFC77DFF), size: 13),
-                                SizedBox(width: 6),
-                                Text(
-                                  'FANDOM VERSE',
-                                  style: TextStyle(
-                                    color: Color(0xFFC77DFF),
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w900,
-                                    letterSpacing: 1.5,
-                                  ),
-                                ),
-                              ],
-                            ),
+                          const CircleAvatar(
+                            radius: 36,
+                            backgroundColor: Color(0xFF382342),
+                            child: Icon(Icons.person, size: 40, color: Color(0xFFC77DFF)),
                           ),
                           const SizedBox(height: 20),
                           Text(

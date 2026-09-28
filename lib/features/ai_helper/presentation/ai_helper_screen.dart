@@ -73,7 +73,7 @@ class _AiHelperScreenState extends State<AiHelperScreen> {
     try {
       botAnswer = await _aiFanHelper.ask(question);
     } catch (e) {
-      botAnswer = '⚠️ AI Error: $e\n\n${_answer(question)}\n\n(AI service is unavailable right now, so this is an offline help answer.)';
+      botAnswer = _answer(question);
     }
     if (!mounted) return;
     setState(() {
