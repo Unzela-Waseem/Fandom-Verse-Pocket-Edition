@@ -17,13 +17,16 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   static const _slides = [
     (
-      image: 'assets/slide2_gaming.png',
-      label: 'ENTER THE MULTIVERSE',
-      title: 'Your worlds.\nOne universe.',
-      description:
-          'Stories, events, communities and collectibles. All together, all yours to explore.',
-      features: <String>[],
-      icon: Icons.bolt_outlined,
+      image: 'assets/premium_bg.jpg',
+      label: 'DISCOVER YOUR NEXT OBSESSION',
+      title: 'Welcome to\nFandom Verse.',
+      description: 'A little closer to the worlds you love.',
+      features: [
+        'Explore stories, characters and hidden lore',
+        'Find your community and share fan theories',
+        'Save your favourites in your personal library'
+      ],
+      icon: Icons.auto_awesome_outlined,
     ),
     (
       image: 'assets/slide3_ai.jpg',
@@ -38,16 +41,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       icon: Icons.explore_outlined,
     ),
     (
-      image: 'assets/premium_bg.jpg',
-      label: 'DISCOVER YOUR NEXT OBSESSION',
-      title: 'Welcome to\nFandom Verse.',
-      description: 'A little closer to the worlds you love.',
-      features: [
-        'Explore stories, characters and hidden lore',
-        'Find your community and share fan theories',
-        'Save your favourites in your personal library'
-      ],
-      icon: Icons.auto_awesome_outlined,
+      image: 'assets/slide2_gaming.png',
+      label: 'ENTER THE MULTIVERSE',
+      title: 'Your worlds.\nOne universe.',
+      description:
+          'Stories, events, communities and collectibles. All together, all yours to explore.',
+      features: <String>[],
+      icon: Icons.bolt_outlined,
     ),
   ];
 

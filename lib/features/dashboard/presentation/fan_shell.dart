@@ -734,9 +734,9 @@ class _CharacterCarouselState extends State<_CharacterCarousel> {
 
   static const _heroBanners = [
     {
-      'image': 'assets/gaming.jpg',
-      'title': 'Discover New Gaming Worlds',
-      'category': 'GAMING',
+      'image': 'assets/avengers.jpeg',
+      'title': 'The Most Powerful Avengers',
+      'category': 'MOVIES',
     },
     {
       'image': 'assets/ninja.jpg',
@@ -744,9 +744,9 @@ class _CharacterCarouselState extends State<_CharacterCarousel> {
       'category': 'ANIME',
     },
     {
-      'image': 'assets/avengers.jpeg',
-      'title': 'The Most Powerful Avengers',
-      'category': 'MOVIES',
+      'image': 'assets/gaming.jpg',
+      'title': 'Discover New Gaming Worlds',
+      'category': 'GAMING',
     },
   ];
 
