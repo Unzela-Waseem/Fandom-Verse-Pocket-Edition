@@ -387,7 +387,7 @@ const productCatalog = [
     price: 6499,
     previousPrice: 7499,
     stock: 20,
-    imageUrl: 'assets/premium_bg.jpg',
+    imageUrl: 'assets/images/nebula_hoodie.jpg',
     modelUrl: 'https://modelviewer.dev/shared-assets/models/Astronaut.glb',
     tryOnModelUrl:
         'https://modelviewer.dev/shared-assets/models/RobotExpressive.glb',
@@ -399,7 +399,7 @@ const productCatalog = [
     category: 'Collectibles',
     price: 1199,
     stock: 45,
-    imageUrl: 'assets/trending_scifi.jpg',
+    imageUrl: 'assets/images/portal_pin.jpg',
     modelUrl:
         'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/DamagedHelmet/glTF-Binary/DamagedHelmet.glb',
     tryOnModelUrl: 'https://modelviewer.dev/shared-assets/models/Astronaut.glb',
@@ -411,7 +411,7 @@ const productCatalog = [
     category: 'Collectibles',
     price: 2299,
     stock: 30,
-    imageUrl: 'assets/trending_comics.jpg',
+    imageUrl: 'assets/images/lore_journal.jpg',
     modelUrl: 'https://modelviewer.dev/shared-assets/models/NeilArmstrong.glb',
     tryOnModelUrl:
         'https://modelviewer.dev/shared-assets/models/RobotExpressive.glb',
@@ -424,7 +424,7 @@ const productCatalog = [
     price: 799,
     previousPrice: 999,
     stock: 999,
-    imageUrl: 'assets/images/fandom_multiverse.png',
+    imageUrl: 'assets/images/cosmic_wallpaper.jpg',
     modelUrl:
         'https://modelviewer.dev/shared-assets/models/RobotExpressive.glb',
     tryOnModelUrl: 'https://modelviewer.dev/shared-assets/models/Astronaut.glb',
@@ -436,7 +436,7 @@ const productCatalog = [
     category: 'Apparel',
     price: 3299,
     stock: 18,
-    imageUrl: 'assets/gaming.jpg',
+    imageUrl: 'assets/images/arena_shirt.jpg',
     modelUrl:
         'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/BoomBox/glTF-Binary/BoomBox.glb',
     tryOnModelUrl:
