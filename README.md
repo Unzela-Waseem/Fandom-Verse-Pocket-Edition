@@ -78,6 +78,18 @@ npm run provision-admin
 
 The script is prepared but no Admin account has been provisioned for this project. See [Firebase Admin setup](https://firebase.google.com/docs/admin/setup) for credential configuration.
 
+### Seed demo data for Admin review
+
+After configuring Firebase Admin Application Default Credentials, safe sample records for every Admin module can be added with:
+
+```bash
+cd admin-tools
+npm ci
+npm run seed-demo-data
+```
+
+This is repeatable and only writes documents with the `demo-` prefix. It seeds users, categories, content, events, merchandise, announcements, inquiries and discussions so the dashboard counts and CRUD screens can be reviewed end to end.
+
 ## Data and deployment
 
 - Firestore rules and indexes are in `firebase/` and have been deployed to the configured project.
