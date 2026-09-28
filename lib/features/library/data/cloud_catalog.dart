@@ -43,11 +43,31 @@ final productCatalogProvider = StreamProvider<List<Product>>((ref) {
       .limit(100)
       .snapshots()
       .map(
-        (snapshot) => _mergeCatalog(
-          productCatalog,
-          snapshot.docs.map(productFromDocument).whereType<Product>(),
-          (item) => item.id,
-        ),
+        (snapshot) {
+          final cloudItems = snapshot.docs.map(productFromDocument).whereType<Product>().map((p) {
+            final bundledMatch = productCatalog.where((b) => b.id == p.id).firstOrNull;
+            if (bundledMatch != null) {
+              return Product(
+                id: p.id,
+                name: p.name,
+                description: p.description,
+                category: p.category,
+                price: p.price,
+                stock: p.stock,
+                previousPrice: p.previousPrice,
+                imageUrl: bundledMatch.imageUrl,
+                modelUrl: p.modelUrl,
+                tryOnModelUrl: p.tryOnModelUrl,
+              );
+            }
+            return p;
+          });
+          return _mergeCatalog(
+            productCatalog,
+            cloudItems,
+            (item) => item.id,
+          );
+        },
       );
 });
 
