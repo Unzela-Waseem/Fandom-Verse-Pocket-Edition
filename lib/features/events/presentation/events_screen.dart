@@ -655,12 +655,12 @@ class EventDetailScreen extends ConsumerWidget {
       body: ListView(
         padding: const EdgeInsets.all(20),
         children: [
-          if (isHttpsMediaUrl(event.imageUrl)) ...[
+          if (event.imageUrl.isNotEmpty) ...[
             ClipRRect(
               borderRadius: BorderRadius.circular(20),
               child: AspectRatio(
                 aspectRatio: 16 / 9,
-                child: RemoteMediaImage(url: event.imageUrl),
+                child: RemoteMediaImage(url: event.imageUrl, fit: BoxFit.cover),
               ),
             ),
             const SizedBox(height: 18),

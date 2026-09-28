@@ -334,10 +334,23 @@ const contentCatalog = [
 
 final eventCatalog = [
   FandomEvent(
+    id: 'pc-hotel-event',
+    title: 'Fantasy Screening Night',
+    description: 'An outdoor screening and moderated fan discussion at PC Hotel.',
+    city: 'Karachi',
+    venue: 'PC Hotel',
+    date: DateTime(2026, 11, 7, 18, 30),
+    category: 'Screening',
+    latitude: 24.8475,
+    longitude: 67.0210,
+    ticketUrl: '',
+    isDemo: true,
+    imageUrl: 'assets/images/pc.jpeg',
+  ),
+  FandomEvent(
     id: 'karachi-cosplay-meet',
     title: 'Karachi Cosplay Makers Meetup',
-    description:
-        'A community workshop for costumes, props, and safe build techniques.',
+    description: 'A community workshop for costumes, props, and safe build techniques.',
     city: 'Karachi',
     venue: 'Arts Council Garden',
     date: DateTime(2026, 10, 18, 14),
@@ -346,21 +359,7 @@ final eventCatalog = [
     longitude: 67.0011,
     ticketUrl: '',
     isDemo: true,
-    imageUrl: 'assets/premium_bg.jpg',
-  ),
-  FandomEvent(
-    id: 'lahore-screening-night',
-    title: 'Fantasy Screening Night',
-    description: 'An outdoor screening and moderated fan discussion.',
-    city: 'Lahore',
-    venue: 'Community Arts Courtyard',
-    date: DateTime(2026, 11, 7, 18, 30),
-    category: 'Screening',
-    latitude: 31.5204,
-    longitude: 74.3587,
-    ticketUrl: '',
-    isDemo: true,
-    imageUrl: 'assets/trending_scifi.jpg',
+    imageUrl: 'assets/images/meetup.jpeg',
   ),
   FandomEvent(
     id: 'islamabad-game-con',
@@ -374,7 +373,7 @@ final eventCatalog = [
     longitude: 73.0479,
     ticketUrl: '',
     isDemo: true,
-    imageUrl: 'assets/trending_gaming.jpg',
+    imageUrl: 'assets/images/screeningnight.jpg',
   ),
 ];
 
