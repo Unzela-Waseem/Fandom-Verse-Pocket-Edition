@@ -55,6 +55,8 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
       return matchesQuery && matchesCategory;
     }).toList(growable: false);
 
+
+
     return Scaffold(
       appBar: widget.standalone ? AppBar(title: Text(_category)) : null,
       body: SafeArea(
@@ -256,6 +258,8 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
               const SizedBox(height: 12),
             ],
 
+
+
             // Results count & reset filters if filtered
             Row(
               children: [
@@ -417,15 +421,13 @@ class _ExploreContentCard extends ConsumerWidget {
                   iconSize: 16,
                   padding: EdgeInsets.zero,
                   constraints: const BoxConstraints(),
-                  tooltip:
-                      isBookmarked ? 'Remove offline bookmark' : 'Save offline',
+                  tooltip: isBookmarked ? 'Remove offline bookmark' : 'Save offline',
                   onPressed: () => ref
                       .read(libraryProvider.notifier)
                       .toggleBookmark(item.id, item: item),
                   icon: Icon(
                     isBookmarked ? Icons.bookmark : Icons.bookmark_border,
-                    color:
-                        isBookmarked ? const Color(0xFFB388FF) : Colors.white,
+                    color: isBookmarked ? const Color(0xFFB388FF) : Colors.white,
                   ),
                 ),
               ),
@@ -777,47 +779,6 @@ class ContentDetailScreen extends ConsumerWidget {
                 item.tags.map((tag) => Chip(label: Text('#$tag'))).toList(),
           ),
 
-          if (item.category == 'Anime' ||
-              item.category == 'Gaming' ||
-              item.category == 'Comics' ||
-              item.category == 'Sci-Fi') ...[
-            const SizedBox(height: 26),
-            Row(
-              children: [
-                const Icon(Icons.auto_awesome,
-                    color: Color(0xFFFFD740), size: 18),
-                const SizedBox(width: 8),
-                Text(
-                  'More ${item.category} stories & news',
-                  style: const TextStyle(
-                      fontSize: 17, fontWeight: FontWeight.w900),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            SizedBox(
-              height: 184,
-              child: ListView.separated(
-                scrollDirection: Axis.horizontal,
-                itemCount: contentCatalog
-                    .where((entry) =>
-                        entry.category == item.category && entry.id != item.id)
-                    .take(8)
-                    .length,
-                separatorBuilder: (_, __) => const SizedBox(width: 12),
-                itemBuilder: (context, index) {
-                  final related = contentCatalog
-                      .where((entry) =>
-                          entry.category == item.category &&
-                          entry.id != item.id)
-                      .take(8)
-                      .toList(growable: false)[index];
-                  return _RelatedContentCard(item: related);
-                },
-              ),
-            ),
-          ],
-
           if (saved) ...[
             const SizedBox(height: 20),
             Container(
@@ -858,55 +819,6 @@ class ContentDetailScreen extends ConsumerWidget {
             ),
           ],
         ],
-      ),
-    );
-  }
-}
-
-class _RelatedContentCard extends StatelessWidget {
-  const _RelatedContentCard({required this.item});
-
-  final ContentItem item;
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: 150,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(14),
-        onTap: () => Navigator.of(context).push(
-          MaterialPageRoute<void>(
-              builder: (_) => ContentDetailScreen(item: item)),
-        ),
-        child: Card(
-          clipBehavior: Clip.antiAlias,
-          margin: EdgeInsets.zero,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              SizedBox(
-                  height: 96,
-                  width: double.infinity,
-                  child: RemoteMediaImage(url: item.imageUrl)),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(10, 8, 8, 8),
-                child: Text(item.title,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                        fontSize: 12, fontWeight: FontWeight.w800)),
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 10),
-                child: Text(item.type.name.toUpperCase(),
-                    style: const TextStyle(
-                        fontSize: 9,
-                        color: Color(0xFFFFD740),
-                        fontWeight: FontWeight.bold)),
-              ),
-            ],
-          ),
-        ),
       ),
     );
   }
