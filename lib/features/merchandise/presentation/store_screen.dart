@@ -304,28 +304,32 @@ class _ProductCard extends ConsumerWidget {
                       fontWeight: FontWeight.w900, fontSize: 14),
                 ),
                 const SizedBox(height: 4),
-                Row(
-                  children: [
-                    Text(
-                      _currency.format(product.price),
-                      style: const TextStyle(
-                        color: Color(0xFFE879F9),
-                        fontWeight: FontWeight.w800,
-                        fontSize: 13,
-                      ),
-                    ),
-                    if (product.previousPrice != null) ...[
-                      const SizedBox(width: 6),
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerLeft,
+                  child: Row(
+                    children: [
                       Text(
-                        _currency.format(product.previousPrice),
+                        _currency.format(product.price),
                         style: const TextStyle(
-                          color: Colors.white38,
-                          decoration: TextDecoration.lineThrough,
-                          fontSize: 11,
+                          color: Color(0xFFE879F9),
+                          fontWeight: FontWeight.w800,
+                          fontSize: 13,
                         ),
                       ),
+                      if (product.previousPrice != null) ...[
+                        const SizedBox(width: 6),
+                        Text(
+                          _currency.format(product.previousPrice),
+                          style: const TextStyle(
+                            color: Colors.white38,
+                            decoration: TextDecoration.lineThrough,
+                            fontSize: 11,
+                          ),
+                        ),
+                      ],
                     ],
-                  ],
+                  ),
                 ),
                 const SizedBox(height: 10),
                 SizedBox(
