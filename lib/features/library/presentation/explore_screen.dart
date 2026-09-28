@@ -8,6 +8,7 @@ import '../data/demo_catalog.dart';
 import '../domain/library_models.dart';
 import 'beginner_hub_screen.dart';
 import 'deep_dive_screen.dart';
+import '../../characters/presentation/characters_screen.dart';
 
 class ExploreScreen extends ConsumerStatefulWidget {
   const ExploreScreen({
@@ -207,6 +208,8 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
                   ),
                 ],
               ),
+              const SizedBox(height: 14),
+              const CharacterHubBanner(),
               const SizedBox(height: 14),
             ],
 
