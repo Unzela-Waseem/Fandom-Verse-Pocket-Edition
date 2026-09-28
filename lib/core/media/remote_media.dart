@@ -435,3 +435,168 @@ class _RemoteMediaVideoState extends State<RemoteMediaVideo> {
     );
   }
 }
+
+/// Lightweight real audio player for bundled or Cloudinary-hosted audio.
+/// The media position comes from the platform player; it is never simulated.
+class RemoteMediaAudio extends StatefulWidget {
+  const RemoteMediaAudio({super.key, required this.url, required this.title});
+
+  final String url;
+  final String title;
+
+  @override
+  State<RemoteMediaAudio> createState() => _RemoteMediaAudioState();
+}
+
+class _RemoteMediaAudioState extends State<RemoteMediaAudio> {
+  VideoPlayerController? _controller;
+  late Future<void> _initialization;
+  bool _muted = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _initialization = _setupController();
+  }
+
+  @override
+  void didUpdateWidget(covariant RemoteMediaAudio oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.url != widget.url) {
+      _controller?.dispose();
+      _initialization = _setupController();
+    }
+  }
+
+  Future<void> _setupController() async {
+    final url = widget.url.trim();
+    if (isAssetMediaUrl(url)) {
+      _controller = VideoPlayerController.asset(url);
+    } else {
+      final localPath = await OfflineMediaService().getLocalPath(url);
+      if (localPath != null) {
+        _controller = VideoPlayerController.file(File(localPath));
+      } else {
+        _controller = VideoPlayerController.networkUrl(Uri.parse(url));
+      }
+    }
+    await _controller!.initialize();
+  }
+
+  @override
+  void dispose() {
+    _controller?.dispose();
+    super.dispose();
+  }
+
+  String _duration(Duration duration) {
+    final minutes = duration.inMinutes.remainder(60).toString().padLeft(2, '0');
+    final seconds = duration.inSeconds.remainder(60).toString().padLeft(2, '0');
+    return '$minutes:$seconds';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<void>(
+      future: _initialization,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState != ConnectionState.done) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        if (snapshot.hasError ||
+            _controller == null ||
+            !_controller!.value.isInitialized) {
+          return const Text(
+            'Audio could not be loaded.',
+            style: TextStyle(color: Colors.white70),
+          );
+        }
+        return Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: const Color(0xFF221F2B),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: const Color(0xFFFFD740).withAlpha(80)),
+          ),
+          child: ValueListenableBuilder<VideoPlayerValue>(
+            valueListenable: _controller!,
+            builder: (context, value, _) {
+              final totalMs = value.duration.inMilliseconds;
+              final positionMs = value.position.inMilliseconds.clamp(
+                0,
+                totalMs == 0 ? 1 : totalMs,
+              );
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      IconButton.filled(
+                        style: IconButton.styleFrom(
+                          backgroundColor: const Color(0xFFFFD740),
+                          foregroundColor: Colors.black,
+                        ),
+                        tooltip: value.isPlaying ? 'Pause audio' : 'Play audio',
+                        onPressed: () => value.isPlaying
+                            ? _controller!.pause()
+                            : _controller!.play(),
+                        icon: Icon(
+                          value.isPlaying ? Icons.pause : Icons.play_arrow,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'OFFLINE AUDIO',
+                              style: TextStyle(
+                                color: Color(0xFFFFD740),
+                                fontSize: 11,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            Text(
+                              widget.title,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style:
+                                  const TextStyle(fontWeight: FontWeight.w800),
+                            ),
+                          ],
+                        ),
+                      ),
+                      IconButton(
+                        tooltip: _muted ? 'Unmute' : 'Mute',
+                        onPressed: () {
+                          setState(() => _muted = !_muted);
+                          _controller!.setVolume(_muted ? 0 : 1);
+                        },
+                        icon: Icon(
+                          _muted ? Icons.volume_off : Icons.volume_up,
+                        ),
+                      ),
+                    ],
+                  ),
+                  Slider(
+                    value: positionMs.toDouble(),
+                    min: 0,
+                    max: (totalMs == 0 ? 1 : totalMs).toDouble(),
+                    activeColor: const Color(0xFFFFD740),
+                    onChanged: (next) => _controller!
+                        .seekTo(Duration(milliseconds: next.round())),
+                  ),
+                  Text(
+                    '${_duration(value.position)} / ${_duration(value.duration)}',
+                    style: const TextStyle(color: Colors.white60, fontSize: 12),
+                  ),
+                ],
+              );
+            },
+          ),
+        );
+      },
+    );
+  }
+}

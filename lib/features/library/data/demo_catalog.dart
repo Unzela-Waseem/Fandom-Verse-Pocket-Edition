@@ -2,9 +2,10 @@ import '../domain/library_models.dart';
 
 /// A deliberately small, editorial demo catalog.
 ///
-/// Every card has its own copy and visual.  The two video entries ship with
-/// the app so they remain playable without a network connection. Admin-created
-/// Firestore content is merged over this fallback catalog at runtime.
+/// Every card has its own copy and visual. The two video and two audio entries
+/// ship with the app so they remain playable without a network connection.
+/// Admin-created Firestore content is merged over this fallback catalog at
+/// runtime.
 const contentCatalog = [
   ContentItem(
     id: 'anime-first-steps',
@@ -17,7 +18,7 @@ const contentCatalog = [
     creator: 'Fandom Verse Editorial',
     tags: ['anime', 'beginner', 'watchlist'],
     trending: true,
-    imageUrl: 'assets/trending_anime.jpg',
+    imageUrl: 'assets/media/anime_watchlist.webp',
   ),
   ContentItem(
     id: 'anime-character-gallery',
@@ -29,7 +30,7 @@ const contentCatalog = [
     type: ContentType.gallery,
     creator: 'Fandom Verse Creators',
     tags: ['anime', 'art', 'oc'],
-    imageUrl: 'assets/ninja.jpg',
+    imageUrl: 'assets/media/anime_sketchbook.webp',
   ),
   ContentItem(
     id: 'gaming-first-team',
@@ -42,7 +43,7 @@ const contentCatalog = [
     creator: 'Fandom Verse Play Lab',
     tags: ['gaming', 'teamwork', 'beginner'],
     trending: true,
-    imageUrl: 'assets/gaming.jpg',
+    imageUrl: 'assets/media/gaming_squad.webp',
   ),
   ContentItem(
     id: 'gaming-interface-deep-dive',
@@ -54,7 +55,7 @@ const contentCatalog = [
     type: ContentType.deepDive,
     creator: 'Fandom Verse Design Desk',
     tags: ['gaming', 'design', 'ui'],
-    imageUrl: 'assets/slide2_gaming.jpg',
+    imageUrl: 'assets/media/gaming_interface.webp',
   ),
   ContentItem(
     id: 'gaming-community-story',
@@ -66,7 +67,7 @@ const contentCatalog = [
     type: ContentType.story,
     creator: 'Fandom Verse Community',
     tags: ['gaming', 'community', 'story'],
-    imageUrl: 'assets/pc.jpeg',
+    imageUrl: 'assets/media/gaming_tournament.webp',
   ),
   ContentItem(
     id: 'comics-panel-language',
@@ -79,7 +80,7 @@ const contentCatalog = [
     creator: 'Fandom Verse Editorial',
     tags: ['comics', 'visual-storytelling', 'art'],
     trending: true,
-    imageUrl: 'assets/trending_comics.jpg',
+    imageUrl: 'assets/media/comics_panels.webp',
   ),
   ContentItem(
     id: 'comics-cover-gallery',
@@ -91,7 +92,7 @@ const contentCatalog = [
     type: ContentType.gallery,
     creator: 'Fandom Verse Creators',
     tags: ['comics', 'gallery', 'covers'],
-    imageUrl: 'assets/avengers.jpeg',
+    imageUrl: 'assets/media/comics_covers.webp',
   ),
   ContentItem(
     id: 'scifi-worldbuilding-guide',
@@ -105,7 +106,7 @@ const contentCatalog = [
     creator: 'Fandom Verse Story Lab',
     tags: ['scifi', 'writing', 'worldbuilding'],
     trending: true,
-    imageUrl: 'assets/trending_scifi.jpg',
+    imageUrl: 'assets/media/scifi_orbit.webp',
   ),
   ContentItem(
     id: 'scifi-future-archive',
@@ -118,7 +119,7 @@ const contentCatalog = [
     type: ContentType.story,
     creator: 'Fandom Verse Fiction',
     tags: ['scifi', 'fiction', 'future'],
-    imageUrl: 'assets/slide3_ai.jpg',
+    imageUrl: 'assets/media/scifi_archive.webp',
   ),
   ContentItem(
     id: 'creator-focus-detail',
@@ -131,7 +132,7 @@ const contentCatalog = [
     creator: 'Fandom Verse Demo Studio',
     tags: ['video', 'creator', 'offline'],
     trending: true,
-    imageUrl: 'assets/premium_bg.jpg',
+    imageUrl: 'assets/media/creator_detail.webp',
     videoUrl: 'assets/media/creator_focus_bee.mp4',
   ),
   ContentItem(
@@ -144,7 +145,7 @@ const contentCatalog = [
     type: ContentType.video,
     creator: 'Fandom Verse Demo Studio',
     tags: ['video', 'motion', 'offline'],
-    imageUrl: 'assets/auth_bg.jpg',
+    imageUrl: 'assets/media/creator_motion.webp',
     videoUrl: 'assets/media/creator_focus_butterfly.mp4',
   ),
   ContentItem(
@@ -157,7 +158,45 @@ const contentCatalog = [
     type: ContentType.glossary,
     creator: 'Fandom Verse Community',
     tags: ['community', 'safety', 'etiquette'],
-    imageUrl: 'assets/images/fandom_multiverse.png',
+    imageUrl: 'assets/media/community_kindness.webp',
+  ),
+  ContentItem(
+    id: 'community-creator-spotlight',
+    title: 'Creator Spotlight: Build, Share, Credit',
+    summary: 'A practical checklist for showcasing fan work responsibly.',
+    body:
+        'Share your own process, link back to collaborators, and clearly label mock-ups, edits, and inspired work. This spotlight explains how small credits and consent checks help community artists feel safe enough to keep creating.',
+    category: 'Community',
+    type: ContentType.story,
+    creator: 'Fandom Verse Community',
+    tags: ['community', 'creators', 'credit'],
+    imageUrl: 'assets/media/community_spotlight.webp',
+  ),
+  ContentItem(
+    id: 'audio-cosmic-focus',
+    title: 'Audio Room: Cosmic Focus',
+    summary: 'An original offline ambient audio track for reading and writing.',
+    body:
+        'A short original synth atmosphere made for focused reading, writing, and theory crafting. It is bundled in the app, so it plays without a data connection.',
+    category: 'Audio Room',
+    type: ContentType.podcast,
+    creator: 'Fandom Verse Audio Lab',
+    tags: ['audio', 'ambient', 'offline'],
+    imageUrl: 'assets/media/audio_cosmic.webp',
+    videoUrl: 'assets/media/cosmic_atmosphere.mp3',
+  ),
+  ContentItem(
+    id: 'audio-arcade-pulse',
+    title: 'Audio Room: Arcade Pulse',
+    summary: 'An original offline electronic audio track for play sessions.',
+    body:
+        'A separate original synth cue with a brighter pulse for game nights and creative sessions. The playback bar reports the real file duration and position.',
+    category: 'Audio Room',
+    type: ContentType.podcast,
+    creator: 'Fandom Verse Audio Lab',
+    tags: ['audio', 'arcade', 'offline'],
+    imageUrl: 'assets/media/audio_arcade.webp',
+    videoUrl: 'assets/media/arcade_pulse.mp3',
   ),
 ];
 

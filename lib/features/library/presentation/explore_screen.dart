@@ -876,9 +876,10 @@ class ContentDetailScreen extends ConsumerWidget {
           ),
           const SizedBox(height: 16),
 
-          // If Podcast: Render interactive audio player
-          if (item.type == ContentType.podcast) ...[
-            _InteractivePodcastPlayer(item: item),
+          // Podcast/audio tracks use a real platform media controller.
+          if (item.type == ContentType.podcast &&
+              isPlayableMediaUrl(item.videoUrl)) ...[
+            RemoteMediaAudio(url: item.videoUrl!, title: item.title),
             const SizedBox(height: 20),
           ],
 
@@ -912,7 +913,8 @@ class ContentDetailScreen extends ConsumerWidget {
           ],
 
           // If Video: Render video player
-          if (isPlayableMediaUrl(item.videoUrl)) ...[
+          if (item.type == ContentType.video &&
+              isPlayableMediaUrl(item.videoUrl)) ...[
             const SizedBox(height: 20),
             RemoteMediaVideo(url: item.videoUrl!),
           ] else if (item.type == ContentType.video) ...[
@@ -1119,12 +1121,12 @@ class _GalleryGrid extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     const galleryFallbacks = [
-      'assets/trending_anime.jpg',
-      'assets/trending_gaming.jpg',
-      'assets/trending_comics.jpg',
-      'assets/trending_scifi.jpg',
-      'assets/slide3_ai.jpg',
-      'assets/premium_bg.jpg',
+      'assets/media/anime_sketchbook.webp',
+      'assets/media/gaming_interface.webp',
+      'assets/media/comics_covers.webp',
+      'assets/media/scifi_archive.webp',
+      'assets/media/community_spotlight.webp',
+      'assets/media/creator_motion.webp',
     ];
     final uniqueUrls = <String>{
       if (item.imageUrl != null && item.imageUrl!.trim().isNotEmpty)
