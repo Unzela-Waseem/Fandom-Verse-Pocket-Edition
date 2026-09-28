@@ -1120,18 +1120,14 @@ class _GalleryGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const galleryFallbacks = [
-      'assets/media/anime_sketchbook.webp',
-      'assets/media/gaming_interface.webp',
-      'assets/media/comics_covers.webp',
-      'assets/media/scifi_archive.webp',
-      'assets/media/community_spotlight.webp',
-      'assets/media/creator_motion.webp',
-    ];
+    final categoryVisuals = contentCatalog
+        .where((entry) => entry.category == item.category)
+        .map((entry) => entry.imageUrl?.trim())
+        .whereType<String>();
     final uniqueUrls = <String>{
       if (item.imageUrl != null && item.imageUrl!.trim().isNotEmpty)
         item.imageUrl!.trim(),
-      ...galleryFallbacks.where((url) => url != item.imageUrl),
+      ...categoryVisuals,
     }.take(4).toList(growable: false);
     const captions = [
       'Primary Visual / Hero Poster',

@@ -23,7 +23,7 @@ void main() {
     final videos = contentCatalog
         .where((item) => item.type == ContentType.video)
         .toList(growable: false);
-    expect(videos, hasLength(2));
+    expect(videos, hasLength(6));
     expect(videos.map((item) => item.videoUrl).toSet().length, videos.length);
     expect(videos.every((item) => isAssetMediaUrl(item.videoUrl)), isTrue);
     expect(videos.every((item) => isPlayableMediaUrl(item.videoUrl)), isTrue);
@@ -31,8 +31,20 @@ void main() {
     final audio = contentCatalog
         .where((item) => item.type == ContentType.podcast)
         .toList(growable: false);
-    expect(audio, hasLength(2));
+    expect(audio, hasLength(6));
     expect(audio.map((item) => item.videoUrl).toSet().length, audio.length);
     expect(audio.every((item) => isAssetMediaUrl(item.videoUrl)), isTrue);
+
+    for (final category in const ['Anime', 'Gaming', 'Comics', 'Sci-Fi']) {
+      final categoryItems = contentCatalog
+          .where((item) => item.category == category)
+          .toList(growable: false);
+      expect(categoryItems.any((item) => item.type == ContentType.gallery),
+          isTrue);
+      expect(
+          categoryItems.any((item) => item.type == ContentType.video), isTrue);
+      expect(categoryItems.any((item) => item.type == ContentType.podcast),
+          isTrue);
+    }
   });
 }
