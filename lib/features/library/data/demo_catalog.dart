@@ -7,6 +7,208 @@ import '../domain/library_models.dart';
 /// Admin-created Firestore content is merged over this fallback catalog at
 /// runtime.
 const contentCatalog = [
+  // Character profiles are grouped inside each Explore category. Opening a
+  // profile also exposes the category's news, galleries, stories and guides.
+  ContentItem(
+    id: 'anime-character-yuki',
+    title: 'Yuki Hayashi — Sky Runner',
+    summary: 'A fearless courier who maps floating cities by moonlight.',
+    body:
+        'Yuki reads wind currents like sheet music and never leaves a friend behind. Her latest route crosses the storm belt above Aster City, where a lost signal may reveal a forgotten anime realm.',
+    category: 'Anime',
+    type: ContentType.profile,
+    creator: 'Fandom Verse Profiles',
+    tags: ['anime', 'character', 'adventure'],
+    trending: true,
+    imageUrl: 'assets/media/anime_motion.webp',
+  ),
+  ContentItem(
+    id: 'anime-character-kaede',
+    title: 'Kaede Arashi — Spirit Blade',
+    summary: 'A quiet swordswoman balancing ancient vows with a new team.',
+    body:
+        'Kaede protects the mountain shrine while learning that courage can look like asking for help. Explore her rivalry, training notes, visual motifs and the latest spirit-world news.',
+    category: 'Anime',
+    type: ContentType.profile,
+    creator: 'Fandom Verse Profiles',
+    tags: ['anime', 'character', 'sword'],
+    imageUrl: 'assets/media/anime_sketchbook.webp',
+  ),
+  ContentItem(
+    id: 'anime-character-ren',
+    title: 'Ren Kaito — Neon Mecha Pilot',
+    summary: 'A rookie pilot whose empathy makes the whole squad stronger.',
+    body:
+        'Ren can hear the emotional pulse of a machine before its warning lights flash. His profile includes cockpit lore, squad updates, fan art prompts and the newest chapter watchlist.',
+    category: 'Anime',
+    type: ContentType.profile,
+    creator: 'Fandom Verse Profiles',
+    tags: ['anime', 'mecha', 'pilot'],
+    imageUrl: 'assets/media/anime_watchlist.webp',
+  ),
+  ContentItem(
+    id: 'anime-character-mira',
+    title: 'Mira Sol — Star Shrine Keeper',
+    summary: 'A cosmic guardian carrying a tiny library of lost wishes.',
+    body:
+        'Mira travels between constellations collecting wishes that have nowhere else to go. Read her news, gallery highlights, friendships and the clues hidden in each star map.',
+    category: 'Anime',
+    type: ContentType.profile,
+    creator: 'Fandom Verse Profiles',
+    tags: ['anime', 'cosmic', 'guardian'],
+    imageUrl: 'assets/media/scifi_signal.webp',
+  ),
+  ContentItem(
+    id: 'gaming-character-lyra',
+    title: 'Lyra Volt — Arena Captain',
+    summary: 'A tactical captain known for impossible comeback plays.',
+    body:
+        'Lyra studies every arena as a puzzle and makes room for new players on her squad. Follow her match news, loadout gallery, strategy stories and community highlights.',
+    category: 'Gaming',
+    type: ContentType.profile,
+    creator: 'Fandom Verse Play Lab',
+    tags: ['gaming', 'character', 'esports'],
+    trending: true,
+    imageUrl: 'assets/media/gaming_strategy.webp',
+  ),
+  ContentItem(
+    id: 'gaming-character-dex',
+    title: 'Dex Rook — Pixel Mechanic',
+    summary:
+        'A creative builder turning broken levels into brilliant shortcuts.',
+    body:
+        'Dex sees every bug as an invitation to learn. Explore his workshop, maker news, build gallery and the community stories behind his most useful mods.',
+    category: 'Gaming',
+    type: ContentType.profile,
+    creator: 'Fandom Verse Play Lab',
+    tags: ['gaming', 'builder', 'creator'],
+    imageUrl: 'assets/media/gaming_interface.webp',
+  ),
+  ContentItem(
+    id: 'gaming-character-nova',
+    title: 'Nova Byte — Co-op Scout',
+    summary: 'A friendly scout who turns teamwork into a winning superpower.',
+    body:
+        'Nova keeps a hand-drawn map of every co-op route and a welcome message for every teammate. See her event news, squad gallery, beginner guides and fan-made builds.',
+    category: 'Gaming',
+    type: ContentType.profile,
+    creator: 'Fandom Verse Play Lab',
+    tags: ['gaming', 'co-op', 'scout'],
+    imageUrl: 'assets/media/gaming_squad.webp',
+  ),
+  ContentItem(
+    id: 'gaming-character-echo',
+    title: 'Echo-7 — Arcade Guardian',
+    summary:
+        'A high-score legend protecting an arcade full of forgotten worlds.',
+    body:
+        'Echo-7 remembers every player who tried one more run. Read the arcade timeline, boss news, cabinet gallery and the stories that made the scoreboards legendary.',
+    category: 'Gaming',
+    type: ContentType.profile,
+    creator: 'Fandom Verse Play Lab',
+    tags: ['gaming', 'arcade', 'legend'],
+    imageUrl: 'assets/media/gaming_gallery.webp',
+  ),
+  ContentItem(
+    id: 'comics-character-sentinel',
+    title: 'The Midnight Sentinel',
+    summary: 'A city guardian whose greatest power is listening first.',
+    body:
+        'The Sentinel protects neighbourhoods with patience, clever gadgets and a bright signal in the dark. Browse issue news, panel galleries, origin stories and creator notes.',
+    category: 'Comics',
+    type: ContentType.profile,
+    creator: 'Fandom Verse Comics Desk',
+    tags: ['comics', 'hero', 'city'],
+    trending: true,
+    imageUrl: 'assets/media/comics_panels.webp',
+  ),
+  ContentItem(
+    id: 'comics-character-ember',
+    title: 'Ember Vale — Solar Detective',
+    summary: 'A sharp-eyed investigator chasing clues written in sunlight.',
+    body:
+        'Ember follows impossible reflections across the city skyline. Her profile connects case news, cover galleries, detective stories and the visual language of her solar tools.',
+    category: 'Comics',
+    type: ContentType.profile,
+    creator: 'Fandom Verse Comics Desk',
+    tags: ['comics', 'detective', 'mystery'],
+    imageUrl: 'assets/media/comics_covers.webp',
+  ),
+  ContentItem(
+    id: 'comics-character-rift',
+    title: 'Rift Runner',
+    summary: 'A dimension-hopping courier carrying messages between panels.',
+    body:
+        'Rift Runner can step through the gutters between panels, but every shortcut changes the story. Discover crossover news, action art, character history and fan theories.',
+    category: 'Comics',
+    type: ContentType.profile,
+    creator: 'Fandom Verse Comics Desk',
+    tags: ['comics', 'multiverse', 'action'],
+    imageUrl: 'assets/media/comics_ink.webp',
+  ),
+  ContentItem(
+    id: 'comics-character-lumen',
+    title: 'Lumen Fox',
+    summary: 'A clever street artist whose murals wake up after sunset.',
+    body:
+        'Lumen paints doors into walls and gives every neighbourhood a secret protector. Follow mural news, gallery drops, slice-of-life stories and behind-the-panel sketches.',
+    category: 'Comics',
+    type: ContentType.profile,
+    creator: 'Fandom Verse Comics Desk',
+    tags: ['comics', 'artist', 'street'],
+    imageUrl: 'assets/media/comics_covers.webp',
+  ),
+  ContentItem(
+    id: 'scifi-character-orbit',
+    title: 'Orbit Vale — Signal Cartographer',
+    summary:
+        'A patient explorer drawing maps from signals no one else can hear.',
+    body:
+        'Orbit charts quiet transmissions between distant habitats. Read mission news, starship galleries, expedition stories and the clues hidden in each new signal.',
+    category: 'Sci-Fi',
+    type: ContentType.profile,
+    creator: 'Fandom Verse Story Lab',
+    tags: ['sci-fi', 'explorer', 'signals'],
+    trending: true,
+    imageUrl: 'assets/media/scifi_orbit.webp',
+  ),
+  ContentItem(
+    id: 'scifi-character-aster',
+    title: 'Aster-9 — Garden Android',
+    summary: 'A gentle android growing impossible plants on a moon base.',
+    body:
+        'Aster-9 measures time in blooms and believes every habitat deserves a garden. Explore greenhouse news, botanical galleries, crew stories and worldbuilding notes.',
+    category: 'Sci-Fi',
+    type: ContentType.profile,
+    creator: 'Fandom Verse Story Lab',
+    tags: ['sci-fi', 'android', 'garden'],
+    imageUrl: 'assets/media/scifi_gallery.webp',
+  ),
+  ContentItem(
+    id: 'scifi-character-sol',
+    title: 'Sol Reyes — Rift Navigator',
+    summary: 'A navigator guiding lost ships through friendly wormholes.',
+    body:
+        'Sol uses music and mathematics to find safe paths through the rift. Follow route updates, cosmic gallery scenes, crew news and the latest archive stories.',
+    category: 'Sci-Fi',
+    type: ContentType.profile,
+    creator: 'Fandom Verse Story Lab',
+    tags: ['sci-fi', 'navigator', 'space'],
+    imageUrl: 'assets/media/scifi_signal.webp',
+  ),
+  ContentItem(
+    id: 'scifi-character-zenith',
+    title: 'Zenith Quill — Archive Keeper',
+    summary:
+        'A future historian protecting memories from a collapsing timeline.',
+    body:
+        'Zenith keeps a living archive where every memory has a voice. Discover timeline news, archive galleries, mystery stories and the lore behind the last safe library.',
+    category: 'Sci-Fi',
+    type: ContentType.profile,
+    creator: 'Fandom Verse Story Lab',
+    tags: ['sci-fi', 'archive', 'future'],
+    imageUrl: 'assets/media/scifi_archive.webp',
+  ),
   ContentItem(
     id: 'anime-first-steps',
     title: 'Anime: A Friendly First Watchlist',
@@ -336,7 +538,8 @@ final eventCatalog = [
   FandomEvent(
     id: 'pc-hotel-event',
     title: 'Fantasy Screening Night',
-    description: 'An outdoor screening and moderated fan discussion at PC Hotel.',
+    description:
+        'An outdoor screening and moderated fan discussion at PC Hotel.',
     city: 'Karachi',
     venue: 'PC Hotel',
     date: DateTime(2026, 11, 7, 18, 30),
@@ -350,7 +553,8 @@ final eventCatalog = [
   FandomEvent(
     id: 'karachi-cosplay-meet',
     title: 'Karachi Cosplay Makers Meetup',
-    description: 'A community workshop for costumes, props, and safe build techniques.',
+    description:
+        'A community workshop for costumes, props, and safe build techniques.',
     city: 'Karachi',
     venue: 'Arts Council Garden',
     date: DateTime(2026, 10, 18, 14),

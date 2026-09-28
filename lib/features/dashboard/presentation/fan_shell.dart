@@ -13,7 +13,6 @@ import '../../../core/media/remote_media.dart';
 import '../../ai_helper/presentation/ai_helper_screen.dart';
 import '../../authentication/domain/app_user.dart';
 import '../../events/presentation/events_screen.dart';
-import '../../characters/presentation/characters_screen.dart';
 import '../../library/application/library_controller.dart';
 import '../../library/data/cloud_catalog.dart';
 import '../../library/data/demo_catalog.dart';
@@ -344,8 +343,6 @@ class _HomeTab extends ConsumerWidget {
                     ),
                     const SizedBox(height: 24),
                     const _TrendingFandomCarousel(),
-                    const SizedBox(height: 24),
-                    const CharacterHubBanner(),
                     const SizedBox(height: 24),
                     const _HubQuickCards(),
                     const SizedBox(height: 24),
