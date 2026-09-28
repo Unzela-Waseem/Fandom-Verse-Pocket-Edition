@@ -26,53 +26,10 @@ class ExploreScreen extends ConsumerStatefulWidget {
 class _ExploreScreenState extends ConsumerState<ExploreScreen> {
   String _query = '';
   late String _category;
-  String _resourceType = 'All';
-  String _selectedCreator = 'All';
-  String? _selectedTag;
-
-  static const _trendingTags = [
-    'anime',
-    'marvel',
-    'gaming',
-    'scifi',
-    'comics',
-    'esports',
-    'lore',
-    'cosplay',
-    'naruto',
-    'news',
-    'podcast',
-    'trivia',
-  ];
-
-  static const _resourceTypeChoices = [
-    'All',
-    'News',
-    'Galleries',
-    'Videos',
-    'Podcasts',
-    'Stories',
-    'Glossary',
-    'Deep Dive',
-  ];
-
   @override
   void initState() {
     super.initState();
     _category = widget.initialCategory;
-  }
-
-  ContentType? _mapResourceNameToType(String name) {
-    return switch (name) {
-      'News' => ContentType.news,
-      'Galleries' => ContentType.gallery,
-      'Videos' => ContentType.video,
-      'Podcasts' => ContentType.podcast,
-      'Stories' => ContentType.story,
-      'Glossary' => ContentType.glossary,
-      'Deep Dive' => ContentType.deepDive,
-      _ => null,
-    };
   }
 
   @override
@@ -82,11 +39,6 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
     final categories = [
       'All',
       ...{for (final item in catalog) item.category},
-    ];
-
-    final creators = [
-      'All',
-      ...{for (final item in catalog) item.creator},
     ];
 
     final results = catalog.where((item) {
@@ -100,22 +52,7 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
 
       final matchesCategory = _category == 'All' || item.category == _category;
 
-      final expectedType = _mapResourceNameToType(_resourceType);
-      final matchesType = expectedType == null || item.type == expectedType;
-
-      final matchesCreator =
-          _selectedCreator == 'All' || item.creator == _selectedCreator;
-
-      final matchesTag = _selectedTag == null ||
-          item.tags.any(
-            (tag) => tag.toLowerCase() == _selectedTag!.toLowerCase(),
-          );
-
-      return matchesQuery &&
-          matchesCategory &&
-          matchesType &&
-          matchesCreator &&
-          matchesTag;
+      return matchesQuery && matchesCategory;
     }).toList(growable: false);
 
 
@@ -321,151 +258,7 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
               const SizedBox(height: 12),
             ],
 
-            // Resource / Media Type Chips
-            const Row(
-              children: [
-                Icon(
-                  Icons.perm_media_outlined,
-                  size: 16,
-                  color: Colors.white54,
-                ),
-                SizedBox(width: 4),
-                Text(
-                  'RESOURCES & MEDIA',
-                  style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: 1.1,
-                    color: Colors.white60,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            SizedBox(
-              height: 38,
-              child: ListView.separated(
-                scrollDirection: Axis.horizontal,
-                itemCount: _resourceTypeChoices.length,
-                separatorBuilder: (_, __) => const SizedBox(width: 8),
-                itemBuilder: (_, index) {
-                  final type = _resourceTypeChoices[index];
-                  final isSelected = type == _resourceType;
-                  return ChoiceChip(
-                    label: Text(type),
-                    selected: isSelected,
-                    onSelected: (_) => setState(() => _resourceType = type),
-                  );
-                },
-              ),
-            ),
-            const SizedBox(height: 12),
 
-            if (!widget.standalone) ...[
-              // Trending Tags Chips
-              Row(
-                children: [
-                  const Icon(
-                    Icons.local_fire_department,
-                    size: 16,
-                    color: Colors.deepOrangeAccent,
-                  ),
-                  const SizedBox(width: 4),
-                  const Text(
-                    'TRENDING TAGS',
-                    style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: 1.1,
-                      color: Colors.white60,
-                    ),
-                  ),
-                  const Spacer(),
-                  if (_selectedTag != null)
-                    GestureDetector(
-                      onTap: () => setState(() => _selectedTag = null),
-                      child: const Text(
-                        'Clear tag',
-                        style: TextStyle(
-                          fontSize: 11,
-                          color: Color(0xFFFFD740),
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              SizedBox(
-                height: 36,
-                child: ListView.separated(
-                  scrollDirection: Axis.horizontal,
-                  itemCount: _trendingTags.length,
-                  separatorBuilder: (_, __) => const SizedBox(width: 6),
-                  itemBuilder: (_, index) {
-                    final tag = _trendingTags[index];
-                    final isSelected = _selectedTag == tag;
-                    return FilterChip(
-                      label: Text(
-                        '#$tag',
-                        style: const TextStyle(fontSize: 12),
-                      ),
-                      selected: isSelected,
-                      onSelected: (selected) {
-                        setState(() {
-                          _selectedTag = selected ? tag : null;
-                        });
-                      },
-                    );
-                  },
-                ),
-              ),
-              const SizedBox(height: 12),
-
-              // Creator Filter Dropdown
-              Row(
-                children: [
-                  const Icon(
-                    Icons.person_outline,
-                    size: 16,
-                    color: Colors.white54,
-                  ),
-                  const SizedBox(width: 6),
-                  const Text(
-                    'Creator:',
-                    style: TextStyle(fontSize: 13, color: Colors.white70),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: DropdownButtonFormField<String>(
-                      initialValue: _selectedCreator,
-                      isDense: true,
-                      decoration: const InputDecoration(
-                        contentPadding: EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 8,
-                        ),
-                      ),
-                      items: creators
-                          .map(
-                            (c) => DropdownMenuItem(
-                              value: c,
-                              child: Text(
-                                c == 'All' ? 'All Creators' : c,
-                                overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(fontSize: 13),
-                              ),
-                            ),
-                          )
-                          .toList(),
-                      onChanged: (value) =>
-                          setState(() => _selectedCreator = value ?? 'All'),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 14),
-            ],
 
             // Results count & reset filters if filtered
             Row(
@@ -479,11 +272,7 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
                   ),
                 ),
                 const Spacer(),
-                if (_query.isNotEmpty ||
-                    _category != 'All' ||
-                    _resourceType != 'All' ||
-                    _selectedCreator != 'All' ||
-                    _selectedTag != null)
+                if (_query.isNotEmpty || _category != 'All')
                   TextButton.icon(
                     style: TextButton.styleFrom(
                       padding: EdgeInsets.zero,
@@ -494,9 +283,6 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
                       setState(() {
                         _query = '';
                         _category = 'All';
-                        _resourceType = 'All';
-                        _selectedCreator = 'All';
-                        _selectedTag = null;
                       });
                     },
                     icon: const Icon(Icons.refresh, size: 14),
@@ -515,9 +301,6 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
                   setState(() {
                     _query = '';
                     _category = 'All';
-                    _resourceType = 'All';
-                    _selectedCreator = 'All';
-                    _selectedTag = null;
                   });
                 },
               )
