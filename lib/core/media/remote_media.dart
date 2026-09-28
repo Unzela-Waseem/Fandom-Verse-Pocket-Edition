@@ -1,5 +1,7 @@
+import 'dart:async';
 import 'dart:io';
 
+import 'package:audioplayers/audioplayers.dart' as audio;
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -263,7 +265,7 @@ class _RemoteMediaVideoState extends State<RemoteMediaVideo> {
                       ),
                     ),
                     const SizedBox(height: 6),
-                    Text(
+                    const Text(
                       'Tap below to open and watch the video.',
                       style: TextStyle(color: Colors.white60, fontSize: 13),
                       textAlign: TextAlign.center,
@@ -436,8 +438,12 @@ class _RemoteMediaVideoState extends State<RemoteMediaVideo> {
   }
 }
 
-/// Lightweight real audio player for bundled or Cloudinary-hosted audio.
-/// The media position comes from the platform player; it is never simulated.
+/// Real audio-only player for bundled or Cloudinary-hosted audio.
+///
+/// This deliberately uses the platform's audio playback implementation instead
+/// of a video surface. Some Android devices do not route an audio-only MP3
+/// through a video surface reliably, which made the old podcast controls look
+/// active while no sound was produced.
 class RemoteMediaAudio extends StatefulWidget {
   const RemoteMediaAudio({super.key, required this.url, required this.title});
 
@@ -449,9 +455,14 @@ class RemoteMediaAudio extends StatefulWidget {
 }
 
 class _RemoteMediaAudioState extends State<RemoteMediaAudio> {
-  VideoPlayerController? _controller;
+  audio.AudioPlayer? _player;
+  audio.Source? _source;
   late Future<void> _initialization;
+  final List<StreamSubscription<dynamic>> _subscriptions = [];
   bool _muted = false;
+  bool _isPlaying = false;
+  Duration _position = Duration.zero;
+  Duration _total = Duration.zero;
 
   @override
   void initState() {
@@ -463,30 +474,99 @@ class _RemoteMediaAudioState extends State<RemoteMediaAudio> {
   void didUpdateWidget(covariant RemoteMediaAudio oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.url != widget.url) {
-      _controller?.dispose();
+      _disposePlayer();
+      _source = null;
+      _position = Duration.zero;
+      _total = Duration.zero;
+      _isPlaying = false;
       _initialization = _setupController();
     }
   }
 
   Future<void> _setupController() async {
     final url = widget.url.trim();
+    final player = audio.AudioPlayer();
+    _player = player;
+
     if (isAssetMediaUrl(url)) {
-      _controller = VideoPlayerController.asset(url);
+      _source = audio.AssetSource(url.substring('assets/'.length));
     } else {
       final localPath = await OfflineMediaService().getLocalPath(url);
       if (localPath != null) {
-        _controller = VideoPlayerController.file(File(localPath));
+        _source = audio.DeviceFileSource(localPath);
       } else {
-        _controller = VideoPlayerController.networkUrl(Uri.parse(url));
+        _source = audio.UrlSource(url);
       }
     }
-    await _controller!.initialize();
+    await player.setReleaseMode(audio.ReleaseMode.stop);
+    await player.setVolume(1.0);
+
+    _subscriptions.addAll([
+      player.onPlayerStateChanged.listen((state) {
+        if (mounted) {
+          setState(() => _isPlaying = state == audio.PlayerState.playing);
+        }
+      }),
+      player.onPositionChanged.listen((position) {
+        if (mounted) setState(() => _position = position);
+      }),
+      player.onDurationChanged.listen((duration) {
+        if (mounted) setState(() => _total = duration);
+      }),
+      player.onPlayerComplete.listen((_) {
+        if (mounted) {
+          setState(() {
+            _isPlaying = false;
+            _position = Duration.zero;
+          });
+        }
+      }),
+    ]);
   }
 
   @override
   void dispose() {
-    _controller?.dispose();
+    _disposePlayer();
     super.dispose();
+  }
+
+  Future<void> _disposePlayer() async {
+    // Keep references to the old player/listeners. didUpdateWidget cannot
+    // await this method, so using the fields after an await could otherwise
+    // dispose a newly-created player for the next catalog item.
+    final player = _player;
+    final subscriptions = List<StreamSubscription<dynamic>>.from(
+      _subscriptions,
+    );
+    _player = null;
+    _source = null;
+    _subscriptions.clear();
+    for (final subscription in subscriptions) {
+      await subscription.cancel();
+    }
+    await player?.dispose();
+  }
+
+  Future<void> _togglePlayback() async {
+    final player = _player;
+    final source = _source;
+    if (player == null || source == null) return;
+    try {
+      if (_isPlaying) {
+        await player.pause();
+      } else if (_position > Duration.zero) {
+        await player.resume();
+      } else {
+        await player.play(source, volume: _muted ? 0 : 1);
+      }
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+              content: Text('Audio could not start on this device.')),
+        );
+      }
+    }
   }
 
   String _duration(Duration duration) {
@@ -503,9 +583,7 @@ class _RemoteMediaAudioState extends State<RemoteMediaAudio> {
         if (snapshot.connectionState != ConnectionState.done) {
           return const Center(child: CircularProgressIndicator());
         }
-        if (snapshot.hasError ||
-            _controller == null ||
-            !_controller!.value.isInitialized) {
+        if (snapshot.hasError || _player == null || _source == null) {
           return const Text(
             'Audio could not be loaded.',
             style: TextStyle(color: Colors.white70),
@@ -518,11 +596,10 @@ class _RemoteMediaAudioState extends State<RemoteMediaAudio> {
             borderRadius: BorderRadius.circular(20),
             border: Border.all(color: const Color(0xFFFFD740).withAlpha(80)),
           ),
-          child: ValueListenableBuilder<VideoPlayerValue>(
-            valueListenable: _controller!,
-            builder: (context, value, _) {
-              final totalMs = value.duration.inMilliseconds;
-              final positionMs = value.position.inMilliseconds.clamp(
+          child: Builder(
+            builder: (context) {
+              final totalMs = _total.inMilliseconds;
+              final positionMs = _position.inMilliseconds.clamp(
                 0,
                 totalMs == 0 ? 1 : totalMs,
               );
@@ -536,12 +613,10 @@ class _RemoteMediaAudioState extends State<RemoteMediaAudio> {
                           backgroundColor: const Color(0xFFFFD740),
                           foregroundColor: Colors.black,
                         ),
-                        tooltip: value.isPlaying ? 'Pause audio' : 'Play audio',
-                        onPressed: () => value.isPlaying
-                            ? _controller!.pause()
-                            : _controller!.play(),
+                        tooltip: _isPlaying ? 'Pause audio' : 'Play audio',
+                        onPressed: _togglePlayback,
                         icon: Icon(
-                          value.isPlaying ? Icons.pause : Icons.play_arrow,
+                          _isPlaying ? Icons.pause : Icons.play_arrow,
                         ),
                       ),
                       const SizedBox(width: 12),
@@ -569,9 +644,10 @@ class _RemoteMediaAudioState extends State<RemoteMediaAudio> {
                       ),
                       IconButton(
                         tooltip: _muted ? 'Unmute' : 'Mute',
-                        onPressed: () {
-                          setState(() => _muted = !_muted);
-                          _controller!.setVolume(_muted ? 0 : 1);
+                        onPressed: () async {
+                          final nextMuted = !_muted;
+                          setState(() => _muted = nextMuted);
+                          await _player!.setVolume(nextMuted ? 0 : 1);
                         },
                         icon: Icon(
                           _muted ? Icons.volume_off : Icons.volume_up,
@@ -584,11 +660,14 @@ class _RemoteMediaAudioState extends State<RemoteMediaAudio> {
                     min: 0,
                     max: (totalMs == 0 ? 1 : totalMs).toDouble(),
                     activeColor: const Color(0xFFFFD740),
-                    onChanged: (next) => _controller!
-                        .seekTo(Duration(milliseconds: next.round())),
+                    onChanged: (next) async {
+                      await _player!.seek(
+                        Duration(milliseconds: next.round()),
+                      );
+                    },
                   ),
                   Text(
-                    '${_duration(value.position)} / ${_duration(value.duration)}',
+                    '${_duration(_position)} / ${_duration(_total)}',
                     style: const TextStyle(color: Colors.white60, fontSize: 12),
                   ),
                 ],
