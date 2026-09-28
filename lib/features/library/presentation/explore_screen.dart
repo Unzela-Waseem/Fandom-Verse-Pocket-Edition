@@ -118,7 +118,7 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
           matchesTag;
     }).toList(growable: false);
 
-    final library = ref.watch(libraryProvider);
+
 
     return Scaffold(
       appBar: widget.standalone ? AppBar(title: Text(_category)) : null,
@@ -522,144 +522,19 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
                 },
               )
             else
-              ...results.map(
-                (item) => Card(
-                  margin: const EdgeInsets.only(bottom: 14),
-                  clipBehavior: Clip.antiAlias,
-                  child: InkWell(
-                    onTap: () => Navigator.of(context).push(
-                      MaterialPageRoute<void>(
-                        builder: (_) => ContentDetailScreen(item: item),
-                      ),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Stack(
-                          children: [
-                            SizedBox(
-                              height: 130,
-                              width: double.infinity,
-                              child: RemoteMediaImage(url: item.imageUrl),
-                            ),
-                            Positioned(
-                              top: 10,
-                              left: 10,
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 8,
-                                  vertical: 4,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: Colors.black.withAlpha(190),
-                                  borderRadius: BorderRadius.circular(6),
-                                  border: Border.all(
-                                    color: const Color(0xFFFFD740),
-                                    width: 0.8,
-                                  ),
-                                ),
-                                child: Text(
-                                  _resourceBadgeText(item.type),
-                                  style: const TextStyle(
-                                    color: Color(0xFFFFD740),
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.w900,
-                                  ),
-                                ),
-                              ),
-                            ),
-                            if (item.type == ContentType.video)
-                              const Positioned.fill(
-                                child: Center(
-                                  child: CircleAvatar(
-                                    radius: 22,
-                                    backgroundColor: Colors.black54,
-                                    child: Icon(
-                                      Icons.play_arrow,
-                                      color: Colors.white,
-                                      size: 28,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                          ],
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.fromLTRB(16, 12, 10, 14),
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Row(
-                                      children: [
-                                        Text(
-                                          item.category.toUpperCase(),
-                                          style: const TextStyle(
-                                            color: Color(0xFFFFD740),
-                                            fontSize: 10,
-                                            fontWeight: FontWeight.w900,
-                                          ),
-                                        ),
-                                        const SizedBox(width: 8),
-                                        Text(
-                                          '· By ${item.creator}',
-                                          style: const TextStyle(
-                                            fontSize: 11,
-                                            color: Colors.white54,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    const SizedBox(height: 5),
-                                    Text(
-                                      item.title,
-                                      style: const TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.w900,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 6),
-                                    Text(
-                                      item.summary,
-                                      maxLines: 2,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: const TextStyle(
-                                        color: Colors.white60,
-                                        fontSize: 13,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              IconButton(
-                                tooltip:
-                                    library.bookmarkedContent.contains(item.id)
-                                        ? 'Remove offline bookmark'
-                                        : 'Save offline',
-                                onPressed: () => ref
-                                    .read(libraryProvider.notifier)
-                                    .toggleBookmark(item.id, item: item),
-                                icon: Icon(
-                                  library.bookmarkedContent.contains(item.id)
-                                      ? Icons.bookmark
-                                      : Icons.bookmark_border,
-                                  color: library.bookmarkedContent.contains(
-                                    item.id,
-                                  )
-                                      ? const Color(0xFFFFD740)
-                                      : null,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
+              GridView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  crossAxisSpacing: 16,
+                  mainAxisSpacing: 16,
+                  childAspectRatio: 0.75,
                 ),
+                itemCount: results.length,
+                itemBuilder: (context, index) {
+                  return _ExploreContentCard(item: results[index]);
+                },
               ),
           ],
         ),
@@ -679,6 +554,130 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
       ContentType.profile => '👤 PROFILE',
       ContentType.beginnerGuide => '🌱 BEGINNER GUIDE',
     };
+  }
+}
+
+class _ExploreContentCard extends ConsumerWidget {
+  const _ExploreContentCard({required this.item});
+
+  final ContentItem item;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final library = ref.watch(libraryProvider);
+    final isBookmarked = library.bookmarkedContent.contains(item.id);
+
+    return Card(
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: () => Navigator.of(context).push(
+          MaterialPageRoute<void>(
+            builder: (_) => ContentDetailScreen(item: item),
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  RemoteMediaImage(url: item.imageUrl, fit: BoxFit.cover),
+                  Positioned(
+                    top: 8,
+                    left: 8,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 6,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withValues(alpha: 0.8),
+                        borderRadius: BorderRadius.circular(6),
+                        border: Border.all(
+                          color: const Color(0xFFFFD740),
+                          width: 0.8,
+                        ),
+                      ),
+                      child: Text(
+                        _ExploreScreenState._resourceBadgeText(item.type),
+                        style: const TextStyle(
+                          color: Color(0xFFFFD740),
+                          fontSize: 8,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    top: 2,
+                    right: 2,
+                    child: IconButton(
+                      iconSize: 20,
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                      tooltip: isBookmarked ? 'Remove offline bookmark' : 'Save offline',
+                      onPressed: () => ref
+                          .read(libraryProvider.notifier)
+                          .toggleBookmark(item.id, item: item),
+                      icon: Icon(
+                        isBookmarked ? Icons.bookmark : Icons.bookmark_border,
+                        color: isBookmarked ? const Color(0xFFFFD740) : Colors.white70,
+                      ),
+                    ),
+                  ),
+                  if (item.type == ContentType.video)
+                    const Center(
+                      child: CircleAvatar(
+                        radius: 18,
+                        backgroundColor: Colors.black54,
+                        child: Icon(Icons.play_arrow, color: Colors.white, size: 24),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(10),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    item.category.toUpperCase(),
+                    style: const TextStyle(
+                      color: Color(0xFFFFD740),
+                      fontSize: 9,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    item.title,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w800,
+                      height: 1.2,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'By ${item.creator}',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontSize: 10,
+                      color: Colors.white54,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
 
