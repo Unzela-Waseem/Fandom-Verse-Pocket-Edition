@@ -345,7 +345,7 @@ final eventCatalog = [
     longitude: 67.0210,
     ticketUrl: '',
     isDemo: true,
-    imageUrl: 'assets/images/pc.jpeg',
+    imageUrl: 'assets/pc.jpeg',
   ),
   FandomEvent(
     id: 'karachi-cosplay-meet',
@@ -359,7 +359,7 @@ final eventCatalog = [
     longitude: 67.0011,
     ticketUrl: '',
     isDemo: true,
-    imageUrl: 'assets/images/meetup.jpeg',
+    imageUrl: 'assets/meetup.jpeg',
   ),
   FandomEvent(
     id: 'islamabad-game-con',
@@ -373,7 +373,7 @@ final eventCatalog = [
     longitude: 73.0479,
     ticketUrl: '',
     isDemo: true,
-    imageUrl: 'assets/images/screeningnight.jpg',
+    imageUrl: 'assets/screeningnight.jpg',
   ),
 ];
 
