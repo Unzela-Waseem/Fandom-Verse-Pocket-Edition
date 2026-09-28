@@ -149,8 +149,7 @@ class _StoreScreenState extends ConsumerState<StoreScreen> {
             ],
           ),
           const SizedBox(height: 16),
-          if (products.isEmpty)
-             const Center(child: Text('No products found.')),
+          if (products.isEmpty) const Center(child: Text('No products found.')),
           GridView.builder(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
@@ -240,8 +239,12 @@ class _ProductCard extends ConsumerWidget {
                       shape: BoxShape.circle,
                     ),
                     child: IconButton(
-                      tooltip: wishlisted ? 'Remove from wishlist' : 'Add to wishlist',
-                      onPressed: () => ref.read(libraryProvider.notifier).toggleWishlist(product.id),
+                      tooltip: wishlisted
+                          ? 'Remove from wishlist'
+                          : 'Add to wishlist',
+                      onPressed: () => ref
+                          .read(libraryProvider.notifier)
+                          .toggleWishlist(product.id),
                       icon: Icon(
                         wishlisted ? Icons.favorite : Icons.favorite_border,
                         color: wishlisted ? Colors.pinkAccent : Colors.white,
@@ -271,7 +274,8 @@ class _ProductCard extends ConsumerWidget {
                           ),
                         ),
                       ),
-                      icon: const Icon(Icons.view_in_ar, color: Colors.white, size: 18),
+                      icon: const Icon(Icons.view_in_ar,
+                          color: Colors.white, size: 18),
                       constraints: const BoxConstraints(),
                       padding: const EdgeInsets.all(6),
                     ),
@@ -287,13 +291,17 @@ class _ProductCard extends ConsumerWidget {
               children: [
                 Text(
                   product.category.toUpperCase(),
-                  style: const TextStyle(fontSize: 10, color: Colors.white54, fontWeight: FontWeight.bold),
+                  style: const TextStyle(
+                      fontSize: 10,
+                      color: Colors.white54,
+                      fontWeight: FontWeight.bold),
                 ),
                 Text(
                   product.name,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 14),
+                  style: const TextStyle(
+                      fontWeight: FontWeight.w900, fontSize: 14),
                 ),
                 const SizedBox(height: 4),
                 Row(
@@ -331,9 +339,11 @@ class _ProductCard extends ConsumerWidget {
                             .addToCart(product.id, catalog: catalog),
                     style: FilledButton.styleFrom(
                       padding: EdgeInsets.zero,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10)),
                     ),
-                    child: const Text('Add to cart', style: TextStyle(fontSize: 12)),
+                    child: const Text('Add to cart',
+                        style: TextStyle(fontSize: 12)),
                   ),
                 ),
               ],
@@ -459,7 +469,12 @@ class CartScreen extends ConsumerWidget {
                 FilledButton(
                   onPressed: invalidIds.isNotEmpty
                       ? null
-                      : () {
+                      : () async {
+                          final details = await showDialog<_CheckoutDetails>(
+                            context: context,
+                            builder: (_) => const _CheckoutDetailsDialog(),
+                          );
+                          if (details == null || !context.mounted) return;
                           final order = ref
                               .read(libraryProvider.notifier)
                               .checkout(catalog: catalog);
@@ -479,10 +494,123 @@ class CartScreen extends ConsumerWidget {
                             ),
                           );
                         },
-                  child: const Text('Complete simulated checkout'),
+                  child: const Text('Continue to checkout'),
                 ),
               ],
             ),
+    );
+  }
+}
+
+class _CheckoutDetails {
+  const _CheckoutDetails(this.address, this.payment);
+  final String address;
+  final String payment;
+}
+
+class _CheckoutDetailsDialog extends StatefulWidget {
+  const _CheckoutDetailsDialog();
+
+  @override
+  State<_CheckoutDetailsDialog> createState() => _CheckoutDetailsDialogState();
+}
+
+class _CheckoutDetailsDialogState extends State<_CheckoutDetailsDialog> {
+  final _formKey = GlobalKey<FormState>();
+  final _address = TextEditingController();
+  final _card = TextEditingController();
+  String _payment = 'Cash on Delivery';
+
+  @override
+  void dispose() {
+    _address.dispose();
+    _card.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final cardPayment = _payment == 'Credit / Debit Card';
+    return AlertDialog(
+      title: const Text('Checkout details'),
+      content: SizedBox(
+        width: 460,
+        child: Form(
+          key: _formKey,
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextFormField(
+                  controller: _address,
+                  maxLines: 3,
+                  decoration: const InputDecoration(
+                    labelText: 'Delivery address',
+                    hintText: 'House, street, city',
+                    prefixIcon: Icon(Icons.location_on_outlined),
+                  ),
+                  validator: (value) => value!.trim().length < 8
+                      ? 'Please enter your complete address.'
+                      : null,
+                ),
+                const SizedBox(height: 14),
+                DropdownButtonFormField<String>(
+                  initialValue: _payment,
+                  decoration: const InputDecoration(
+                    labelText: 'Payment method',
+                    prefixIcon: Icon(Icons.payments_outlined),
+                  ),
+                  items: const [
+                    DropdownMenuItem(
+                        value: 'Cash on Delivery',
+                        child: Text('Cash on Delivery')),
+                    DropdownMenuItem(
+                        value: 'Credit / Debit Card',
+                        child: Text('Credit / Debit Card')),
+                  ],
+                  onChanged: (value) => setState(() => _payment = value!),
+                ),
+                if (cardPayment) ...[
+                  const SizedBox(height: 14),
+                  TextFormField(
+                    controller: _card,
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(
+                      labelText: 'Card number (demo only)',
+                      prefixIcon: Icon(Icons.credit_card_outlined),
+                    ),
+                    validator: (value) => value!.replaceAll(' ', '').length < 12
+                        ? 'Enter a valid demo card number.'
+                        : null,
+                  ),
+                  const SizedBox(height: 8),
+                  const Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                        'This is a simulated checkout. No card is charged or stored.',
+                        style: TextStyle(fontSize: 11, color: Colors.white60)),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ),
+      ),
+      actions: [
+        TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel')),
+        FilledButton.icon(
+          onPressed: () {
+            if (_formKey.currentState!.validate()) {
+              Navigator.pop(
+                  context, _CheckoutDetails(_address.text.trim(), _payment));
+            }
+          },
+          icon: const Icon(Icons.check_circle_outline),
+          label: const Text('Place demo order'),
+        ),
+      ],
     );
   }
 }
