@@ -1,0 +1,44 @@
+{
+  "indexes": [
+    {
+      "collectionGroup": "content",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {"fieldPath": "published", "order": "ASCENDING"},
+        {"fieldPath": "createdAt", "order": "DESCENDING"}
+      ]
+    },
+    {
+      "collectionGroup": "events",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {"fieldPath": "city", "order": "ASCENDING"},
+        {"fieldPath": "eventDate", "order": "ASCENDING"}
+      ]
+    },
+    {
+      "collectionGroup": "discussions",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {"fieldPath": "hidden", "order": "ASCENDING"},
+        {"fieldPath": "createdAt", "order": "DESCENDING"}
+      ]
+    }
+  ],
+  "fieldOverrides": [
+    {
+      "collectionGroup": "inquiries",
+      "fieldPath": "createdAt",
+      "indexes": [
+        {"order": "DESCENDING", "queryScope": "COLLECTION_GROUP"}
+      ]
+    },
+    {
+      "collectionGroup": "wishlist",
+      "fieldPath": "productId",
+      "indexes": [
+        {"order": "ASCENDING", "queryScope": "COLLECTION_GROUP"}
+      ]
+    }
+  ]
+}

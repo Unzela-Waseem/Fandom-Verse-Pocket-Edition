@@ -1,0 +1,13 @@
+{
+  "name": "fandom-verse-functions",
+  "private": true,
+  "engines": {"node": "22"},
+  "main": "index.js",
+  "scripts": {
+    "test": "node --test"
+  },
+  "dependencies": {
+    "firebase-admin": "^14.4.0",
+    "firebase-functions": "^7.4.0"
+  }
+}

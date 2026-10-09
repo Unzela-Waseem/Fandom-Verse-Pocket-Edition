@@ -1,0 +1,2095 @@
+import 'dart:async';
+import 'dart:ui';
+
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../../core/constants/app_assets.dart';
+import '../../../core/media/remote_media.dart';
+import '../../ai_helper/presentation/ai_helper_screen.dart';
+import '../../authentication/domain/app_user.dart';
+import '../../discussions/presentation/discussions_screen.dart';
+import '../../events/presentation/events_screen.dart';
+import '../../library/application/library_controller.dart';
+import '../../library/data/cloud_catalog.dart';
+import '../../library/data/demo_catalog.dart';
+import '../../library/domain/library_models.dart';
+import '../../library/presentation/beginner_hub_screen.dart';
+import '../../library/presentation/deep_dive_screen.dart';
+import '../../library/presentation/explore_screen.dart';
+import '../../merchandise/presentation/store_screen.dart';
+import '../../notifications/presentation/notifications_screen.dart';
+import '../../notifications/data/notification_device_service.dart';
+import '../../notifications/data/price_drop_alert_service.dart';
+import '../../profile/presentation/profile_screen.dart';
+import 'about_us_screen.dart';
+import 'contact_us_screen.dart';
+import 'privacy_policy_screen.dart';
+import '../../characters/presentation/popular_characters_section.dart';
+
+class FanShell extends ConsumerStatefulWidget {
+  const FanShell({super.key, this.profile});
+
+  final AppUser? profile;
+
+  @override
+  ConsumerState<FanShell> createState() => _FanShellState();
+}
+
+class _FanShellState extends ConsumerState<FanShell> {
+  int _index = 0;
+  StreamSubscription<String>? _tokenSubscription;
+  ProviderSubscription<AsyncValue<List<Product>>>? _catalogSubscription;
+
+  @override
+  void initState() {
+    super.initState();
+    _catalogSubscription = ref.listenManual(productCatalogProvider, (
+      previous,
+      next,
+    ) {
+      next.whenData((products) => _checkPriceDrops(products));
+    }, fireImmediately: true);
+    if (widget.profile != null && !kIsWeb && Firebase.apps.isNotEmpty) {
+      _tokenSubscription = FirebaseMessaging.instance.onTokenRefresh.listen((
+        token,
+      ) {
+        final profile = widget.profile;
+        if (profile?.priceDropNotifications != true ||
+            FirebaseAuth.instance.currentUser?.uid != profile?.uid) {
+          return;
+        }
+        unawaited(
+          NotificationDeviceService.saveToken(
+            profile!.uid,
+            token,
+          ).catchError((Object _) {}),
+        );
+      });
+      unawaited(_registerIfPermitted());
+    }
+  }
+
+  @override
+  void didUpdateWidget(covariant FanShell oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (!kIsWeb &&
+        oldWidget.profile?.priceDropNotifications != true &&
+        widget.profile?.priceDropNotifications == true) {
+      unawaited(_registerIfPermitted());
+      final products = ref.read(productCatalogProvider).asData?.value;
+      if (products != null) _checkPriceDrops(products);
+    }
+  }
+
+  void _checkPriceDrops(List<Product> products) {
+    final profile = widget.profile;
+    if (profile?.priceDropNotifications != true) return;
+    final wishlist = ref.read(libraryProvider).wishlist;
+    unawaited(
+      PriceDropAlertService.checkForDrops(
+        userId: profile!.uid,
+        wishlist: wishlist,
+        products: products,
+      ).catchError((Object _) {}),
+    );
+  }
+
+  Future<void> _registerIfPermitted() async {
+    if (kIsWeb || Firebase.apps.isEmpty) return;
+    final profile = widget.profile;
+    if (profile?.priceDropNotifications != true) return;
+    try {
+      final settings =
+          await FirebaseMessaging.instance.getNotificationSettings();
+      if (settings.authorizationStatus == AuthorizationStatus.authorized ||
+          settings.authorizationStatus == AuthorizationStatus.provisional) {
+        if (FirebaseAuth.instance.currentUser?.uid == profile?.uid) {
+          await NotificationDeviceService.saveCurrentToken(profile!.uid);
+        }
+      }
+    } catch (_) {
+      // The in-app notification center still works without device push.
+    }
+  }
+
+  @override
+  void dispose() {
+    unawaited(_tokenSubscription?.cancel());
+    _catalogSubscription?.close();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final pages = [
+      _HomeTab(
+        profile: widget.profile,
+        openExplore: () => setState(() => _index = 1),
+      ),
+      const ExploreScreen(),
+      const DiscussionsScreen(),
+      const EventsScreen(),
+      const StoreScreen(),
+      ProfileScreen(profile: widget.profile),
+    ];
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final wide = constraints.maxWidth >= 800;
+        return Scaffold(
+          backgroundColor: const Color(0xFF09040E),
+          drawer: _FanDrawer(profile: widget.profile),
+          floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+          floatingActionButton: _index == 4
+              ? null
+              : FloatingActionButton.extended(
+                  heroTag: 'global-fan-helper',
+                  backgroundColor: const Color(0xFFA855F7),
+                  foregroundColor: Colors.white,
+                  onPressed: () => Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (_) => const AiHelperScreen(),
+                    ),
+                  ),
+                  icon: const Icon(Icons.chat_bubble_outline_rounded),
+                  label: const Text('Fan Helper'),
+                ),
+          body: wide
+              ? Row(
+                  children: [
+                    NavigationRail(
+                      selectedIndex: _index,
+                      onDestinationSelected: (value) =>
+                          setState(() => _index = value),
+                      labelType: NavigationRailLabelType.all,
+                      backgroundColor: const Color(0xFF0C0616),
+                      indicatorColor: const Color(0xFFA855F7),
+                      destinations: const [
+                        NavigationRailDestination(
+                          icon: Icon(Icons.home_outlined),
+                          selectedIcon: Icon(Icons.home),
+                          label: Text('Home'),
+                        ),
+                        NavigationRailDestination(
+                          icon: Icon(Icons.explore_outlined),
+                          selectedIcon: Icon(Icons.explore),
+                          label: Text('Explore'),
+                        ),
+                        NavigationRailDestination(
+                          icon: Icon(Icons.forum_outlined),
+                          selectedIcon: Icon(Icons.forum),
+                          label: Text('Community'),
+                        ),
+                        NavigationRailDestination(
+                          icon: Icon(Icons.calendar_month_outlined),
+                          selectedIcon: Icon(Icons.calendar_month),
+                          label: Text('Events'),
+                        ),
+                        NavigationRailDestination(
+                          icon: Icon(Icons.shopping_bag_outlined),
+                          selectedIcon: Icon(Icons.shopping_bag),
+                          label: Text('Store'),
+                        ),
+                        NavigationRailDestination(
+                          icon: Icon(Icons.person_outline),
+                          selectedIcon: Icon(Icons.person),
+                          label: Text('Profile'),
+                        ),
+                      ],
+                    ),
+                    const VerticalDivider(width: 1, color: Color(0xFF26123D)),
+                    Expanded(
+                      child: IndexedStack(index: _index, children: pages),
+                    ),
+                  ],
+                )
+              : IndexedStack(index: _index, children: pages),
+          bottomNavigationBar: wide
+              ? null
+              : Container(
+                  decoration: const BoxDecoration(
+                    border: Border(
+                      top: BorderSide(color: Color(0xFF26123D), width: 1),
+                    ),
+                  ),
+                  child: NavigationBar(
+                    selectedIndex: _index,
+                    height: 68,
+                    backgroundColor: const Color(0xFF0C0616),
+                    indicatorColor: const Color(0xFFA855F7),
+                    labelBehavior:
+                        NavigationDestinationLabelBehavior.onlyShowSelected,
+                    onDestinationSelected: (value) =>
+                        setState(() => _index = value),
+                    destinations: const [
+                      NavigationDestination(
+                        icon: Icon(Icons.home_outlined),
+                        selectedIcon: Icon(Icons.home),
+                        label: 'Home',
+                      ),
+                      NavigationDestination(
+                        icon: Icon(Icons.explore_outlined),
+                        selectedIcon: Icon(Icons.explore),
+                        label: 'Explore',
+                      ),
+                      NavigationDestination(
+                        icon: Icon(Icons.forum_outlined),
+                        selectedIcon: Icon(Icons.forum),
+                        label: 'Community',
+                      ),
+                      NavigationDestination(
+                        icon: Icon(Icons.calendar_month_outlined),
+                        selectedIcon: Icon(Icons.calendar_month),
+                        label: 'Events',
+                      ),
+                      NavigationDestination(
+                        icon: Icon(Icons.shopping_bag_outlined),
+                        selectedIcon: Icon(Icons.shopping_bag),
+                        label: 'Store',
+                      ),
+                      NavigationDestination(
+                        icon: Icon(Icons.person_outline),
+                        selectedIcon: Icon(Icons.person),
+                        label: 'Profile',
+                      ),
+                    ],
+                  ),
+                ),
+        );
+      },
+    );
+  }
+}
+
+class _HomeTab extends ConsumerWidget {
+  const _HomeTab({required this.openExplore, this.profile});
+
+  final AppUser? profile;
+  final VoidCallback openExplore;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final catalog =
+        ref.watch(contentCatalogProvider).asData?.value ?? contentCatalog;
+    final featured =
+        catalog.where((item) => item.trending).toList().reversed.toList();
+    if (featured.isEmpty)
+      featured.addAll(catalog.take(4).toList().reversed.toList());
+    final categories = catalog.map((item) => item.category).toSet().toList();
+
+    // Personalized fandom items based on profile.selectedFandoms
+    final userFandoms = profile?.selectedFandoms ?? const [];
+    final personalized = userFandoms.isNotEmpty
+        ? catalog
+            .where(
+              (item) => userFandoms.any(
+                (f) => f.toLowerCase() == item.category.toLowerCase(),
+              ),
+            )
+            .take(4)
+            .toList()
+        : <ContentItem>[];
+
+    return SafeArea(
+      child: Stack(
+        children: [
+          // Background ambient radial light glow effects inspired by reference UI
+          Positioned(
+            top: -60,
+            left: 0,
+            right: 0,
+            height: 300,
+            child: IgnorePointer(
+              child: Container(
+                decoration: const BoxDecoration(
+                  gradient: RadialGradient(
+                    center: Alignment.topCenter,
+                    radius: 0.9,
+                    colors: [Color(0x55A855F7), Color(0x0009040E)],
+                  ),
+                ),
+              ),
+            ),
+          ),
+          Positioned(
+            top: 550,
+            right: -80,
+            width: 260,
+            height: 260,
+            child: IgnorePointer(
+              child: Container(
+                decoration: const BoxDecoration(
+                  gradient: RadialGradient(
+                    center: Alignment.center,
+                    radius: 0.8,
+                    colors: [Color(0x35D946EF), Color(0x0009040E)],
+                  ),
+                ),
+              ),
+            ),
+          ),
+
+          CustomScrollView(
+            slivers: [
+              SliverPadding(
+                padding: const EdgeInsets.fromLTRB(20, 18, 20, 0),
+                sliver: SliverList.list(
+                  children: [
+                    _TopBar(profile: profile, openExplore: openExplore),
+                    const SizedBox(height: 18),
+                    _CharacterCarousel(
+                        featured: featured, openExplore: openExplore),
+                    const SizedBox(height: 16),
+                    _SectionTitle(
+                      title: 'Explore Fandoms',
+                      action: 'View All',
+                      onPressed: openExplore,
+                    ),
+                    const SizedBox(height: 10),
+                    SizedBox(
+                      height: 90,
+                      child: ListView.separated(
+                        scrollDirection: Axis.horizontal,
+                        itemCount: categories.length,
+                        separatorBuilder: (_, __) => const SizedBox(width: 14),
+                        itemBuilder: (_, index) => _CategoryAvatar(
+                          category: categories[index],
+                          onTap: () => Navigator.of(context).push(
+                            MaterialPageRoute<void>(
+                              builder: (_) => ExploreScreen(
+                                initialCategory: categories[index],
+                                standalone: true,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    const PopularCharactersSection(),
+                    const SizedBox(height: 24),
+                    const _TrendingFandomCarousel(),
+                    const SizedBox(height: 24),
+                    const _HubQuickCards(),
+                    const SizedBox(height: 24),
+                    _SectionTitle(
+                      title: 'Featured Stories',
+                      action: 'See More',
+                      onPressed: openExplore,
+                    ),
+                    const SizedBox(height: 14),
+                  ],
+                ),
+              ),
+              SliverToBoxAdapter(
+                child: SizedBox(
+                  height: 250,
+                  child: ListView.separated(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    scrollDirection: Axis.horizontal,
+                    itemCount: featured.length,
+                    separatorBuilder: (_, __) => const SizedBox(width: 14),
+                    itemBuilder: (_, index) => SizedBox(
+                      width: 160,
+                      child: _StoryCard(item: featured[index]),
+                    ),
+                  ),
+                ),
+              ),
+              const SliverToBoxAdapter(child: SizedBox(height: 28)),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _FanDrawer extends StatelessWidget {
+  const _FanDrawer({this.profile});
+
+  final AppUser? profile;
+
+  @override
+  Widget build(BuildContext context) {
+    return Drawer(
+      backgroundColor: const Color(0xFF0C0616),
+      child: Column(
+        children: [
+          DrawerHeader(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Color(0xFF2A1154), Color(0xFF0C0616)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+            ),
+            child: Row(
+              children: [
+                CircleAvatar(
+                  radius: 30,
+                  backgroundColor: const Color(0xFF180A2E),
+                  backgroundImage: profile?.avatarUrl != null &&
+                          profile!.avatarUrl!.isNotEmpty
+                      ? NetworkImage(profile!.avatarUrl!)
+                      : null,
+                  child:
+                      profile?.avatarUrl == null || profile!.avatarUrl!.isEmpty
+                          ? const Icon(Icons.person,
+                              color: Color(0xFFE9D5FF), size: 32)
+                          : null,
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Text(
+                        'FandomVerse',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 20,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        profile?.displayName ?? 'Explorer',
+                        style: const TextStyle(
+                          color: Color(0xFFC084FC),
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          ListTile(
+            leading: const Icon(Icons.info_outline, color: Color(0xFFC084FC)),
+            title:
+                const Text('About Us', style: TextStyle(color: Colors.white)),
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.of(context).push(MaterialPageRoute<void>(
+                  builder: (_) => const AboutUsScreen()));
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.mail_outline, color: Color(0xFFC084FC)),
+            title:
+                const Text('Contact Us', style: TextStyle(color: Colors.white)),
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.of(context).push(MaterialPageRoute<void>(
+                  builder: (_) => const ContactUsScreen()));
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.privacy_tip_outlined,
+                color: Color(0xFFC084FC)),
+            title: const Text('Privacy Policy',
+                style: TextStyle(color: Colors.white)),
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.of(context).push(MaterialPageRoute<void>(
+                  builder: (_) => const PrivacyPolicyScreen()));
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.settings, color: Color(0xFFC084FC)),
+            title:
+                const Text('Settings', style: TextStyle(color: Colors.white)),
+            onTap: () {
+              // TODO: Settings screen
+              Navigator.pop(context);
+            },
+          ),
+          const Spacer(),
+          const Divider(color: Colors.white12),
+          ListTile(
+            leading: const Icon(Icons.logout, color: Colors.redAccent),
+            title: const Text('Sign Out',
+                style: TextStyle(color: Colors.redAccent)),
+            onTap: () async {
+              Navigator.pop(context);
+              await FirebaseAuth.instance.signOut();
+            },
+          ),
+          const SizedBox(height: 20),
+        ],
+      ),
+    );
+  }
+}
+
+class _TopBar extends StatelessWidget {
+  const _TopBar({required this.openExplore, this.profile});
+
+  final AppUser? profile;
+  final VoidCallback openExplore;
+
+  @override
+  Widget build(BuildContext context) => Row(
+        children: [
+          Builder(
+            builder: (context) => GestureDetector(
+              onTap: () => Scaffold.of(context).openDrawer(),
+              child: CircleAvatar(
+                radius: 22,
+                backgroundColor: const Color(0xFF180A2E),
+                backgroundImage:
+                    profile?.avatarUrl != null && profile!.avatarUrl!.isNotEmpty
+                        ? NetworkImage(profile!.avatarUrl!)
+                        : null,
+                child: profile?.avatarUrl == null || profile!.avatarUrl!.isEmpty
+                    ? const Icon(Icons.person,
+                        color: Color(0xFFE9D5FF), size: 24)
+                    : null,
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Welcome back',
+                  style: TextStyle(
+                    color: Color(0xFFC084FC),
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                Text(
+                  profile?.displayName ?? 'Fandom Explorer',
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w900,
+                    fontSize: 17,
+                    color: Colors.white,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
+          Container(
+            decoration: BoxDecoration(
+              color: const Color(0xFF1C0D38),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(
+                color: const Color(0xFFA855F7).withValues(alpha: 0.3),
+              ),
+            ),
+            child: PopupMenuButton<int>(
+              icon: const Icon(Icons.more_vert, color: Color(0xFFE9D5FF)),
+              color: const Color(0xFF1C0D38),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(14),
+                side: BorderSide(
+                    color: const Color(0xFFA855F7).withValues(alpha: 0.3)),
+              ),
+              offset: const Offset(0, 48),
+              onSelected: (value) {
+                if (value == 0) openExplore();
+                if (value == 1) {
+                  Navigator.of(context).push(MaterialPageRoute<void>(
+                      builder: (_) => const NotificationsScreen()));
+                }
+                if (value == 2) {
+                  Navigator.of(context).push(MaterialPageRoute<void>(
+                      builder: (_) => AiHelperScreen()));
+                }
+              },
+              itemBuilder: (context) => [
+                const PopupMenuItem(
+                  value: 0,
+                  child: Row(children: [
+                    Icon(Icons.search, color: Color(0xFFE9D5FF)),
+                    SizedBox(width: 12),
+                    Text('Explore & Search',
+                        style: TextStyle(color: Colors.white))
+                  ]),
+                ),
+                const PopupMenuItem(
+                  value: 1,
+                  child: Row(children: [
+                    Icon(Icons.notifications_none, color: Color(0xFFE9D5FF)),
+                    SizedBox(width: 12),
+                    Text('Notifications', style: TextStyle(color: Colors.white))
+                  ]),
+                ),
+                const PopupMenuItem(
+                  value: 2,
+                  child: Row(children: [
+                    Icon(Icons.smart_toy_outlined, color: Color(0xFFE9D5FF)),
+                    SizedBox(width: 12),
+                    Text('AI Fan Helper', style: TextStyle(color: Colors.white))
+                  ]),
+                ),
+              ],
+            ),
+          ),
+        ],
+      );
+}
+
+class _StatsSection extends StatelessWidget {
+  const _StatsSection();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+      decoration: BoxDecoration(
+        color: const Color(0xFF1A0B2E).withValues(alpha: 0.6),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(
+          color: const Color(0xFFA855F7).withValues(alpha: 0.2),
+          width: 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFFA855F7).withValues(alpha: 0.1),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: const [
+          _StatTile(number: '42M+', label: 'Reads'),
+          _StatDivider(),
+          _StatTile(number: '204+', label: 'Universes'),
+          _StatDivider(),
+          _StatTile(number: '24M+', label: 'Fans'),
+          _StatDivider(),
+          _StatTile(number: '112+', label: 'Events'),
+        ],
+      ),
+    );
+  }
+}
+
+class _StatTile extends StatelessWidget {
+  const _StatTile({required this.number, required this.label});
+  final String number;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          number,
+          style: const TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.w900,
+            color: Colors.white,
+            letterSpacing: -0.5,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 12,
+            color: Color(0xFFC084FC),
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _StatDivider extends StatelessWidget {
+  const _StatDivider();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 32,
+      width: 1,
+      color: const Color(0xFFA855F7).withValues(alpha: 0.2),
+    );
+  }
+}
+
+class _CharacterCarousel extends StatefulWidget {
+  const _CharacterCarousel({required this.featured, required this.openExplore});
+  final List<ContentItem> featured;
+  final VoidCallback openExplore;
+
+  @override
+  State<_CharacterCarousel> createState() => _CharacterCarouselState();
+}
+
+class _CharacterCarouselState extends State<_CharacterCarousel> {
+  final PageController _controller = PageController(viewportFraction: 1.0);
+  int _currentPage = 0;
+
+  static const _heroBanners = [
+    {
+      'image': 'assets/avengers.jpeg',
+      'title': 'The Most Powerful Avengers',
+      'category': 'MOVIES',
+    },
+    {
+      'image': 'assets/ninja.jpg',
+      'title': 'The Way of the Ninja',
+      'category': 'ANIME',
+    },
+    {
+      'image': 'assets/gaming.jpg',
+      'title': 'Discover New Gaming Worlds',
+      'category': 'GAMING',
+    },
+  ];
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        SizedBox(
+          height: 210,
+          child: PageView.builder(
+            controller: _controller,
+            itemCount: _heroBanners.length,
+            onPageChanged: (idx) => setState(() => _currentPage = idx),
+            itemBuilder: (context, index) {
+              final item = _heroBanners[index];
+              return Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 0),
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(28),
+                  onTap: widget.openExplore,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(28),
+                      color: const Color(0xFF160B28),
+                      border: Border.all(
+                        color: const Color(0xFFA855F7).withValues(alpha: 0.3),
+                        width: 1.5,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFFA855F7).withValues(alpha: 0.2),
+                          blurRadius: 18,
+                          offset: const Offset(0, 8),
+                        ),
+                      ],
+                    ),
+                    clipBehavior: Clip.antiAlias,
+                    child: Stack(
+                      fit: StackFit.expand,
+                      children: [
+                        Image.asset(
+                          item['image']!,
+                          fit: BoxFit.cover,
+                          alignment: Alignment.topCenter,
+                        ),
+                        Container(
+                          decoration: const BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                              colors: [Colors.transparent, Color(0xE609040E)],
+                              stops: [0.2, 1.0],
+                            ),
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.all(20),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 10, vertical: 5),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFD946EF)
+                                      .withValues(alpha: 0.2),
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(
+                                      color: const Color(0xFFD946EF)
+                                          .withValues(alpha: 0.5)),
+                                ),
+                                child: Text(
+                                  item['category']!,
+                                  style: const TextStyle(
+                                    color: Color(0xFFE879F9),
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w900,
+                                    letterSpacing: 0.5,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 10),
+                              Text(
+                                item['title']!,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.w900,
+                                  color: Colors.white,
+                                  height: 1.15,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+        const SizedBox(height: 14),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: List.generate(
+            _heroBanners.length,
+            (idx) => AnimatedContainer(
+              duration: const Duration(milliseconds: 300),
+              margin: const EdgeInsets.symmetric(horizontal: 4),
+              width: _currentPage == idx ? 24 : 8,
+              height: 8,
+              decoration: BoxDecoration(
+                color: _currentPage == idx
+                    ? const Color(0xFFA855F7)
+                    : Colors.white24,
+                borderRadius: BorderRadius.circular(99),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _Pill extends StatelessWidget {
+  const _Pill({required this.label});
+  final String label;
+
+  @override
+  Widget build(BuildContext context) => Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            colors: [Color(0xFFA855F7), Color(0xFF7E22CE)],
+          ),
+          borderRadius: BorderRadius.circular(99),
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFFA855F7).withValues(alpha: 0.4),
+              blurRadius: 8,
+            ),
+          ],
+        ),
+        child: Text(
+          label,
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.w900,
+            fontSize: 10,
+            letterSpacing: 0.6,
+          ),
+        ),
+      );
+}
+
+class _SectionTitle extends StatelessWidget {
+  const _SectionTitle({
+    required this.title,
+    required this.action,
+    required this.onPressed,
+  });
+  final String title;
+  final String action;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: Text(
+            title,
+            style: const TextStyle(
+              fontSize: 19,
+              fontWeight: FontWeight.w900,
+              color: Colors.white,
+            ),
+          ),
+        ),
+        TextButton(
+          onPressed: onPressed,
+          style: TextButton.styleFrom(foregroundColor: const Color(0xFFC084FC)),
+          child: Text(
+            action,
+            style: const TextStyle(fontWeight: FontWeight.bold),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _CategoryAvatar extends StatefulWidget {
+  const _CategoryAvatar({required this.category, required this.onTap});
+  final String category;
+  final VoidCallback onTap;
+
+  @override
+  State<_CategoryAvatar> createState() => _CategoryAvatarState();
+}
+
+class _CategoryAvatarState extends State<_CategoryAvatar> {
+  bool _isHovered = false;
+  bool _isPressed = false;
+
+  Map<String, dynamic> _getCategoryStyle(String cat) {
+    switch (cat.toLowerCase()) {
+      case 'anime':
+        return {
+          'icon': Icons.bolt,
+          'color': const Color(0xFFFF9800),
+          'bg': const Color(0xFF2E1A0A)
+        };
+      case 'gaming':
+        return {
+          'icon': Icons.sports_esports,
+          'color': const Color(0xFFAB47BC),
+          'bg': const Color(0xFF24132B)
+        };
+      case 'sci-fi':
+        return {
+          'icon': Icons.rocket_launch,
+          'color': const Color(0xFF29B6F6),
+          'bg': const Color(0xFF0C2133)
+        };
+      case 'comics':
+        return {
+          'icon': Icons.auto_awesome,
+          'color': const Color(0xFFEF5350),
+          'bg': const Color(0xFF331212)
+        };
+      case 'fantasy':
+        return {
+          'icon': Icons.castle,
+          'color': const Color(0xFFFFD54F),
+          'bg': const Color(0xFF332A0C)
+        };
+      case 'art':
+        return {
+          'icon': Icons.palette,
+          'color': const Color(0xFF26A69A),
+          'bg': const Color(0xFF0A2B27)
+        };
+      default:
+        final colors = [
+          const Color(0xFFF48FB1), // pink
+          const Color(0xFF81D4FA), // light blue
+          const Color(0xFFB39DDB), // deep purple
+          const Color(0xFFFFCC80), // orange
+          const Color(0xFFA5D6A7), // green
+          const Color(0xFFFFD740), // yellow
+        ];
+        final color = colors[cat.hashCode.abs() % colors.length];
+        return {
+          'icon': Icons.auto_stories_outlined,
+          'color': color,
+          'bg': color.withValues(alpha: 0.15)
+        };
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final style = _getCategoryStyle(widget.category);
+    final IconData icon = style['icon'] as IconData;
+    final Color color = style['color'] as Color;
+    final Color bg = style['bg'] as Color;
+
+    final scale = _isPressed ? 0.9 : (_isHovered ? 1.08 : 1.0);
+
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0.0, end: 1.0),
+      duration: const Duration(milliseconds: 700),
+      curve: Curves.elasticOut,
+      builder: (context, value, child) => Transform.scale(
+        scale: value,
+        child: child,
+      ),
+      child: GestureDetector(
+        onTapDown: (_) => setState(() => _isPressed = true),
+        onTapUp: (_) {
+          setState(() => _isPressed = false);
+          widget.onTap();
+        },
+        onTapCancel: () => setState(() => _isPressed = false),
+        child: MouseRegion(
+          onEnter: (_) => setState(() => _isHovered = true),
+          onExit: (_) => setState(() => _isHovered = false),
+          child: AnimatedScale(
+            scale: scale,
+            duration: const Duration(milliseconds: 150),
+            curve: Curves.easeInOut,
+            child: SizedBox(
+              width: 64,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    padding: const EdgeInsets.all(2.5),
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: color.withValues(alpha: _isHovered ? 1.0 : 0.6),
+                        width: _isHovered ? 2.5 : 2.0,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: color.withValues(alpha: _isHovered ? 0.4 : 0.2),
+                          blurRadius: _isHovered ? 12 : 8,
+                          spreadRadius: _isHovered ? 2 : 1,
+                        ),
+                      ],
+                    ),
+                    child: CircleAvatar(
+                      radius: 22,
+                      backgroundColor: bg,
+                      child: Icon(
+                        icon,
+                        color: color,
+                        size: 20,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    widget.category.toUpperCase(),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 9,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 1.0,
+                      color: _isHovered ? color : Colors.white70,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _StoryCard extends ConsumerWidget {
+  const _StoryCard({required this.item});
+  final ContentItem item;
+
+  Map<String, dynamic> _getThemeForItem(ContentItem item) {
+    final cat = item.category.toLowerCase();
+    switch (cat) {
+      case 'anime':
+        return {
+          'icon': Icons.bolt,
+          'gradient': [const Color(0xFFD84315), const Color(0xFF1B0B07)],
+          'accent': const Color(0xFFFF8A65),
+        };
+      case 'gaming':
+        return {
+          'icon': Icons.sports_esports,
+          'gradient': [const Color(0xFF6A1B9A), const Color(0xFF160A21)],
+          'accent': const Color(0xFFCE93D8),
+        };
+      case 'sci-fi':
+        return {
+          'icon': Icons.rocket_launch,
+          'gradient': [const Color(0xFF1565C0), const Color(0xFF071224)],
+          'accent': const Color(0xFF90CAF9),
+        };
+      case 'comics':
+        return {
+          'icon': Icons.auto_awesome,
+          'gradient': [const Color(0xFFC62828), const Color(0xFF210909)],
+          'accent': const Color(0xFFEF9A9A),
+        };
+      case 'fantasy':
+        return {
+          'icon': Icons.castle,
+          'gradient': [const Color(0xFF4A148C), const Color(0xFF19072E)],
+          'accent': const Color(0xFFFFD54F),
+        };
+      case 'art':
+        return {
+          'icon': Icons.palette,
+          'gradient': [const Color(0xFF00695C), const Color(0xFF041A18)],
+          'accent': const Color(0xFF80CBC4),
+        };
+      default:
+        return {
+          'icon': Icons.menu_book,
+          'gradient': [const Color(0xFF200F38), const Color(0xFF0C0519)],
+          'accent': const Color(0xFFA855F7),
+        };
+    }
+  }
+
+  IconData _getTypeIcon(ContentType type) {
+    switch (type) {
+      case ContentType.video:
+        return Icons.play_circle_fill;
+      case ContentType.podcast:
+        return Icons.graphic_eq;
+      case ContentType.gallery:
+        return Icons.collections;
+      case ContentType.news:
+        return Icons.newspaper;
+      case ContentType.deepDive:
+        return Icons.psychology;
+      case ContentType.glossary:
+        return Icons.menu_book;
+      default:
+        return Icons.article;
+    }
+  }
+
+  /// Returns a category-appropriate character/scene image URL
+  String _getFallbackImage(ContentItem item) {
+    switch (item.category.toLowerCase()) {
+      case 'anime':
+        return 'https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?w=600&q=80';
+      case 'gaming':
+        return 'https://images.unsplash.com/photo-1542751371-adc38448a05e?w=600&q=80';
+      case 'sci-fi':
+        return 'https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?w=600&q=80';
+      case 'comics':
+      case 'dc comics':
+      case 'marvel':
+        return 'https://images.unsplash.com/photo-1531259683007-016a7b628fc3?w=600&q=80';
+      case 'fantasy':
+        return 'https://images.unsplash.com/photo-1578632767115-351597cf2477?w=600&q=80';
+      case 'art':
+        return 'https://images.unsplash.com/photo-1579783900882-c0d3dad7b119?w=600&q=80';
+      default:
+        return 'https://images.unsplash.com/photo-1534447677768-be436bb09401?w=600&q=80';
+    }
+  }
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final bookmarked =
+        ref.watch(libraryProvider).bookmarkedContent.contains(item.id);
+
+    final theme = _getThemeForItem(item);
+    final List<Color> colors = theme['gradient'] as List<Color>;
+    final Color accent = theme['accent'] as Color;
+    final IconData typeIcon = _getTypeIcon(item.type);
+    final bool hasCustomImage = isHttpsMediaUrl(item.imageUrl);
+    // Use custom image if available, otherwise use category-specific fallback
+    final String imageToShow =
+        hasCustomImage ? item.imageUrl! : _getFallbackImage(item);
+
+    return InkWell(
+      borderRadius: BorderRadius.circular(20),
+      onTap: () => Navigator.of(context).push(
+        MaterialPageRoute<void>(
+          builder: (_) => ContentDetailScreen(item: item),
+        ),
+      ),
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: accent.withValues(alpha: 0.45), width: 1.2),
+          color: colors.first,
+          boxShadow: [
+            BoxShadow(
+              color: accent.withValues(alpha: 0.25),
+              blurRadius: 14,
+              offset: const Offset(0, 6),
+            ),
+          ],
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            // Always show image (custom or fallback)
+            Image.network(
+              imageToShow,
+              fit: BoxFit.cover,
+              alignment: Alignment.topCenter,
+              errorBuilder: (_, __, ___) => Container(
+                color: colors.first,
+                child: Center(
+                  child: Icon(
+                    theme['icon'] as IconData,
+                    size: 60,
+                    color: accent.withValues(alpha: 0.3),
+                  ),
+                ),
+              ),
+            ),
+            // Gradient overlay
+            Container(
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [Colors.transparent, Color(0xEE09040E)],
+                  stops: [0.25, 1.0],
+                ),
+              ),
+            ),
+
+            // Content Padding & Badges
+            Padding(
+              padding: const EdgeInsets.all(12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SizedBox(
+                    height: 32,
+                    child: Stack(
+                      children: [
+                        Positioned(
+                          top: 0,
+                          left: 0,
+                          right: 40,
+                          child: Align(
+                            alignment: Alignment.topLeft,
+                            child: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              alignment: Alignment.topLeft,
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 7,
+                                  vertical: 3,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.black.withValues(alpha: 0.7),
+                                  borderRadius: BorderRadius.circular(6),
+                                  border: Border.all(
+                                    color: accent.withValues(alpha: 0.5),
+                                  ),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(typeIcon, size: 11, color: accent),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      item.type.name.toUpperCase(),
+                                      style: TextStyle(
+                                        color: accent,
+                                        fontSize: 9,
+                                        fontWeight: FontWeight.w900,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        Positioned(
+                          top: 0,
+                          right: 0,
+                          child: IconButton.filledTonal(
+                            constraints: const BoxConstraints(
+                              minWidth: 32,
+                              minHeight: 32,
+                            ),
+                            padding: EdgeInsets.zero,
+                            tooltip:
+                                bookmarked ? 'Remove bookmark' : 'Save offline',
+                            onPressed: () => ref
+                                .read(libraryProvider.notifier)
+                                .toggleBookmark(item.id, item: item),
+                            icon: Icon(
+                              bookmarked
+                                  ? Icons.bookmark
+                                  : Icons.bookmark_border,
+                              size: 17,
+                              color: bookmarked
+                                  ? const Color(0xFFE879F9)
+                                  : Colors.white70,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const Spacer(),
+                  Text(
+                    item.category.toUpperCase(),
+                    style: TextStyle(
+                      color: accent,
+                      fontSize: 10,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                  const SizedBox(height: 3),
+                  Text(
+                    item.title,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w900,
+                      fontSize: 14,
+                      height: 1.25,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Row(
+                    children: [
+                      const Icon(
+                        Icons.account_circle,
+                        size: 12,
+                        color: Colors.white54,
+                      ),
+                      const SizedBox(width: 4),
+                      Expanded(
+                        child: Text(
+                          item.creator,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontSize: 10,
+                            color: Colors.white60,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _TrendingFandomCarousel extends StatefulWidget {
+  const _TrendingFandomCarousel();
+
+  @override
+  State<_TrendingFandomCarousel> createState() =>
+      _TrendingFandomCarouselState();
+}
+
+class _TrendingFandomCarouselState extends State<_TrendingFandomCarousel> {
+  final PageController _controller = PageController(viewportFraction: 1.0);
+  int _currentPage = 0;
+  Timer? _autoScrollTimer;
+
+  static const _trendingCards = [
+    {
+      'fandom': 'Anime',
+      'title': 'Shinobi Rising & New Seasons',
+      'tag': '#1 TRENDING',
+      'desc': 'Original ninja sagas, creator profiles & combat galleries.',
+      'members': '12.4M fans',
+      'accentColor': Color(0xFFFFB74D),
+      'borderColor': Color(0xFFFF8C00),
+      'image': 'assets/trending_anime.jpg',
+      'icon': Icons.bolt,
+    },
+    {
+      'fandom': 'Gaming',
+      'title': 'Arena Champions 2026',
+      'tag': '#2 TRENDING',
+      'desc': 'Esports brackets, speedrunning lore & cyberpunk arenas.',
+      'members': '9.1M fans',
+      'accentColor': Color(0xFFE879F9),
+      'borderColor': Color(0xFFD946EF),
+      'image': 'assets/trending_gaming.jpg',
+      'icon': Icons.sports_esports,
+    },
+    {
+      'fandom': 'Comics',
+      'title': 'Multiverse Incursion Event',
+      'tag': '#3 TRENDING',
+      'desc': 'Variant timelines, superhero covers & cosmic crossovers.',
+      'members': '15.2M fans',
+      'accentColor': Color(0xFFF43F5E),
+      'borderColor': Color(0xFFE11D48),
+      'image': 'assets/trending_comics.jpg',
+      'icon': Icons.auto_awesome,
+    },
+    {
+      'fandom': 'Sci-Fi',
+      'title': 'Starship Odyssey Chronicles',
+      'tag': '#4 TRENDING',
+      'desc': 'Deep space arks, warp drive physics & alien homeworlds.',
+      'members': '6.8M fans',
+      'accentColor': Color(0xFF38BDF8),
+      'borderColor': Color(0xFF0EA5E9),
+      'image': 'assets/trending_scifi.jpg',
+      'icon': Icons.rocket_launch,
+    },
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    _startAutoScroll();
+  }
+
+  void _startAutoScroll() {
+    _autoScrollTimer = Timer.periodic(const Duration(seconds: 4), (_) {
+      if (!mounted) return;
+      final next = (_currentPage + 1) % _trendingCards.length;
+      _controller.animateToPage(
+        next,
+        duration: const Duration(milliseconds: 600),
+        curve: Curves.easeInOut,
+      );
+    });
+  }
+
+  @override
+  void dispose() {
+    _autoScrollTimer?.cancel();
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Section header
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(6),
+              decoration: BoxDecoration(
+                color: const Color(0xFFD946EF).withValues(alpha: 0.15),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.local_fire_department,
+                color: Color(0xFFD946EF),
+                size: 18,
+              ),
+            ),
+            const SizedBox(width: 8),
+            const Text(
+              'Trending Universes',
+              style: TextStyle(
+                fontSize: 19,
+                fontWeight: FontWeight.w900,
+                color: Colors.white,
+              ),
+            ),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(
+                color: const Color(0xFFD946EF).withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(99),
+                border: Border.all(
+                    color: const Color(0xFFD946EF).withValues(alpha: 0.3)),
+              ),
+              child: const Text(
+                'LIVE',
+                style: TextStyle(
+                  color: Color(0xFFE879F9),
+                  fontSize: 10,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 1.0,
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 14),
+        // Carousel
+        SizedBox(
+          // The card header can wrap on narrow displays, so reserve enough
+          // vertical space rather than clipping the final content row.
+          height: 242,
+          child: PageView.builder(
+            controller: _controller,
+            itemCount: _trendingCards.length,
+            onPageChanged: (idx) => setState(() => _currentPage = idx),
+            itemBuilder: (context, index) {
+              final card = _trendingCards[index];
+              final Color accent = card['accentColor'] as Color;
+              final Color border = card['borderColor'] as Color;
+              final IconData icon = card['icon'] as IconData;
+              return Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 0),
+                child: GestureDetector(
+                  onTap: () => Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (_) => ExploreScreen(
+                        initialCategory: card['fandom'] as String,
+                        standalone: true,
+                      ),
+                    ),
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(26),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(26),
+                        border: Border.all(
+                          color: border.withValues(alpha: 0.5),
+                          width: 1.5,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: accent.withValues(alpha: 0.25),
+                            blurRadius: 24,
+                            offset: const Offset(0, 10),
+                          ),
+                        ],
+                      ),
+                      child: Stack(
+                        fit: StackFit.expand,
+                        children: [
+                          // Background image
+                          Image.asset(
+                            card['image'] as String,
+                            fit: BoxFit.cover,
+                            alignment: Alignment.center,
+                            errorBuilder: (_, __, ___) => Container(
+                              color: const Color(0xFF1A0B2E),
+                              child: Icon(icon,
+                                  size: 80,
+                                  color: accent.withValues(alpha: 0.2)),
+                            ),
+                          ),
+                          // Premium Glassmorphic Gradient overlay
+                          Align(
+                            alignment: Alignment.bottomCenter,
+                            child: ClipRect(
+                              child: BackdropFilter(
+                                filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+                                child: Container(
+                                  height: 115,
+                                  decoration: BoxDecoration(
+                                    border: Border(
+                                        top: BorderSide(
+                                            color:
+                                                accent.withValues(alpha: 0.3),
+                                            width: 1)),
+                                    gradient: LinearGradient(
+                                      begin: Alignment.topCenter,
+                                      end: Alignment.bottomCenter,
+                                      colors: [
+                                        Colors.black.withValues(alpha: 0.2),
+                                        Colors.black.withValues(alpha: 0.7),
+                                        Colors.black.withValues(alpha: 0.95),
+                                      ],
+                                      stops: const [0.0, 0.4, 1.0],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                          // Content overlay
+                          Padding(
+                            padding: const EdgeInsets.all(18),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                // Top row: tag + icon
+                                Wrap(
+                                  spacing: 8,
+                                  runSpacing: 6,
+                                  crossAxisAlignment: WrapCrossAlignment.center,
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 10,
+                                        vertical: 5,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: Colors.black
+                                            .withValues(alpha: 0.55),
+                                        borderRadius: BorderRadius.circular(99),
+                                        border: Border.all(
+                                          color: accent.withValues(alpha: 0.7),
+                                          width: 1.2,
+                                        ),
+                                      ),
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Icon(Icons.local_fire_department,
+                                              color: accent, size: 11),
+                                          const SizedBox(width: 4),
+                                          Text(
+                                            card['tag'] as String,
+                                            style: TextStyle(
+                                              color: accent,
+                                              fontSize: 10,
+                                              fontWeight: FontWeight.w900,
+                                              letterSpacing: 0.5,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    // Members badge
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 8, vertical: 4),
+                                      decoration: BoxDecoration(
+                                        color:
+                                            Colors.black.withValues(alpha: 0.6),
+                                        borderRadius: BorderRadius.circular(99),
+                                        border:
+                                            Border.all(color: Colors.white24),
+                                      ),
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          const Icon(Icons.people,
+                                              color: Colors.white70, size: 11),
+                                          const SizedBox(width: 4),
+                                          Text(
+                                            card['members'] as String,
+                                            style: const TextStyle(
+                                              color: Colors.white70,
+                                              fontSize: 10,
+                                              fontWeight: FontWeight.w700,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const Spacer(),
+                                // Fandom label
+                                Row(
+                                  children: [
+                                    Icon(icon, color: accent, size: 14),
+                                    const SizedBox(width: 5),
+                                    Text(
+                                      (card['fandom'] as String).toUpperCase(),
+                                      style: TextStyle(
+                                        color: accent,
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w900,
+                                        letterSpacing: 1.0,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 4),
+                                // Title
+                                Text(
+                                  card['title'] as String,
+                                  style: const TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w900,
+                                    color: Colors.white,
+                                    height: 1.15,
+                                    shadows: [
+                                      Shadow(
+                                          color: Colors.black87, blurRadius: 8),
+                                    ],
+                                  ),
+                                ),
+                                const SizedBox(height: 5),
+                                // Description
+                                Text(
+                                  card['desc'] as String,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.white70,
+                                    height: 1.4,
+                                  ),
+                                ),
+                                const SizedBox(height: 10),
+                                // Explore CTA
+                                Row(
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 12, vertical: 6),
+                                      decoration: BoxDecoration(
+                                        gradient: LinearGradient(
+                                          colors: [
+                                            accent,
+                                            accent.withValues(alpha: 0.6)
+                                          ],
+                                        ),
+                                        borderRadius: BorderRadius.circular(99),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color:
+                                                accent.withValues(alpha: 0.4),
+                                            blurRadius: 10,
+                                          ),
+                                        ],
+                                      ),
+                                      child: const Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Text(
+                                            'Explore Universe',
+                                            style: TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 11,
+                                              fontWeight: FontWeight.w800,
+                                            ),
+                                          ),
+                                          SizedBox(width: 4),
+                                          Icon(Icons.arrow_forward,
+                                              color: Colors.white, size: 12),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+        const SizedBox(height: 12),
+        // Indicator dots
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: List.generate(
+            _trendingCards.length,
+            (idx) {
+              final Color accent =
+                  (_trendingCards[idx]['accentColor'] as Color);
+              return AnimatedContainer(
+                duration: const Duration(milliseconds: 300),
+                margin: const EdgeInsets.symmetric(horizontal: 3),
+                width: _currentPage == idx ? 24 : 7,
+                height: 7,
+                decoration: BoxDecoration(
+                  color: _currentPage == idx ? accent : Colors.white24,
+                  borderRadius: BorderRadius.circular(99),
+                  boxShadow: _currentPage == idx
+                      ? [
+                          BoxShadow(
+                            color: accent.withValues(alpha: 0.5),
+                            blurRadius: 6,
+                          ),
+                        ]
+                      : null,
+                ),
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _HubQuickCards extends StatelessWidget {
+  const _HubQuickCards();
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: InkWell(
+            borderRadius: BorderRadius.circular(20),
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (_) => const BeginnerHubScreen(),
+              ),
+            ),
+            child: Container(
+              clipBehavior: Clip.antiAlias,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(20),
+                gradient: const LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [Color(0xFF2A1154), Color(0xFF100622)],
+                ),
+                border: Border.all(
+                  color: const Color(0xFFA855F7).withValues(alpha: 0.4),
+                  width: 1.5,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFFA855F7).withValues(alpha: 0.2),
+                    blurRadius: 15,
+                    offset: const Offset(0, 5),
+                  ),
+                ],
+              ),
+              child: Stack(
+                children: [
+                  Positioned(
+                    right: -15,
+                    bottom: -15,
+                    child: Icon(Icons.eco,
+                        size: 90, color: Colors.white.withValues(alpha: 0.04)),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: const [
+                        CircleAvatar(
+                          radius: 18,
+                          backgroundColor: Color(0xFFA855F7),
+                          foregroundColor: Colors.white,
+                          child: Icon(Icons.eco, size: 20),
+                        ),
+                        SizedBox(height: 12),
+                        Text(
+                          'Beginner Hub',
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w900,
+                            color: Colors.white,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                        SizedBox(height: 4),
+                        Text(
+                          'Terminology glossary & stories for new fans.',
+                          style: TextStyle(
+                              fontSize: 11, color: Colors.white70, height: 1.3),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: InkWell(
+            borderRadius: BorderRadius.circular(20),
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(builder: (_) => const DeepDiveScreen()),
+            ),
+            child: Container(
+              clipBehavior: Clip.antiAlias,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(20),
+                gradient: const LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [Color(0xFF3B0B5E), Color(0xFF160326)],
+                ),
+                border: Border.all(
+                  color: const Color(0xFFD946EF).withValues(alpha: 0.4),
+                  width: 1.5,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFFD946EF).withValues(alpha: 0.2),
+                    blurRadius: 15,
+                    offset: const Offset(0, 5),
+                  ),
+                ],
+              ),
+              child: Stack(
+                children: [
+                  Positioned(
+                    right: -15,
+                    bottom: -15,
+                    child: Icon(Icons.psychology,
+                        size: 90, color: Colors.white.withValues(alpha: 0.04)),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: const [
+                        CircleAvatar(
+                          radius: 18,
+                          backgroundColor: Color(0xFFD946EF),
+                          foregroundColor: Colors.white,
+                          child: Icon(Icons.psychology, size: 20),
+                        ),
+                        SizedBox(height: 12),
+                        Text(
+                          'Deep Dive',
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w900,
+                            color: Colors.white,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                        SizedBox(height: 4),
+                        Text(
+                          'Hidden trivia, advanced lore & creator interviews.',
+                          style: TextStyle(
+                              fontSize: 11, color: Colors.white70, height: 1.3),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _CuratedMiniCard extends StatelessWidget {
+  const _CuratedMiniCard({required this.item});
+
+  final ContentItem item;
+
+  Color _getCategoryColor(String cat) {
+    switch (cat.toLowerCase()) {
+      case 'anime':
+        return const Color(0xFFFFB74D);
+      case 'gaming':
+        return const Color(0xFFE879F9);
+      case 'sci-fi':
+        return const Color(0xFF38BDF8);
+      case 'comics':
+        return const Color(0xFFF43F5E);
+      case 'fantasy':
+        return const Color(0xFFFACC15);
+      case 'art':
+        return const Color(0xFF2DD4BF);
+      default:
+        return const Color(0xFFA855F7);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final catColor = _getCategoryColor(item.category);
+    return InkWell(
+      borderRadius: BorderRadius.circular(16),
+      onTap: () => Navigator.of(context).push(
+        MaterialPageRoute<void>(
+          builder: (_) => ContentDetailScreen(item: item),
+        ),
+      ),
+      child: Container(
+        width: 210,
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(16),
+          color: const Color(0xFF160B28),
+          border: Border.all(color: catColor.withValues(alpha: 0.4)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.4),
+              blurRadius: 6,
+              offset: const Offset(0, 3),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 7,
+                    vertical: 3,
+                  ),
+                  decoration: BoxDecoration(
+                    color: catColor.withValues(alpha: 0.2),
+                    borderRadius: BorderRadius.circular(6),
+                    border: Border.all(color: catColor.withValues(alpha: 0.5)),
+                  ),
+                  child: Text(
+                    item.category.toUpperCase(),
+                    style: TextStyle(
+                      color: catColor,
+                      fontSize: 9,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                ),
+                const Spacer(),
+                Icon(Icons.arrow_forward_ios, size: 10, color: catColor),
+              ],
+            ),
+            const Spacer(),
+            Text(
+              item.title,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                fontWeight: FontWeight.w800,
+                fontSize: 13,
+                height: 1.2,
+                color: Colors.white,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'By ${item.creator}',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(fontSize: 10, color: Colors.white54),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
