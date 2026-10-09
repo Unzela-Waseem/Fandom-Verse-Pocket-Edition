@@ -40,14 +40,12 @@ class AdminDashboard extends ConsumerWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        _TopBar(
+                        _DashboardHeader(
                           profile: profile,
                           onSignOut: () =>
                               ref.read(authServiceProvider).signOut(),
                         ),
                         const SizedBox(height: 32),
-                        _WelcomePanel(profile: profile),
-                        const SizedBox(height: 40),
                         const _Heading(
                           title: 'Workspace Overview',
                           action: Text('See All', style: TextStyle(color: textMuted, fontWeight: FontWeight.bold)),
@@ -78,12 +76,6 @@ class AdminDashboard extends ConsumerWidget {
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: const Color(0xFF6D28D9),
-        onPressed: () {},
-        child: const Icon(Icons.dashboard_rounded, color: Colors.white),
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );
   }
 }
@@ -108,101 +100,8 @@ class _Heading extends StatelessWidget {
       );
 }
 
-class _WelcomePanel extends StatelessWidget {
-  const _WelcomePanel({required this.profile});
-  final AppUser profile;
-  
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFF6D28D9), Color(0xFF312E81)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(40),
-        border: Border.all(color: const Color(0xFFA78BFA).withValues(alpha: 0.4), width: 1.5),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF6D28D9).withValues(alpha: 0.3),
-            blurRadius: 36,
-            offset: const Offset(0, 16),
-          ),
-        ],
-      ),
-      child: Stack(
-        children: [
-          Positioned(
-            right: -30,
-            top: -30,
-            child: Container(
-              width: 200,
-              height: 200,
-              decoration: const BoxDecoration(
-                color: Color(0x22FFFFFF),
-                shape: BoxShape.circle,
-              ),
-            ),
-          ),
-          Positioned(
-            left: 50,
-            bottom: -50,
-            child: Container(
-              width: 150,
-              height: 150,
-              decoration: const BoxDecoration(
-                color: Color(0x11FFFFFF),
-                shape: BoxShape.circle,
-              ),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 40),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text('Fandom Verse', style: TextStyle(color: Colors.white, fontSize: 32, fontWeight: FontWeight.w900, height: 1.1, letterSpacing: -0.5)),
-                      const Text('Management Hub', style: TextStyle(color: Color(0xFFA78BFA), fontSize: 32, fontWeight: FontWeight.w900, height: 1.1, letterSpacing: -0.5)),
-                      const SizedBox(height: 12),
-                      const Text('Smart administration built for\nfaster community success.', style: TextStyle(color: Colors.white70, fontSize: 15, fontWeight: FontWeight.w700)),
-                      const SizedBox(height: 24),
-                      ElevatedButton(
-                        onPressed: () => Navigator.of(context).push(
-                          MaterialPageRoute<void>(builder: (_) => const AdminUsersScreen()),
-                        ),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.white,
-                          foregroundColor: const Color(0xFF312E81),
-                          elevation: 0,
-                          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-                        ),
-                        child: const Text('Start', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                      )
-                    ],
-                  ),
-                ),
-                if (MediaQuery.of(context).size.width > 600)
-                  const Padding(
-                    padding: EdgeInsets.only(right: 20),
-                    child: Icon(Icons.emoji_events_rounded, size: 100, color: Color(0xFFFFD700)),
-                  ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _TopBar extends StatelessWidget {
-  const _TopBar({required this.profile, required this.onSignOut});
+class _DashboardHeader extends StatelessWidget {
+  const _DashboardHeader({required this.profile, required this.onSignOut});
   final AppUser profile;
   final VoidCallback onSignOut;
 
@@ -211,72 +110,98 @@ class _TopBar extends StatelessWidget {
     final name = profile.displayName.trim().isEmpty
         ? 'Admin'
         : profile.displayName.trim().split(RegExp(r'\s+')).first;
-        
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Row(
-          children: [
-            const CircleAvatar(
-              radius: 26,
-              backgroundColor: Color(0xFF6D28D9),
-              child: Icon(Icons.face_retouching_natural_rounded, color: Colors.white, size: 30),
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Color(0xFF1E0D3A), Color(0xFF2D1B5E)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(28),
+        border: Border.all(color: const Color(0xFF6D28D9).withValues(alpha: 0.5), width: 1.5),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF6D28D9).withValues(alpha: 0.2),
+            blurRadius: 24,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 52,
+            height: 52,
+            decoration: BoxDecoration(
+              color: const Color(0xFF6D28D9).withValues(alpha: 0.3),
+              shape: BoxShape.circle,
+              border: Border.all(color: const Color(0xFFA78BFA).withValues(alpha: 0.5), width: 1.5),
             ),
-            const SizedBox(width: 16),
-            Column(
+            child: const Icon(Icons.admin_panel_settings_rounded, color: Color(0xFFA78BFA), size: 28),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Hey, $name', style: const TextStyle(color: AdminDashboard.textDark, fontSize: 20, fontWeight: FontWeight.w900, letterSpacing: -0.5)),
-                const Text('Administrator', style: TextStyle(color: AdminDashboard.textMuted, fontSize: 13, fontWeight: FontWeight.w700)),
+                Text(
+                  'Welcome back, $name',
+                  style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w900, letterSpacing: -0.3),
+                ),
+                const Text(
+                  'Admin Dashboard — Fandom Verse',
+                  style: TextStyle(color: Color(0xFFA78BFA), fontSize: 12, fontWeight: FontWeight.w600),
+                ),
               ],
             ),
-          ],
-        ),
-        Row(
-          children: [
-            Container(
-              width: 48,
-              height: 48,
+          ),
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: AdminDashboard.surface,
+              shape: BoxShape.circle,
+              border: Border.all(color: AdminDashboard.border),
+            ),
+            child: IconButton(
+              padding: EdgeInsets.zero,
+              icon: const Icon(Icons.notifications_outlined, color: AdminDashboard.textDark, size: 20),
+              onPressed: () {},
+            ),
+          ),
+          const SizedBox(width: 8),
+          PopupMenuButton<int>(
+            color: AdminDashboard.surface,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            onSelected: (value) {
+              if (value == 1) onSignOut();
+            },
+            itemBuilder: (_) => const [
+              PopupMenuItem(
+                value: 1,
+                child: Row(children: [
+                  Icon(Icons.logout_rounded, color: Color(0xFFFF5252)),
+                  SizedBox(width: 10),
+                  Text('Sign Out', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                ]),
+              ),
+            ],
+            child: Container(
+              width: 44,
+              height: 44,
               decoration: BoxDecoration(
                 color: AdminDashboard.surface,
                 shape: BoxShape.circle,
-                border: Border.all(color: AdminDashboard.border)
+                border: Border.all(color: AdminDashboard.border),
               ),
-              child: IconButton(
-                icon: const Icon(Icons.notifications_outlined, color: AdminDashboard.textDark),
-                onPressed: () {},
-              ),
+              child: const Icon(Icons.more_vert_rounded, color: AdminDashboard.textDark, size: 20),
             ),
-            const SizedBox(width: 12),
-            PopupMenuButton<int>(
-              color: AdminDashboard.surface,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-              onSelected: (value) {
-                if (value == 1) onSignOut();
-              },
-              itemBuilder: (_) => const [
-                PopupMenuItem(
-                    value: 1,
-                    child: Row(children: [
-                      Icon(Icons.logout_rounded, color: Color(0xFFFF5252)),
-                      SizedBox(width: 10),
-                      Text('Sign out', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold))
-                    ]))
-              ],
-              child: Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
-                  color: AdminDashboard.surface,
-                  shape: BoxShape.circle,
-                  border: Border.all(color: AdminDashboard.border)
-                ),
-                child: const Icon(Icons.more_vert_rounded, color: AdminDashboard.textDark),
-              ),
-            ),
-          ],
-        ),
-      ],
+          ),
+        ],
+      ),
     );
   }
 }
@@ -377,8 +302,8 @@ class _MetricCard extends StatelessWidget {
                 children: [
                   Text(count == null ? '—' : _count(count), style: const TextStyle(color: AdminDashboard.textDark, fontSize: 34, fontWeight: FontWeight.w900, height: 1, letterSpacing: -1)),
                   const SizedBox(width: 6),
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 6),
+                  const Padding(
+                    padding: EdgeInsets.only(bottom: 6),
                     child: Text('Total', style: TextStyle(color: AdminDashboard.textMuted, fontWeight: FontWeight.w800, fontSize: 11)),
                   ),
                 ],
@@ -448,7 +373,7 @@ class _ModuleCard extends StatelessWidget {
                     children: [
                       const _AvatarStack(),
                       const SizedBox(width: 8),
-                      Expanded(child: Text(module.subtitle, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(color: AdminDashboard.textMuted, fontSize: 12, fontWeight: FontWeight.w800))),
+                      Expanded(child: Text(module.subtitle, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: AdminDashboard.textMuted, fontSize: 12, fontWeight: FontWeight.w800))),
                     ],
                   ),
                 ],
@@ -475,11 +400,11 @@ class _AvatarStack extends StatelessWidget {
   const _AvatarStack();
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
+    return const SizedBox(
       width: 54,
       height: 22,
       child: Stack(
-        children: const [
+        children: [
           Positioned(left: 0, child: _Av(Color(0xFFFFA7A7))),
           Positioned(left: 14, child: _Av(Color(0xFF8C9EFF))),
           Positioned(left: 28, child: _Av(Color(0xFF69F0AE))),
