@@ -111,71 +111,86 @@ class _DashboardHeader extends StatelessWidget {
         ? 'Admin'
         : profile.displayName.trim().split(RegExp(r'\s+')).first;
 
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFF1E0D3A), Color(0xFF2D1B5E)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
+    return Row(
+      children: [
+        // Avatar circle — same style as fan shell
+        Container(
+          width: 46,
+          height: 46,
+          decoration: BoxDecoration(
+            color: const Color(0xFF180A2E),
+            shape: BoxShape.circle,
+            border: Border.all(
+              color: const Color(0xFFA855F7).withValues(alpha: 0.5),
+              width: 1.5,
+            ),
+          ),
+          child: const Icon(
+            Icons.admin_panel_settings_rounded,
+            color: Color(0xFFE9D5FF),
+            size: 24,
+          ),
         ),
-        borderRadius: BorderRadius.circular(28),
-        border: Border.all(color: const Color(0xFF6D28D9).withValues(alpha: 0.5), width: 1.5),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF6D28D9).withValues(alpha: 0.2),
-            blurRadius: 24,
-            offset: const Offset(0, 8),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 52,
-            height: 52,
-            decoration: BoxDecoration(
-              color: const Color(0xFF6D28D9).withValues(alpha: 0.3),
-              shape: BoxShape.circle,
-              border: Border.all(color: const Color(0xFFA78BFA).withValues(alpha: 0.5), width: 1.5),
-            ),
-            child: const Icon(Icons.admin_panel_settings_rounded, color: Color(0xFFA78BFA), size: 28),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Welcome back, $name',
-                  style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w900, letterSpacing: -0.3),
+        const SizedBox(width: 12),
+        // Welcome text — same as fan shell
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Welcome back',
+                style: TextStyle(
+                  color: Color(0xFFC084FC),
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
                 ),
-                const Text(
-                  'Admin Dashboard — Fandom Verse',
-                  style: TextStyle(color: Color(0xFFA78BFA), fontSize: 12, fontWeight: FontWeight.w600),
+              ),
+              Text(
+                name,
+                style: const TextStyle(
+                  fontWeight: FontWeight.w900,
+                  fontSize: 17,
+                  color: Colors.white,
                 ),
-              ],
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ),
+        ),
+        // Notification button
+        Container(
+          decoration: BoxDecoration(
+            color: const Color(0xFF1C0D38),
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(
+              color: const Color(0xFFA855F7).withValues(alpha: 0.3),
             ),
           ),
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              color: AdminDashboard.surface,
-              shape: BoxShape.circle,
-              border: Border.all(color: AdminDashboard.border),
-            ),
-            child: IconButton(
-              padding: EdgeInsets.zero,
-              icon: const Icon(Icons.notifications_outlined, color: AdminDashboard.textDark, size: 20),
-              onPressed: () {},
+          child: IconButton(
+            icon: const Icon(Icons.notifications_outlined, color: Color(0xFFE9D5FF), size: 20),
+            onPressed: () {},
+          ),
+        ),
+        const SizedBox(width: 8),
+        // More / Sign out menu
+        Container(
+          decoration: BoxDecoration(
+            color: const Color(0xFF1C0D38),
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(
+              color: const Color(0xFFA855F7).withValues(alpha: 0.3),
             ),
           ),
-          const SizedBox(width: 8),
-          PopupMenuButton<int>(
-            color: AdminDashboard.surface,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          child: PopupMenuButton<int>(
+            icon: const Icon(Icons.more_vert, color: Color(0xFFE9D5FF)),
+            color: const Color(0xFF1C0D38),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(14),
+              side: BorderSide(
+                color: const Color(0xFFA855F7).withValues(alpha: 0.3),
+              ),
+            ),
             onSelected: (value) {
               if (value == 1) onSignOut();
             },
@@ -189,19 +204,9 @@ class _DashboardHeader extends StatelessWidget {
                 ]),
               ),
             ],
-            child: Container(
-              width: 44,
-              height: 44,
-              decoration: BoxDecoration(
-                color: AdminDashboard.surface,
-                shape: BoxShape.circle,
-                border: Border.all(color: AdminDashboard.border),
-              ),
-              child: const Icon(Icons.more_vert_rounded, color: AdminDashboard.textDark, size: 20),
-            ),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
